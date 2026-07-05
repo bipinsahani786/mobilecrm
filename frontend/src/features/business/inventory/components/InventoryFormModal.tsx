@@ -1,0 +1,137 @@
+import { useEffect } from 'react';
+import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { productSchema } from '../schemas/productSchema';
+import { toast } from 'sonner';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
+import { Loader2, Package } from 'lucide-react';
+import { useCreateProduct, useUpdateProduct, useBrands } from '../api/useInventory';
+import type { Product, ProductFormValues } from '../api/useInventory';
+import { DynamicForm } from '@/components/ui/dynamic-form';
+import { getInventoryFormConfig } from '../constants/inventoryForm';
+import { useCategories } from '../api/useCategories';
+
+interface InventoryFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  productToEdit?: Product | null;
+}
+
+export function InventoryFormModal({ isOpen, onClose, productToEdit }: InventoryFormModalProps) {
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.data || [];
+  const { data: brandsData } = useBrands();
+  const brands: string[] = Array.isArray(brandsData) ? brandsData : [];
+
+  const form = useForm({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      category_id: 0,
+      brand: '',
+      model_name: '',
+      imei: '',
+      serial_no: '',
+      variant: '',
+      purchase_price: 0,
+      mrp: 0,
+      quantity: 0,
+      supplier_id: null,
+      status: 'in_stock'
+    }
+  });
+
+  const { reset, control, formState: { isSubmitting, errors } } = form;
+
+  const createMutation = useCreateProduct();
+  const updateMutation = useUpdateProduct();
+
+  useEffect(() => {
+    if (productToEdit) {
+      reset({
+        category_id: productToEdit.category_id,
+        brand: productToEdit.brand,
+        model_name: productToEdit.model_name,
+        imei: productToEdit.imei || '',
+        serial_no: productToEdit.serial_no || '',
+        variant: productToEdit.variant || '',
+        purchase_price: productToEdit.purchase_price,
+        mrp: productToEdit.mrp,
+        quantity: productToEdit.quantity,
+        supplier_id: productToEdit.supplier_id,
+        status: productToEdit.status,
+      });
+    } else {
+      reset({
+        category_id: 0,
+        brand: '',
+        model_name: '',
+        imei: '',
+        serial_no: '',
+        variant: '',
+        purchase_price: 0,
+        mrp: 0,
+        quantity: 0,
+        supplier_id: null,
+        status: 'in_stock'
+      });
+    }
+  }, [productToEdit, reset, isOpen]);
+
+  if (!isOpen) return null;
+
+  const onSubmit: SubmitHandler<ProductFormValues> = async (data) => {
+    try {
+      if (productToEdit) {
+        await updateMutation.mutateAsync({ id: productToEdit.id, data });
+        toast.success('Product updated successfully');
+      } else {
+        await createMutation.mutateAsync(data);
+        toast.success('Product created successfully');
+      }
+      onClose();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Something went wrong');
+    }
+  };
+
+  return (
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title={
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-500/10 border border-primary-100 dark:border-primary-500/20 flex items-center justify-center">
+            <Package className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+          </div>
+          {productToEdit ? 'Edit Product' : 'Add New Product'}
+        </div>
+      }
+      maxWidth="2xl"
+      footer={
+        <>
+          <Button variant="ghost" size="sm" type="button" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button size="sm" type="submit" form="product-form" disabled={isSubmitting} className="bg-primary-500 hover:bg-primary-600 text-white">
+            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {productToEdit ? 'Save Changes' : 'Add Product'}
+          </Button>
+        </>
+      }
+    >
+      <DynamicForm 
+        id="product-form"
+        form={form}
+        onSubmit={onSubmit}
+        sections={getInventoryFormConfig(
+          [
+            { value: 0, label: 'Select a category' },
+            ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+          ],
+          brands.map(brand => ({ value: brand, label: brand }))
+        )}
+      />
+    </Modal>
+  );
+}

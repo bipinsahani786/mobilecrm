@@ -1,0 +1,3676 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "MobileCRM API Documentation",
+        "description": "MobileCRM API",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000/api/v1",
+            "description": "Local API Server"
+        }
+    ],
+    "paths": {
+        "/check-user": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Check if user exists",
+                "description": "Checks if an email or phone number is already registered in the system.",
+                "operationId": "070cb44775738d8216ef0e8436594b9d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "9999999999"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful check",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "exists": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/send-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Send OTP",
+                "description": "Sends a 6-digit OTP to the provided Email or Mobile Number.",
+                "operationId": "a59c08272e11b8590aba48e73f8d4c80",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "description": "Email or Mobile Number",
+                                        "type": "string",
+                                        "example": "9999999999"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP Sent successfully"
+                    }
+                }
+            }
+        },
+        "/verify-otp": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Verify OTP",
+                "description": "Verifies the OTP and returns a verification token to set the password.",
+                "operationId": "90ba319582b91e975d64eb01b6436a65",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier",
+                                    "otp"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "type": "string",
+                                        "example": "9999999999"
+                                    },
+                                    "otp": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OTP Verified"
+                    },
+                    "400": {
+                        "description": "Invalid OTP"
+                    }
+                }
+            }
+        },
+        "/set-password": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Set Password & Register",
+                "description": "Creates the user account after OTP verification.",
+                "operationId": "5e86812294b5fe5e77912ce9dd6b2dbc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "verification_token",
+                                    "name",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "verification_token": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Business Owner"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registration successful"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login User",
+                "description": "Logs in a user using Email/Mobile and Password.",
+                "operationId": "67d6d0fdd54fba132e1b6f55ca254183",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "identifier",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "identifier": {
+                                        "description": "Email or Mobile",
+                                        "type": "string",
+                                        "example": "superadmin@mobilecrm.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "password123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful login"
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Logout User",
+                "description": "Revokes the current user access token.",
+                "operationId": "28d48c13fca984400ac8de99f54ee13a",
+                "responses": {
+                    "200": {
+                        "description": "Successful logout"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/business/categories": {
+            "get": {
+                "tags": [
+                    "Business - Categories"
+                ],
+                "summary": "List Categories",
+                "description": "Get a list of all product categories for the active business.",
+                "operationId": "ecc1733e4fe7466b0f58cc7d52c55973",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Business - Categories"
+                ],
+                "summary": "Create Category",
+                "description": "Creates a new product category.",
+                "operationId": "9f4c0f5aac569ff128af3f7415732442",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/business/categories/{id}": {
+            "get": {
+                "tags": [
+                    "Business - Categories"
+                ],
+                "summary": "Get Category",
+                "description": "Get details of a specific category.",
+                "operationId": "0cda17c0228a83a5ba51331ad5643e0e",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Business - Categories"
+                ],
+                "summary": "Delete Category",
+                "description": "Deletes a product category.",
+                "operationId": "ec1981159c0ecd056fb5d4b4700287d1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Category deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Business - Categories"
+                ],
+                "summary": "Update Category",
+                "description": "Updates a specific product category.",
+                "operationId": "e1ba2c945e8d0c12c60bb0e69cd4d567",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Category updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/business/inventory": {
+            "get": {
+                "tags": [
+                    "Business - Inventory"
+                ],
+                "summary": "List Inventory Products",
+                "description": "Get a paginated list of all products for the active business.",
+                "operationId": "54dc2b287562c23776615aa141b1fc8b",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Business - Inventory"
+                ],
+                "summary": "Create Product",
+                "description": "Adds a new product to the inventory.",
+                "operationId": "f72d19ce68265fdb7e130ff61677562f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "category_id",
+                                    "brand",
+                                    "model_name",
+                                    "purchase_price",
+                                    "mrp",
+                                    "quantity"
+                                ],
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "brand": {
+                                        "type": "string"
+                                    },
+                                    "model_name": {
+                                        "type": "string"
+                                    },
+                                    "imei": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "serial_no": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "variant": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "purchase_price": {
+                                        "type": "number"
+                                    },
+                                    "mrp": {
+                                        "type": "number"
+                                    },
+                                    "quantity": {
+                                        "type": "integer"
+                                    },
+                                    "supplier_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Product created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/business/inventory/{id}": {
+            "get": {
+                "tags": [
+                    "Business - Inventory"
+                ],
+                "summary": "Get Product",
+                "description": "Get details of a specific product.",
+                "operationId": "d39bf476ec82562b296e6a1edad642f3",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Business - Inventory"
+                ],
+                "summary": "Delete Product",
+                "description": "Deletes a product from the inventory.",
+                "operationId": "42b817c7ffc32fe21167396f5d5c8a1b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Product deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Business - Inventory"
+                ],
+                "summary": "Update Product",
+                "description": "Updates a specific product in the inventory.",
+                "operationId": "234a1228d4fcf85e1f101df66a4d4069",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "category_id": {
+                                        "type": "integer"
+                                    },
+                                    "brand": {
+                                        "type": "string"
+                                    },
+                                    "model_name": {
+                                        "type": "string"
+                                    },
+                                    "imei": {
+                                        "type": "string",
+                                        "nullable": true
+                                    },
+                                    "purchase_price": {
+                                        "type": "number"
+                                    },
+                                    "mrp": {
+                                        "type": "number"
+                                    },
+                                    "quantity": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Product updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/businesses": {
+            "get": {
+                "tags": [
+                    "Businesses"
+                ],
+                "summary": "Get all businesses for user",
+                "operationId": "28485f962a42d0e4dece77ef79d7ae25",
+                "responses": {
+                    "200": {
+                        "description": "List of businesses"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Businesses"
+                ],
+                "summary": "Create a new business",
+                "operationId": "026c31bd66a55ac57dd5433b63183bd0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "address": {
+                                        "type": "string"
+                                    },
+                                    "logo_path": {
+                                        "type": "string"
+                                    },
+                                    "signature_path": {
+                                        "type": "string"
+                                    },
+                                    "card_preferences": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Business created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/businesses/{business}": {
+            "get": {
+                "tags": [
+                    "Businesses"
+                ],
+                "summary": "Get a specific business",
+                "operationId": "e1428a8ca391f100ca10d97924a4a553",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Business details"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Businesses"
+                ],
+                "summary": "Update a business",
+                "operationId": "4a1596d91e3cfbddb5beb13c292f40b1",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "card_preferences": {
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Business updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Businesses"
+                ],
+                "summary": "Delete a business",
+                "operationId": "ca7721bd1965d68ce568d269318e2ae9",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Business deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/register": {
+            "post": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Partner Self-Registration",
+                "description": "Allows a new partner to self-register publically.",
+                "operationId": "205021599080e393bc94ed7eda1a9182",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password",
+                                    "password_confirmation",
+                                    "verification_token"
+                                ],
+                                "properties": {
+                                    "verification_token": {
+                                        "type": "string"
+                                    },
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "company_name": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Partner registration successful"
+                    }
+                }
+            }
+        },
+        "/partner/dashboard": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Partner Dashboard Stats",
+                "description": "Get metrics and recent activity for the partner dashboard.",
+                "operationId": "ca502ffe77f57c9b70ca46dccd56af00",
+                "responses": {
+                    "200": {
+                        "description": "Dashboard stats retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/referrals": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "List Partner Referrals",
+                "description": "Get paginated list of referred businesses for the logged-in partner.",
+                "operationId": "7dc606946b1f357d34d20b4eb9ef759a",
+                "responses": {
+                    "200": {
+                        "description": "Referrals retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/referrals/{id}": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Referral Details",
+                "description": "Get details of a specific referral including their commission history.",
+                "operationId": "494cec0965060bb8fbf7e63ef53eed67",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Referral detail retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/referral-link": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Get Referral Link",
+                "description": "Get the unique referral link and code for the logged-in partner.",
+                "operationId": "d1b68b6109ebe2c6ecdc5c36e81eb34b",
+                "responses": {
+                    "200": {
+                        "description": "Referral link retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/commissions": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "List Partner Commissions",
+                "description": "Get paginated list of commissions for the logged-in partner.",
+                "operationId": "20f60e86d574693d99859bc3794b40f6",
+                "responses": {
+                    "200": {
+                        "description": "Commissions retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/commissions/stats": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Commission Stats",
+                "description": "Get total, pending, and paid commission stats for the logged-in partner.",
+                "operationId": "4e5ddfe1da3bf3dc9c270e0504d2b9b1",
+                "responses": {
+                    "200": {
+                        "description": "Commission stats retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/payouts": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "List Partner Payout Requests",
+                "description": "Get paginated list of payout requests for the logged-in partner.",
+                "operationId": "e1b7aeda8398ec82403c263b5b7f386d",
+                "responses": {
+                    "200": {
+                        "description": "Payouts retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Create Payout Request",
+                "description": "Create a new payout request to withdraw available funds.",
+                "operationId": "62cab12c45ec335b83835552058242db",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "number"
+                                    },
+                                    "notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout request created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/profile": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Get Partner Profile",
+                "description": "Get the partner profile and payout details.",
+                "operationId": "2acd8f7f574de0302068c93b2d843f57",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Update Partner Profile",
+                "description": "Update partner general profile information.",
+                "operationId": "6cb252d55f8b624c8214948c77c0506b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "company_name": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/payout-details": {
+            "patch": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Update Payout Details",
+                "description": "Update partner bank or UPI details for receiving payouts.",
+                "operationId": "b3baaebfde4269b0b9d85e265bd30109",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "bank_name": {
+                                        "type": "string"
+                                    },
+                                    "account_number": {
+                                        "type": "string"
+                                    },
+                                    "ifsc_code": {
+                                        "type": "string"
+                                    },
+                                    "account_holder_name": {
+                                        "type": "string"
+                                    },
+                                    "upi_id": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout details updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/change-password": {
+            "post": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Change Password",
+                "description": "Change the password of the logged-in partner user.",
+                "operationId": "29df0029ce441354d88b41760faf370a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/plans": {
+            "get": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "List Active Plans",
+                "description": "Get all active subscription plans for onboarding clients.",
+                "operationId": "227f6d2378b9d78716ab3465e78367e1",
+                "responses": {
+                    "200": {
+                        "description": "Plans retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/clients/onboard": {
+            "post": {
+                "tags": [
+                    "Partner Portal"
+                ],
+                "summary": "Onboard New Client",
+                "description": "Allows a partner to onboard a new business directly.",
+                "operationId": "5f6e8a6c28a5fbf18f6bcd03bb4d02b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "owner_name",
+                                    "owner_email",
+                                    "owner_password",
+                                    "business_name",
+                                    "payment_method"
+                                ],
+                                "properties": {
+                                    "owner_name": {
+                                        "type": "string"
+                                    },
+                                    "owner_email": {
+                                        "type": "string"
+                                    },
+                                    "owner_password": {
+                                        "type": "string"
+                                    },
+                                    "business_name": {
+                                        "type": "string"
+                                    },
+                                    "plan_id": {
+                                        "type": "integer"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "online",
+                                            "offline"
+                                        ]
+                                    },
+                                    "amount_paid": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Client onboarded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/resources": {
+            "get": {
+                "tags": [
+                    "Partner - Resources"
+                ],
+                "summary": "List active marketing assets",
+                "description": "Get a list of all active partner resources.",
+                "operationId": "a821486a1f4e13ccd0b29b733b2853ae",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/partner/resources/{id}/download": {
+            "get": {
+                "tags": [
+                    "Partner - Resources"
+                ],
+                "summary": "Download a marketing asset",
+                "description": "Download the file associated with a resource.",
+                "operationId": "87ceb36a5b09833c442414daabdadcd5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "File download"
+                    },
+                    "404": {
+                        "description": "File not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/profile": {
+            "get": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Get Current User Profile",
+                "description": "Returns the authenticated user's profile data.",
+                "operationId": "c6a79007a56511faa6f48397a2d15867",
+                "responses": {
+                    "200": {
+                        "description": "Profile retrieved"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Update Profile",
+                "description": "Update the authenticated user's name, email, or phone.",
+                "operationId": "d1c3b81f30fa79b3c58abc6a4d02a55d",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profile updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/profile/avatar": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Upload Avatar",
+                "description": "Upload or replace the user's profile photo to Cloudflare R2.",
+                "operationId": "f821c4c6e7a828ccc615ac2f50158e15",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "avatar": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Avatar uploaded"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Remove Avatar",
+                "description": "Remove the user's profile photo from R2.",
+                "operationId": "1a748a75cad3dac4d24b976d60ad1e11",
+                "responses": {
+                    "200": {
+                        "description": "Avatar removed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/profile/password": {
+            "post": {
+                "tags": [
+                    "Profile"
+                ],
+                "summary": "Change Password",
+                "description": "Change the authenticated user's password.",
+                "operationId": "ef6eb7af4cb5d6199ce6a4ad330351cb",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "current_password",
+                                    "new_password",
+                                    "new_password_confirmation"
+                                ],
+                                "properties": {
+                                    "current_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password": {
+                                        "type": "string"
+                                    },
+                                    "new_password_confirmation": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Password changed"
+                    },
+                    "422": {
+                        "description": "Validation failed"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/bulk-message": {
+            "post": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Send Bulk Message to Leads",
+                "description": "Queue a bulk message (Email/WhatsApp) to selected leads using a template.",
+                "operationId": "abece768c4b2da79969ee794691e850e",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "lead_ids",
+                                    "template_id"
+                                ],
+                                "properties": {
+                                    "lead_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "template_id": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Bulk message queued successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/commissions": {
+            "get": {
+                "tags": [
+                    "Superadmin - Commissions"
+                ],
+                "summary": "List Commissions",
+                "description": "Get a list of all commissions generated by partners.",
+                "operationId": "fd1241625bbe823a1fc726dc803805cc",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/commissions/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Commissions"
+                ],
+                "summary": "Get Commission Details",
+                "description": "Retrieves a single commission with its associated partner, business, and plan details.",
+                "operationId": "9b3d282b96a1c1ed9c4e7f0228852966",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Commission not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/commissions/{id}/mark-paid": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Commissions"
+                ],
+                "summary": "Mark Commission as Paid",
+                "description": "Updates a pending commission to paid status.",
+                "operationId": "9c4c6b5b955d73825d336361d417575a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Commission marked as paid"
+                    },
+                    "400": {
+                        "description": "Commission is already paid"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads": {
+            "get": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "List Leads",
+                "operationId": "41eb993cb74ba368e93e0b4eccbc4c19",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Create Lead",
+                "operationId": "da30279634ff6596082f8103085bca24",
+                "responses": {
+                    "200": {
+                        "description": "Created"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/stats": {
+            "get": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Get Leads Stats",
+                "operationId": "e33673ca2b1d2f8720e3f1bf44b30191",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Get Lead",
+                "operationId": "cbe835345384381df72868f6a4530201",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Delete Lead",
+                "operationId": "1ca47bad98dd578597a04269cb8b1c02",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Update Lead",
+                "operationId": "c3389124da1aaebcc45250d44a1ea304",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/{id}/contacts": {
+            "get": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "List Contact History",
+                "operationId": "45b68a76a9c06537461c242c5127649b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Log Contact",
+                "operationId": "cf9869bff98a293fd129b8fb040571a7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Logged"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/{leadId}/contacts/{contactId}": {
+            "delete": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Delete Contact Entry",
+                "operationId": "c501ca7024fd43189b0d07e3cf6cb6ab",
+                "parameters": [
+                    {
+                        "name": "leadId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "contactId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Deleted"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/leads/import": {
+            "post": {
+                "tags": [
+                    "Superadmin - Leads"
+                ],
+                "summary": "Import Leads from Excel/CSV",
+                "operationId": "b70863bb667f82129bc083af9c18cafc",
+                "responses": {
+                    "200": {
+                        "description": "Imported"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/message-logs": {
+            "get": {
+                "tags": [
+                    "Superadmin - Message Logs"
+                ],
+                "summary": "List Message Logs",
+                "description": "Get paginated history of sent messages.",
+                "operationId": "3055a8d94c759842e572a4b32096a1cd",
+                "responses": {
+                    "200": {
+                        "description": "Message logs retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/partners": {
+            "get": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "List Partners",
+                "description": "Get a list of all partners with their business count.",
+                "operationId": "8e365a014304a1d10fd01739c5932589",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "Create Partner",
+                "description": "Creates a new partner.",
+                "operationId": "8c4f2c2af129884edf55a006180c4b75",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "commission_type",
+                                    "commission_value"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "company_name": {
+                                        "type": "string"
+                                    },
+                                    "commission_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "percentage",
+                                            "fixed"
+                                        ]
+                                    },
+                                    "commission_value": {
+                                        "type": "number"
+                                    },
+                                    "is_recurring_commission": {
+                                        "type": "boolean"
+                                    },
+                                    "custom_domain": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Partner created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/partners/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "Get Partner Details",
+                "description": "Retrieves a single partner with their associated businesses and plans.",
+                "operationId": "eaed8775c1bf557687d171184f145c67",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Partner not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "Delete Partner",
+                "description": "Deletes a partner from the system.",
+                "operationId": "bce67007cbbbf8865d4406bf95115a2d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Partner deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "Update Partner",
+                "description": "Updates an existing partner details.",
+                "operationId": "03d86d5f52a4716b44c719a0d74b277f",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "company_name": {
+                                        "type": "string"
+                                    },
+                                    "commission_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "percentage",
+                                            "fixed"
+                                        ]
+                                    },
+                                    "commission_value": {
+                                        "type": "number"
+                                    },
+                                    "is_recurring_commission": {
+                                        "type": "boolean"
+                                    },
+                                    "custom_domain": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Partner updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/partners/{id}/analytics": {
+            "get": {
+                "tags": [
+                    "Superadmin - Partners"
+                ],
+                "summary": "Get Partner Analytics",
+                "description": "Retrieves metrics, conversion rates, commissions payouts, and recent referred history.",
+                "operationId": "297a8037740450c27e37df70fdc3d9f2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Partner not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/partner-resources": {
+            "get": {
+                "tags": [
+                    "Superadmin - Partner Resources"
+                ],
+                "summary": "List Partner Resources",
+                "description": "Get a list of all partner resources.",
+                "operationId": "bf81f8dd1b384cf98d1d159c731eaa54",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Partner Resources"
+                ],
+                "summary": "Create Partner Resource",
+                "description": "Create a new marketing asset record after uploading the file via presigned URL.",
+                "operationId": "a9e8a689fa72d8de490f623df0f814a2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "file_path",
+                                    "file_type",
+                                    "file_size"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "file_path": {
+                                        "type": "string"
+                                    },
+                                    "file_type": {
+                                        "type": "string"
+                                    },
+                                    "file_size": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Resource uploaded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/partner-resources/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Partner Resources"
+                ],
+                "summary": "Get Partner Resource",
+                "description": "Get details of a specific partner resource.",
+                "operationId": "caac73adc5c7547004dfa532bb89e55d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Superadmin - Partner Resources"
+                ],
+                "summary": "Update Partner Resource",
+                "description": "Update an existing marketing asset after uploading the file via presigned URL.",
+                "operationId": "bdca708b95a0a9d74e354d07a1102e35",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    },
+                                    "file_path": {
+                                        "type": "string"
+                                    },
+                                    "file_type": {
+                                        "type": "string"
+                                    },
+                                    "file_size": {
+                                        "type": "integer"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Resource updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Superadmin - Partner Resources"
+                ],
+                "summary": "Delete Partner Resource",
+                "description": "Delete a marketing asset.",
+                "operationId": "518ef2dce289d903b57e854f21a34e2d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resource deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts": {
+            "get": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "List Payout Requests",
+                "description": "Get a paginated list of all payout requests across all partners.",
+                "operationId": "9e4a157fcd1b65ba9e096bd7aeace79f",
+                "responses": {
+                    "200": {
+                        "description": "Payout requests retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "Payout Request Details",
+                "description": "Get details of a single payout request.",
+                "operationId": "6cf4f5ef263e1b2c6dde0d44aaeda784",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Payout request retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts/{id}/approve": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "Approve Payout Request",
+                "description": "Approve a pending payout request and optionally add admin notes.",
+                "operationId": "8c89ea87f7b2f70176264420194aab8a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "admin_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout request approved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts/{id}/reject": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "Reject Payout Request",
+                "description": "Reject a pending payout request and optionally add admin notes.",
+                "operationId": "2b5857dc0e32f699a42c65867fa49591",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "admin_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout request rejected"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts/{id}/paid": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "Mark Payout as Paid",
+                "description": "Mark an approved payout request as paid by providing a payment reference (UTR).",
+                "operationId": "87b7932bc68cc1220a7473b3e7a5d8a6",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "payment_reference"
+                                ],
+                                "properties": {
+                                    "payment_reference": {
+                                        "type": "string"
+                                    },
+                                    "admin_notes": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payout marked as paid successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/payouts/stats": {
+            "get": {
+                "tags": [
+                    "Superadmin - Payouts"
+                ],
+                "summary": "Payout Stats",
+                "description": "Summary statistics for all payout requests.",
+                "operationId": "5ed4bc988f283fc3d074eb21bf1c6d76",
+                "responses": {
+                    "200": {
+                        "description": "Payout stats retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/plans": {
+            "get": {
+                "tags": [
+                    "Superadmin - Plans"
+                ],
+                "summary": "List Subscription Plans",
+                "description": "Get a list of all plans with optional status, search, and sorting filters.",
+                "operationId": "64e8534ef7d5f2b8dcaf2a3f7993e864",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Plans"
+                ],
+                "summary": "Create Subscription Plan",
+                "description": "Creates a new subscription plan with name, price, and features list.",
+                "operationId": "22983e28663561474ac5b5ac66373c7b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "price_monthly",
+                                    "price_yearly"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "price_monthly": {
+                                        "type": "number"
+                                    },
+                                    "price_yearly": {
+                                        "type": "number"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Plan created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/plans/{id}": {
+            "delete": {
+                "tags": [
+                    "Superadmin - Plans"
+                ],
+                "summary": "Delete Subscription Plan",
+                "description": "Deletes a plan. Fails if the plan has active businesses attached.",
+                "operationId": "2062d5b5073e10d96339a0d26a26ef54",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Plan deleted successfully"
+                    },
+                    "400": {
+                        "description": "Cannot delete plan due to constraints"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Superadmin - Plans"
+                ],
+                "summary": "Update Subscription Plan",
+                "description": "Updates plan configuration and toggles features.",
+                "operationId": "fad134ebe98d425f41d0dd2516c4f6f8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "price_monthly": {
+                                        "type": "number"
+                                    },
+                                    "price_yearly": {
+                                        "type": "number"
+                                    },
+                                    "features": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan updated successfully"
+                    },
+                    "404": {
+                        "description": "Plan not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/dashboard/stats": {
+            "get": {
+                "tags": [
+                    "Superadmin - Dashboard"
+                ],
+                "summary": "Get Superadmin Dashboard Statistics",
+                "description": "Retrieves overall dashboard KPIs, revenue analytics, lead pipelines, best performers, and upcoming renewals.",
+                "operationId": "264672a5d56e06df69358fdc4f77868c",
+                "parameters": [
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/templates": {
+            "get": {
+                "tags": [
+                    "Superadmin - Templates"
+                ],
+                "summary": "List Templates",
+                "description": "Get all message templates (email, whatsapp).",
+                "operationId": "e0e1fe5ae9b9b7c00cd7246dfefcd8e3",
+                "responses": {
+                    "200": {
+                        "description": "Templates retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Templates"
+                ],
+                "summary": "Create Template",
+                "description": "Create a new message template.",
+                "operationId": "ffdfbe68028fdc19323db767cf7abd12",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "type",
+                                    "body"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "email",
+                                            "whatsapp"
+                                        ]
+                                    },
+                                    "subject": {
+                                        "type": "string"
+                                    },
+                                    "body": {
+                                        "type": "string"
+                                    },
+                                    "variables": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Template created successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/templates/{id}": {
+            "delete": {
+                "tags": [
+                    "Superadmin - Templates"
+                ],
+                "summary": "Delete Template",
+                "description": "Delete an existing template.",
+                "operationId": "226398d9e0d021ebf5a49b9fdd0311a0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Template deleted successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Superadmin - Templates"
+                ],
+                "summary": "Update Template",
+                "description": "Update an existing template.",
+                "operationId": "c76719dc11fdd9939783486a65343929",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Template updated successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/businesses": {
+            "get": {
+                "tags": [
+                    "Superadmin - Tenants"
+                ],
+                "summary": "List Tenant Businesses",
+                "description": "Get a list of all onboarded businesses with optional status, search, and sorting filters.",
+                "operationId": "c7bd511fdf6398fd94b5dae0478879c0",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/businesses/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Tenants"
+                ],
+                "summary": "Update Tenant Business Status",
+                "description": "Suspends or activates a business tenant.",
+                "operationId": "00dca56b2dec1b00e6584413fcf929c5",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "suspended"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Business status updated successfully"
+                    },
+                    "404": {
+                        "description": "Business not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/businesses/onboard": {
+            "post": {
+                "tags": [
+                    "Superadmin - Tenants"
+                ],
+                "summary": "Onboard New Tenant Business",
+                "description": "Creates a new user account, registers their business, and assigns subscription plans.",
+                "operationId": "bbff083240e6fafff1c8a790e7de1af8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "owner_name",
+                                    "owner_email",
+                                    "owner_password",
+                                    "business_name"
+                                ],
+                                "properties": {
+                                    "owner_name": {
+                                        "type": "string"
+                                    },
+                                    "owner_email": {
+                                        "type": "string"
+                                    },
+                                    "owner_phone": {
+                                        "type": "string"
+                                    },
+                                    "owner_password": {
+                                        "type": "string"
+                                    },
+                                    "business_name": {
+                                        "type": "string"
+                                    },
+                                    "plan_id": {
+                                        "type": "integer"
+                                    },
+                                    "custom_features": {
+                                        "type": "object"
+                                    },
+                                    "partner_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tenant onboarded successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/businesses/{id}": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Tenants"
+                ],
+                "summary": "Update Tenant Details",
+                "description": "Updates business details, associated subscription plan, features, and partner referral.",
+                "operationId": "ae374ed9d08635c8f468998f5e92f738",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "gst_number": {
+                                        "type": "string"
+                                    },
+                                    "plan_id": {
+                                        "type": "integer"
+                                    },
+                                    "custom_features": {
+                                        "type": "object"
+                                    },
+                                    "plan_expires_at": {
+                                        "type": "string",
+                                        "format": "date-time"
+                                    },
+                                    "partner_id": {
+                                        "type": "integer"
+                                    },
+                                    "amount_paid": {
+                                        "type": "number"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tenant updated successfully"
+                    },
+                    "404": {
+                        "description": "Business not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/businesses/{id}/password": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Tenants"
+                ],
+                "summary": "Reset Tenant Owner Password",
+                "description": "Resets the login password for the business owner.",
+                "operationId": "8edaae7618aab2481735c8799083552b",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "new_password"
+                                ],
+                                "properties": {
+                                    "new_password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Owner password reset successfully"
+                    },
+                    "404": {
+                        "description": "Business or Owner not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/users/roles": {
+            "get": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "List All Roles",
+                "description": "Returns all roles available in the system.",
+                "operationId": "2eee9528f8a7d3485ff4f410d43447af",
+                "responses": {
+                    "200": {
+                        "description": "Roles retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/users": {
+            "get": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "List All Platform Users",
+                "description": "Paginated list of every user in the system with optional search, role, and date filters.",
+                "operationId": "600f2e51574d7d949e52c7d89592a573",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "role",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "from_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "to_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Users retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "Create User",
+                "description": "Create a new user/staff member and assign a role.",
+                "operationId": "bc315698620ba49d5e3cadfcd1166ca8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/users/stats": {
+            "get": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "User Analytics Stats",
+                "description": "Returns summary statistics for the users page analytics cards.",
+                "operationId": "a7b57d9d9f4292d853bcc7436963b480",
+                "responses": {
+                    "200": {
+                        "description": "Stats retrieved successfully"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/users/{id}/status": {
+            "patch": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "Update User Status",
+                "description": "Activate or suspend a user account.",
+                "operationId": "3d4d54a6a8db50d15f3dee23401dc343",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "status"
+                                ],
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "active",
+                                            "suspended"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User status updated successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/superadmin/users/{id}": {
+            "get": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "Get Single User",
+                "description": "Retrieve a single user with their roles and associated businesses.",
+                "operationId": "8a21677f5ec32276386eb8663e44b100",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User retrieved successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "Delete User",
+                "description": "Soft-deletes a user from the system.",
+                "operationId": "24646968518d1a54981b4b0e1c5ade93",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Superadmin - Users"
+                ],
+                "summary": "Update User",
+                "description": "Update a user's name, email, phone, password, or role.",
+                "operationId": "6186ed3818baf60f20cdc0be75031f23",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    },
+                                    "role": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "User updated successfully"
+                    },
+                    "404": {
+                        "description": "User not found"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/upload/presigned-url": {
+            "post": {
+                "tags": [
+                    "Uploads"
+                ],
+                "summary": "Generate a presigned URL for direct S3/R2 uploads",
+                "operationId": "6cc475d4d013865657076fb4ecd03414",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "extension": {
+                                        "description": "File extension without dot",
+                                        "type": "string",
+                                        "example": "png"
+                                    },
+                                    "folder": {
+                                        "description": "Target folder in bucket",
+                                        "type": "string",
+                                        "example": "businesses/logos"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Presigned URL generated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "upload_url": {
+                                            "description": "URL to PUT the file to",
+                                            "type": "string"
+                                        },
+                                        "path": {
+                                            "description": "Path to save in the database",
+                                            "type": "string"
+                                        },
+                                        "public_url": {
+                                            "description": "Publicly accessible URL",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/ping": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Check API Health",
+                "description": "Returns a simple JSON response to check if the API is running.",
+                "operationId": "a84fdf36c3e9ee135481b55d960dc788",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Enter your Bearer Token to authenticate",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Authentication",
+            "description": "Authentication"
+        },
+        {
+            "name": "Business - Categories",
+            "description": "Business - Categories"
+        },
+        {
+            "name": "Business - Inventory",
+            "description": "Business - Inventory"
+        },
+        {
+            "name": "Businesses",
+            "description": "Businesses"
+        },
+        {
+            "name": "Partner Portal",
+            "description": "Partner Portal"
+        },
+        {
+            "name": "Partner - Resources",
+            "description": "Partner - Resources"
+        },
+        {
+            "name": "Profile",
+            "description": "Profile"
+        },
+        {
+            "name": "Superadmin - Leads",
+            "description": "Superadmin - Leads"
+        },
+        {
+            "name": "Superadmin - Commissions",
+            "description": "Superadmin - Commissions"
+        },
+        {
+            "name": "Superadmin - Message Logs",
+            "description": "Superadmin - Message Logs"
+        },
+        {
+            "name": "Superadmin - Partners",
+            "description": "Superadmin - Partners"
+        },
+        {
+            "name": "Superadmin - Partner Resources",
+            "description": "Superadmin - Partner Resources"
+        },
+        {
+            "name": "Superadmin - Payouts",
+            "description": "Superadmin - Payouts"
+        },
+        {
+            "name": "Superadmin - Plans",
+            "description": "Superadmin - Plans"
+        },
+        {
+            "name": "Superadmin - Dashboard",
+            "description": "Superadmin - Dashboard"
+        },
+        {
+            "name": "Superadmin - Templates",
+            "description": "Superadmin - Templates"
+        },
+        {
+            "name": "Superadmin - Tenants",
+            "description": "Superadmin - Tenants"
+        },
+        {
+            "name": "Superadmin - Users",
+            "description": "Superadmin - Users"
+        },
+        {
+            "name": "Uploads",
+            "description": "Uploads"
+        },
+        {
+            "name": "Health",
+            "description": "Health"
+        }
+    ]
+}

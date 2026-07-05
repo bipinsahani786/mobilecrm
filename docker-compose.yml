@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: mobilecrm_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mobilecrm
+      POSTGRES_USER: mobilecrm_user
+      POSTGRES_PASSWORD: secret_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - mobilecrm_pgdata:/var/lib/postgresql/data
+    networks:
+      - mobilecrm_network
+
+  # 2. Redis
+  redis:
+    image: redis:alpine
+    container_name: mobilecrm_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - mobilecrm_redisdata:/data
+    networks:
+      - mobilecrm_network
+
+  # 3. Adminer (Database GUI)
+  adminer:
+    image: adminer
+    container_name: mobilecrm_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - mobilecrm_network
+
+  # 4. Laravel PHP-FPM
+  backend_app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: mobilecrm_backend_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - mobilecrm_network
+    depends_on:
+      - db
+      - redis
+
+  # 5. Nginx (Laravel Web Server)
+  backend_web:
+    image: nginx:alpine
+    container_name: mobilecrm_backend_web
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - mobilecrm_network
+    depends_on:
+      - backend_app
+
+  # 6. Laravel Queue Worker
+  backend_queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: mobilecrm_backend_queue
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./backend:/var/www/html
+    command: php artisan queue:work --sleep=3 --tries=3
+    networks:
+      - mobilecrm_network
+    depends_on:
+      - db
+      - redis
+      - backend_app
+
+  # 6. React Frontend (Vite)
+  frontend:
+    image: node:20-alpine
+    container_name: mobilecrm_frontend
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - mobilecrm_network
+
+volumes:
+  mobilecrm_pgdata:
+  mobilecrm_redisdata:
+
+networks:
+  mobilecrm_network:
+    driver: bridge

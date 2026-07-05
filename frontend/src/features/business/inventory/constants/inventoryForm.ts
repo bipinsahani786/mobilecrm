@@ -1,0 +1,98 @@
+import type { ReactNode } from 'react';
+import type { FormSectionConfig } from '@/components/ui/dynamic-form';
+
+export const getInventoryFormConfig = (
+  categories: { value: string | number; label: string }[],
+  brands: { value: string | number; label: string }[]
+): FormSectionConfig[] => [
+  {
+    title: 'Basic Info',
+    description: 'Provide general product details and classification.',
+    fields: [
+      {
+        name: 'category_id',
+        label: 'Category',
+        type: 'select',
+        options: categories,
+        required: true,
+        searchable: true,
+        tooltip: 'The product category this item belongs to.',
+      },
+      {
+        name: 'brand',
+        label: 'Brand (Optional)',
+        type: 'select',
+        options: brands,
+        searchable: true,
+        creatable: true,
+        placeholder: 'e.g. Samsung, Apple, OnePlus...',
+        tooltip: 'The manufacturer or brand name of the product. Type to search or create a new one.',
+      },
+      {
+        name: 'model_name',
+        label: 'Model Name',
+        type: 'text',
+        required: true,
+        placeholder: 'e.g. Galaxy S23, iPhone 15...',
+        tooltip: 'The specific model name or number.',
+      },
+      {
+        name: 'variant',
+        label: 'Variant (Optional)',
+        type: 'text',
+        placeholder: 'e.g. 8GB/128GB Black',
+        tooltip: 'Specify RAM, storage, color, or other variations.',
+      },
+    ],
+  },
+  {
+    title: 'Identifiers',
+    description: 'Unique tracking numbers for warranty and stock management.',
+    fields: [
+      {
+        name: 'imei',
+        label: 'IMEI (Optional)',
+        type: 'text',
+        placeholder: 'Enter 15 digit IMEI',
+        tooltip: 'International Mobile Equipment Identity - a unique 15-digit code for cellular devices.',
+      },
+      {
+        name: 'serial_no',
+        label: 'Serial No (Optional)',
+        type: 'text',
+        placeholder: 'Enter Serial Number',
+        tooltip: 'The unique serial number printed on the product box.',
+      },
+    ],
+  },
+  {
+    title: 'Pricing & Stock',
+    description: 'Set your purchase cost, selling price, and initial stock.',
+    fields: [
+      {
+        name: 'purchase_price',
+        label: 'Purchase Price (₹)',
+        type: 'number',
+        required: true,
+        step: '0.01',
+        tooltip: 'Your cost price for this item. Used for profit calculation.',
+      },
+      {
+        name: 'mrp',
+        label: 'MRP (₹)',
+        type: 'number',
+        required: true,
+        step: '0.01',
+        tooltip: 'Maximum Retail Price. This will be the default selling price.',
+      },
+      {
+        name: 'quantity',
+        label: 'Current Stock',
+        type: 'number',
+        required: true,
+        step: '1',
+        tooltip: 'The initial number of units available in your inventory.',
+      },
+    ],
+  },
+];
