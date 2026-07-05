@@ -12,14 +12,24 @@ interface InventoryColumnsProps {
 
 export const getInventoryColumns = ({ onEdit, onDelete }: InventoryColumnsProps): ColumnDef<Product>[] => [
   {
-    accessorKey: 'brand',
+    accessorKey: 'model_name',
     header: 'Product',
     className: '!px-3 !py-1.5 text-xs',
     cell: (item) => (
       <MetaCell 
-        title={`${item.brand} ${item.model_name}`} 
+        title={item.model_name} 
         subtitle={item.category?.name || 'Uncategorized'}
       />
+    ),
+  },
+  {
+    accessorKey: 'brand_id',
+    header: 'Brand',
+    className: '!px-3 !py-1.5 text-xs',
+    cell: (item) => (
+      <span className="font-medium text-slate-700 dark:text-slate-300">
+        {item.brand?.name || '-'}
+      </span>
     ),
   },
   {

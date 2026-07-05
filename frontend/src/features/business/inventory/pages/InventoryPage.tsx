@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useInventory, useDeleteProduct } from '../api/useInventory';
 import type { Product } from '../api/useInventory';
+import { useCategories } from '../api/useCategories';
+import { useBrands } from '../api/useBrands';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
@@ -18,17 +20,27 @@ export default function InventoryPage() {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   const [search, setSearch] = useState('');
+  const [categoryId, setCategoryId] = useState<number | undefined>();
+  const [brandId, setBrandId] = useState<number | undefined>();
+  const [lowStockDays, setLowStockDays] = useState<string>('');
   const debouncedSearch = useDebounce(search, 400);
+  const debouncedLowStockDays = useDebounce(lowStockDays, 600);
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch]);
+  }, [debouncedSearch, categoryId, brandId, debouncedLowStockDays]);
 
   const { data: inventoryData, isLoading } = useInventory({
     page,
     per_page: perPage,
     search: debouncedSearch || undefined,
+    category_id: categoryId,
+    brand_id: brandId,
+    low_stock_days: debouncedLowStockDays || undefined,
   });
+
+  const { data: categoriesData } = useCategories();
+  const { data: brandsData } = useBrands();
 
   const deleteMutation = useDeleteProduct();
   const products = inventoryData?.data ?? [];
@@ -113,12 +125,48 @@ export default function InventoryPage() {
             value={search}
             onChange={(val) => setSearch(val)}
             placeholder="SEARCH PRODUCTS BY BRAND, MODEL..."
-            wrapperClassName="flex-1 min-w-[280px]"
+            wrapperClassName="flex-1 min-w-[200px]"
           />
-          {search && (
+          <div className="flex-1 min-w-[150px]">
+            <select
+              value={categoryId || ''}
+              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium appearance-none"
+            >
+              <option value="">All Categories</option>
+              {categoriesData?.data?.map(cat => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px]">
+            <select
+              value={brandId || ''}
+              onChange={(e) => setBrandId(e.target.value ? Number(e.target.value) : undefined)}
+              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium appearance-none"
+            >
+              <option value="">All Brands</option>
+              {brandsData?.data?.map(brand => (
+                <option key={brand.id} value={brand.id}>{brand.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[150px] relative">
+            <input
+              type="number"
+              placeholder="Low Stock (Qty)"
+              value={lowStockDays}
+              onChange={(e) => setLowStockDays(e.target.value)}
+              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            />
+          </div>
+          {(search || categoryId || brandId || lowStockDays) && (
             <FilterReset
               onClick={() => {
                 setSearch('');
+                setCategoryId(undefined);
+                setBrandId(undefined);
+                setLowStockDays('');
                 setPage(1);
               }}
             />
@@ -154,7 +202,7 @@ export default function InventoryPage() {
         onConfirm={handleConfirmDelete}
         title="Delete Product"
         description="Are you sure you want to delete this product?"
-        itemName={`${productToDelete?.brand} ${productToDelete?.model_name}`}
+        itemName={[productToDelete?.brand?.name, productToDelete?.model_name].filter(Boolean).join(' ')}
         confirmText="DELETE"
       />
     </div>

@@ -8,26 +8,31 @@ class InventoryService
 {
     public function getInventory($filters = [], $perPage = 10)
     {
-        $query = Product::with('category')->latest();
+        $query = Product::with(['category', 'brand'])->latest();
         
         if (isset($filters['search'])) {
             $query->where(function ($q) use ($filters) {
-                $q->where('brand', 'like', '%' . $filters['search'] . '%')
-                  ->orWhere('model_name', 'like', '%' . $filters['search'] . '%');
+                $q->whereHas('brand', function ($q2) use ($filters) {
+                    $q2->where('name', 'like', '%' . $filters['search'] . '%');
+                })
+                ->orWhere('model_name', 'like', '%' . $filters['search'] . '%');
             });
         }
 
-        return $query->paginate($perPage);
-    }
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
 
-    public function getBrands()
-    {
-        // Pluck distinct non-null brands for the active tenant
-        return Product::whereNotNull('brand')
-            ->where('brand', '!=', '')
-            ->distinct()
-            ->pluck('brand')
-            ->values();
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        if (isset($filters['low_stock_days']) && $filters['low_stock_days'] !== '') {
+            $qty = (int) $filters['low_stock_days'];
+            $query->where('quantity', '<=', $qty);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function createProduct(array $data)

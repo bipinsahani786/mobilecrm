@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const productSchema = z.object({
   category_id: z.coerce.number().min(1, 'Category is required'),
-  brand: z.string().optional().or(z.literal('')),
+  brand_id: z.coerce.number().optional().or(z.literal('')),
   model_name: z.string().min(1, 'Model name is required'),
   imei: z.string().optional().or(z.literal('')),
   serial_no: z.string().nullable().optional(),

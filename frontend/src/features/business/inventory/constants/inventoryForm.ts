@@ -16,10 +16,11 @@ export const getInventoryFormConfig = (
         options: categories,
         required: true,
         searchable: true,
-        tooltip: 'The product category this item belongs to.',
+        creatable: true,
+        tooltip: 'The product category this item belongs to. Type to search or create a new one.',
       },
       {
-        name: 'brand',
+        name: 'brand_id',
         label: 'Brand (Optional)',
         type: 'select',
         options: brands,
@@ -30,11 +31,11 @@ export const getInventoryFormConfig = (
       },
       {
         name: 'model_name',
-        label: 'Model Name',
+        label: 'Product / Model Name',
         type: 'text',
         required: true,
-        placeholder: 'e.g. Galaxy S23, iPhone 15...',
-        tooltip: 'The specific model name or number.',
+        placeholder: 'e.g. Galaxy S23, Charger 20W...',
+        tooltip: 'The specific product name or model name.',
       },
       {
         name: 'variant',

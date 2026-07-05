@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -45,6 +47,7 @@ const businessMenuGroups = [
     items: [
       { name: "ITEMS", href: "/items", icon: Package },
       { name: "CATEGORIES", href: "/categories", icon: Building2 },
+      { name: "BRANDS", href: "/brands", icon: FileStack },
     ]
   }
 ];
@@ -99,6 +102,48 @@ const partnerMenuGroups = [
     ]
   }
 ];
+
+function PortalTooltip({ text, children, visible }: { text: string, children: React.ReactElement, visible: boolean }) {
+  const [show, setShow] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+  const ref = useRef<HTMLElement>(null);
+
+  const handleMouseEnter = (e: any) => {
+    if (visible && ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      setPos({ top: rect.top + rect.height / 2, left: rect.right + 12 });
+      setShow(true);
+    }
+    if (children.props.onMouseEnter) children.props.onMouseEnter(e);
+  };
+
+  const handleMouseLeave = (e: any) => {
+    setShow(false);
+    if (children.props.onMouseLeave) children.props.onMouseLeave(e);
+  };
+
+  const child = React.cloneElement(children as React.ReactElement, {
+    ref,
+    onMouseEnter: handleMouseEnter,
+    onMouseLeave: handleMouseLeave,
+  });
+
+  return (
+    <>
+      {child}
+      {show && visible && createPortal(
+        <div 
+          className="fixed z-[9999] px-3.5 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[11px] font-black uppercase tracking-widest rounded-sm -translate-y-1/2 shadow-xl shadow-primary-500/30 flex items-center whitespace-nowrap border border-white/20 animate-in fade-in zoom-in-95 duration-200 pointer-events-none"
+          style={{ top: pos.top, left: pos.left }}
+        >
+          <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary-500 rotate-45 rounded-sm border-l border-b border-white/20"></div>
+          {text}
+        </div>,
+        document.body
+      )}
+    </>
+  );
+}
 
 export function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
@@ -176,35 +221,28 @@ export function Sidebar({ className }: { className?: string }) {
               {group.items.map((item) => {
                 const isActive = location.pathname === item.href || (item.href === '/superadmin/dashboard' && location.pathname === '/superadmin') || (item.href === '/dashboard' && location.pathname === '/');
                 return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={cn(
-                      "flex items-center text-[12px] font-medium tracking-[0.05em] transition-all duration-300 group relative",
-                      isSidebarCollapsed ? "px-0 justify-center w-11 h-11 mx-auto rounded-sm" : "py-2.5 px-4 rounded-sm mx-2",
-                      isActive
-                        ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 font-semibold"
-                        : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
-                    )}
-                  >
-                    <item.icon
-                      strokeWidth={isActive ? 2 : 1.5}
+                  <PortalTooltip key={item.name} text={item.name} visible={isSidebarCollapsed}>
+                    <Link
+                      to={item.href}
                       className={cn(
-                        "flex-shrink-0 h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110",
-                        isSidebarCollapsed ? "mx-auto" : "mr-3.5",
-                        isActive ? "text-primary-600 dark:text-primary-500" : "text-slate-600 dark:text-slate-400 group-hover:text-primary-500"
+                        "flex items-center text-[12px] font-medium tracking-[0.05em] transition-all duration-300 group relative",
+                        isSidebarCollapsed ? "px-0 justify-center w-11 h-11 mx-auto rounded-sm" : "py-2.5 px-4 rounded-sm mx-2",
+                        isActive
+                          ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 font-semibold"
+                          : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-white/5"
                       )}
-                    />
-                    {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
-
-                    {/* Animated Tooltip for Collapsed State */}
-                    {isSidebarCollapsed && (
-                      <div className="absolute left-full ml-5 px-3.5 py-1.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white text-[11px] font-black uppercase tracking-widest rounded-sm opacity-0 -translate-x-4 -rotate-12 scale-50 origin-left pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:rotate-0 group-hover:scale-100 transition-all duration-300 ease-out z-50 shadow-xl shadow-primary-500/30 flex items-center whitespace-nowrap border border-white/20">
-                        <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-primary-500 rotate-45 rounded-sm border-l border-b border-white/20"></div>
-                        {item.name}
-                      </div>
-                    )}
-                  </Link>
+                    >
+                      <item.icon
+                        strokeWidth={isActive ? 2 : 1.5}
+                        className={cn(
+                          "flex-shrink-0 h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110",
+                          isSidebarCollapsed ? "mx-auto" : "mr-3.5",
+                          isActive ? "text-primary-600 dark:text-primary-500" : "text-slate-600 dark:text-slate-400 group-hover:text-primary-500"
+                        )}
+                      />
+                      {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.name}</span>}
+                    </Link>
+                  </PortalTooltip>
                 );
               })}
             </div>
@@ -214,32 +252,26 @@ export function Sidebar({ className }: { className?: string }) {
 
       {/* Logout Button */}
       <div className="p-4 border-t border-slate-100 dark:border-white/5 shrink-0">
-        <button
-          onClick={() => {
-            useAuthStore.getState().logout();
-          }}
-          className={cn(
-            "flex items-center w-full text-[12px] font-medium tracking-[0.05em] transition-all duration-300 group relative text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10",
-            isSidebarCollapsed ? "px-0 justify-center h-11 rounded-sm" : "py-2.5 px-4 rounded-sm"
-          )}
-        >
-          <LogOut
-            strokeWidth={1.5}
+        <PortalTooltip text="LOG OUT" visible={isSidebarCollapsed}>
+          <button
+            onClick={() => {
+              useAuthStore.getState().logout();
+            }}
             className={cn(
-              "flex-shrink-0 h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110",
-              isSidebarCollapsed ? "mx-auto" : "mr-3.5"
+              "flex items-center w-full text-[12px] font-medium tracking-[0.05em] transition-all duration-300 group relative text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-500/10",
+              isSidebarCollapsed ? "px-0 justify-center h-11 rounded-sm" : "py-2.5 px-4 rounded-sm"
             )}
-          />
-          {!isSidebarCollapsed && <span className="whitespace-nowrap">LOG OUT</span>}
-
-          {/* Animated Tooltip for Collapsed State */}
-          {isSidebarCollapsed && (
-            <div className="absolute left-full ml-5 px-3.5 py-1.5 bg-rose-500 text-white text-[11px] font-black uppercase tracking-widest rounded-sm opacity-0 -translate-x-4 -rotate-12 scale-50 origin-left pointer-events-none group-hover:opacity-100 group-hover:translate-x-0 group-hover:rotate-0 group-hover:scale-100 transition-all duration-300 ease-out z-50 shadow-xl shadow-rose-500/30 flex items-center whitespace-nowrap border border-white/20">
-              <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-rose-500 rotate-45 rounded-sm border-l border-b border-white/20"></div>
-              LOG OUT
-            </div>
-          )}
-        </button>
+          >
+            <LogOut
+              strokeWidth={1.5}
+              className={cn(
+                "flex-shrink-0 h-[18px] w-[18px] transition-transform duration-300 group-hover:scale-110",
+                isSidebarCollapsed ? "mx-auto" : "mr-3.5"
+              )}
+            />
+            {!isSidebarCollapsed && <span className="whitespace-nowrap">LOG OUT</span>}
+          </button>
+        </PortalTooltip>
       </div>
     </div>
     </>

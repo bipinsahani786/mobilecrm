@@ -28,6 +28,7 @@ export interface FormFieldConfig {
   render?: (form: UseFormReturn<any>) => React.ReactNode; // For custom rendering
   searchable?: boolean;
   creatable?: boolean;
+  onCreate?: (inputValue: string) => void | Promise<void>;
 }
 
 export interface FormSectionConfig {
@@ -104,6 +105,7 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
                     placeholder={field.placeholder}
                     error={errorMessage}
                     creatable={field.creatable}
+                    onCreate={field.onCreate}
                   />
                 )}
               />

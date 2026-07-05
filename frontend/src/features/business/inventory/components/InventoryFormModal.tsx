@@ -2,15 +2,17 @@ import { useEffect } from 'react';
 import { useForm, type SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productSchema } from '../schemas/productSchema';
+import { z } from 'zod';
 import { toast } from 'sonner';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Loader2, Package } from 'lucide-react';
-import { useCreateProduct, useUpdateProduct, useBrands } from '../api/useInventory';
+import { useCreateProduct, useUpdateProduct } from '../api/useInventory';
 import type { Product, ProductFormValues } from '../api/useInventory';
+import { useBrands, useCreateBrand, type Brand } from '../api/useBrands';
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import { getInventoryFormConfig } from '../constants/inventoryForm';
-import { useCategories } from '../api/useCategories';
+import { useCategories, useCreateCategory } from '../api/useCategories';
 
 interface InventoryFormModalProps {
   isOpen: boolean;
@@ -22,20 +24,22 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.data || [];
   const { data: brandsData } = useBrands();
-  const brands: string[] = Array.isArray(brandsData) ? brandsData : [];
+  const brands: Brand[] = brandsData?.data || [];
+  const createBrandMutation = useCreateBrand();
+  const createCategoryMutation = useCreateCategory();
 
   const form = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
       category_id: 0,
-      brand: '',
+      brand_id: '',
       model_name: '',
       imei: '',
       serial_no: '',
       variant: '',
-      purchase_price: 0,
-      mrp: 0,
-      quantity: 0,
+      purchase_price: '' as any,
+      mrp: '' as any,
+      quantity: '' as any,
       supplier_id: null,
       status: 'in_stock'
     }
@@ -50,7 +54,7 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
     if (productToEdit) {
       reset({
         category_id: productToEdit.category_id,
-        brand: productToEdit.brand,
+        brand_id: productToEdit.brand_id || '',
         model_name: productToEdit.model_name,
         imei: productToEdit.imei || '',
         serial_no: productToEdit.serial_no || '',
@@ -64,14 +68,14 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
     } else {
       reset({
         category_id: 0,
-        brand: '',
+        brand_id: '',
         model_name: '',
         imei: '',
         serial_no: '',
         variant: '',
-        purchase_price: 0,
-        mrp: 0,
-        quantity: 0,
+        purchase_price: '' as any,
+        mrp: '' as any,
+        quantity: '' as any,
         supplier_id: null,
         status: 'in_stock'
       });
@@ -129,8 +133,40 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
             { value: 0, label: 'Select a category' },
             ...categories.map(cat => ({ value: cat.id, label: cat.name }))
           ],
-          brands.map(brand => ({ value: brand, label: brand }))
-        )}
+          brands.map(brand => ({ value: brand.id, label: brand.name }))
+        ).map(section => {
+          // If this is the section with Brand, inject the onCreate handler
+          const modifiedFields = section.fields.map(field => {
+            if (field.name === 'brand_id') {
+              return {
+                ...field,
+                onCreate: async (inputValue: string) => {
+                  try {
+                    const newBrand = await createBrandMutation.mutateAsync({ name: inputValue });
+                    form.setValue('brand_id', newBrand.id);
+                  } catch (error) {
+                    toast.error('Failed to create brand');
+                  }
+                }
+              };
+            }
+            if (field.name === 'category_id') {
+              return {
+                ...field,
+                onCreate: async (inputValue: string) => {
+                  try {
+                    const newCategory = await createCategoryMutation.mutateAsync({ name: inputValue });
+                    form.setValue('category_id', newCategory.id);
+                  } catch (error) {
+                    toast.error('Failed to create category');
+                  }
+                }
+              };
+            }
+            return field;
+          });
+          return { ...section, fields: modifiedFields };
+        })}
       />
     </Modal>
   );

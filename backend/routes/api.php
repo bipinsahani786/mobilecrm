@@ -31,7 +31,7 @@ Route::prefix('v1')->group(function () {
         // CRM Routes (Scoped to Business via TenantMiddleware)
         Route::middleware(['tenant'])->prefix('business')->group(function () {
             Route::apiResource('categories', \App\Http\Controllers\Api\Business\CategoryController::class);
-            Route::get('inventory/brands', [\App\Http\Controllers\Api\Business\InventoryController::class, 'brands']);
+            Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
             Route::apiResource('inventory', \App\Http\Controllers\Api\Business\InventoryController::class);
         });
 

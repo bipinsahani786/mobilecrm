@@ -13,6 +13,7 @@ const Login = lazy(() => import('@/features/auth/pages/LoginPage'));
 const Dashboard = lazy(() => import('@/features/business/dashboard/pages/DashboardPage'));
 const BusinessProfile = lazy(() => import('@/features/business/profile/pages/BusinessProfilePage'));
 const CategoriesPage = lazy(() => import('@/features/business/inventory/pages/CategoriesPage'));
+const BrandsPage = lazy(() => import('@/features/business/inventory/pages/BrandsPage'));
 const InventoryPage = lazy(() => import('@/features/business/inventory/pages/InventoryPage'));
 
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
@@ -160,6 +161,7 @@ function App() {
             <Route path="/profile" element={<BusinessRoute><ProfilePage /></BusinessRoute>} />
             <Route path="/setup/profile" element={<BusinessRoute><BusinessProfile /></BusinessRoute>} />
             <Route path="/categories" element={<BusinessRoute><CategoriesPage /></BusinessRoute>} />
+            <Route path="/brands" element={<BusinessRoute><BrandsPage /></BusinessRoute>} />
             <Route path="/items" element={<BusinessRoute><InventoryPage /></BusinessRoute>} />
             
             {/* Superadmin Routes */}

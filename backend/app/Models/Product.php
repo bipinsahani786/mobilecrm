@@ -12,7 +12,7 @@ class Product extends Model
     use BelongsToBusiness, SoftDeletes;
 
     protected $fillable = [
-        'business_id', 'category_id', 'brand', 'model_name',
+        'business_id', 'category_id', 'brand_id', 'model_name',
         'imei', 'serial_no', 'variant', 'purchase_price',
         'mrp', 'quantity', 'supplier_id', 'status'
     ];
@@ -20,6 +20,14 @@ class Product extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /**
+     * Get the brand that owns the product.
+     */
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
     }
 
     public function movements()

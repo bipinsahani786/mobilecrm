@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
+import type { Brand } from './useBrands';
 import type { Category } from './useCategories';
 
 export interface Product {
   id: number;
   business_id: number;
   category_id: number;
-  brand: string;
+  brand_id: number | null;
   model_name: string;
   imei: string | null;
   serial_no: string | null;
@@ -15,12 +16,13 @@ export interface Product {
   mrp: number;
   quantity: number;
   supplier_id: number | null;
-  status: string;
+  status: 'in_stock' | 'sold' | 'damaged';
   category?: Category;
+  brand?: Brand;
   created_at: string;
 }
 
-export type ProductFormValues = Omit<Product, 'id' | 'business_id' | 'created_at' | 'category'>;
+export type ProductFormValues = Omit<Product, 'id' | 'business_id' | 'created_at' | 'category' | 'brand'>;
 
 export interface PaginatedResponse<T> {
   data: T[];
@@ -36,29 +38,17 @@ export interface InventoryQueryFilters {
   page?: number;
   per_page?: number;
   search?: string;
+  category_id?: number;
+  brand_id?: number;
+  low_stock_days?: number | string;
 }
 
-export function useInventory(params?: {
-  page?: number;
-  per_page?: number;
-  search?: string;
-  category_id?: number;
-}) {
+export function useInventory(params?: InventoryQueryFilters) {
   return useQuery({
     queryKey: ['inventory', params],
     queryFn: async () => {
       const response = await api.get<{ data: Product[]; meta?: any }>('/business/inventory', { params });
       return response.data;
-    },
-  });
-}
-
-export function useBrands() {
-  return useQuery({
-    queryKey: ['inventory-brands'],
-    queryFn: async () => {
-      const response = await api.get<string[]>('/business/inventory/brands');
-      return response.data?.data || response.data || [];
     },
   });
 }

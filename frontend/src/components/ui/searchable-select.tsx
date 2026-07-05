@@ -16,7 +16,7 @@ export interface SearchableSelectProps {
   disabled?: boolean;
   error?: string;
   creatable?: boolean;
-  onCreate?: (inputValue: string) => void;
+  onCreate?: (inputValue: string) => void | Promise<void>;
 }
 
 export function SearchableSelect({
@@ -32,6 +32,7 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => String(opt.value) === String(value));
@@ -65,6 +66,18 @@ export function SearchableSelect({
     setIsOpen(false);
   };
 
+  const handleCreate = async () => {
+    if (!onCreate || !search) return;
+    try {
+      setIsCreating(true);
+      await onCreate(search);
+      setSearch('');
+      setIsOpen(false);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="relative w-full" ref={containerRef}>
       <button
@@ -93,6 +106,16 @@ export function SearchableSelect({
               placeholder="Search..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (creatable && search && !options.some(opt => opt.label.toLowerCase() === search.toLowerCase())) {
+                    handleCreate();
+                  } else if (filteredOptions.length > 0) {
+                    handleSelect(filteredOptions[0].value);
+                  }
+                }
+              }}
               className="w-full bg-transparent text-sm focus:outline-none text-slate-900 dark:text-white font-medium"
             />
             {search && (
@@ -136,19 +159,22 @@ export function SearchableSelect({
             {creatable && search && !options.some(opt => opt.label.toLowerCase() === search.toLowerCase()) && (
               <button
                 type="button"
+                disabled={isCreating}
                 onClick={() => {
                   if (onCreate) {
-                    onCreate(search);
+                    handleCreate();
                   } else {
                     handleSelect(search);
+                    setSearch('');
+                    setIsOpen(false);
                   }
-                  setSearch('');
-                  setIsOpen(false);
                 }}
-                className="flex w-full items-center justify-between px-3 py-2 text-sm text-left rounded-lg font-medium transition-colors text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-transparent hover:border-primary-100 dark:hover:border-primary-500/20 mt-1"
+                className="flex w-full items-center justify-between px-3 py-2 text-sm text-left rounded-lg font-medium transition-colors text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-500/10 border border-transparent hover:border-primary-100 dark:hover:border-primary-500/20 mt-1 disabled:opacity-50"
               >
-                <span className="truncate">Create "{search}"</span>
-                <Plus className="h-4 w-4 shrink-0" />
+                <span className="truncate">
+                  {isCreating ? `Creating "${search}"...` : `Create "${search}"`}
+                </span>
+                <Plus className={cn("h-4 w-4 shrink-0", isCreating && "animate-spin")} />
               </button>
             )}
           </div>

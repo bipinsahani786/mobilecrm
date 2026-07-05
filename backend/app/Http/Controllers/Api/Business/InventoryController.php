@@ -29,18 +29,15 @@ class InventoryController extends BaseController
     )]
     public function index(Request $request)
     {
-        return $this->executeAction(function () use ($request) {
-            $filters = $request->only(['search']);
+        try {
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days']);
             $perPage = $request->input('per_page', 10);
-            return $this->inventoryService->getInventory($filters, $perPage);
-        }, 'Inventory retrieved successfully');
-    }
-
-    public function brands()
-    {
-        return $this->executeAction(function () {
-            return $this->inventoryService->getBrands();
-        }, 'Brands retrieved successfully');
+            $paginator = $this->inventoryService->getInventory($filters, $perPage);
+            
+            return $this->paginated($paginator, 'Inventory retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
     }
 
     #[OA\Post(
@@ -76,7 +73,7 @@ class InventoryController extends BaseController
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'brand' => 'required|string|max:255',
+            'brand_id' => 'nullable|exists:brands,id',
             'model_name' => 'required|string|max:255',
             'imei' => 'nullable|string|max:255',
             'serial_no' => 'nullable|string|max:255',
@@ -142,7 +139,7 @@ class InventoryController extends BaseController
     {
         $validated = $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
-            'brand' => 'sometimes|string|max:255',
+            'brand_id' => 'nullable|exists:brands,id',
             'model_name' => 'sometimes|string|max:255',
             'imei' => 'nullable|string|max:255',
             'serial_no' => 'nullable|string|max:255',
