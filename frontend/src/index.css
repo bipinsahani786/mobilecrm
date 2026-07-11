@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
@@ -104,3 +105,24 @@
     scrollbar-color: var(--primary-500) transparent;
   }
 }
+
+/* Custom Neumorphism Utilities */
+@utility shadow-neu-flat {
+  box-shadow: 8px 8px 16px rgba(0, 0, 0, 0.85), -8px -8px 16px rgba(255, 255, 255, 0.02);
+}
+@utility shadow-neu-inset {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.9), inset -4px -4px 8px rgba(255, 255, 255, 0.02);
+}
+@utility shadow-neu-btn {
+  box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.85), -4px -4px 8px rgba(255, 255, 255, 0.02);
+}
+@utility shadow-neu-btn-inset {
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.9), inset -3px -3px 6px rgba(255, 255, 255, 0.02);
+}
+@utility shadow-neu-light-flat {
+  box-shadow: 8px 8px 16px rgba(165, 180, 200, 0.5), -8px -8px 16px rgba(255, 255, 255, 0.95);
+}
+@utility shadow-neu-light-inset {
+  box-shadow: inset 4px 4px 8px rgba(165, 180, 200, 0.55), inset -4px -4px 8px rgba(255, 255, 255, 0.95);
+}
+
