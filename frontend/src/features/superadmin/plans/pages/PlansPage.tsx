@@ -78,7 +78,7 @@ export default function PlansPage() {
         }
       />
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 py-2 space-y-4">
         
         {/* Search Input */}
         {(plans.length > 0 || hasFilters || isLoading) && (
