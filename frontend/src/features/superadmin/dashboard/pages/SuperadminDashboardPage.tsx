@@ -45,68 +45,73 @@ function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
 }) {
   const colorMap = {
     blue: {
-      bar: "from-blue-400/30 via-blue-500 to-blue-600/30",
-      glow: "bg-blue-500/5 dark:bg-blue-500/10",
-      iconBg: "bg-blue-50/70 dark:bg-blue-500/5 text-blue-500 dark:text-blue-400"
+      bg: "bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     },
     emerald: {
-      bar: "from-emerald-400/30 via-emerald-500 to-emerald-600/30",
-      glow: "bg-emerald-500/5 dark:bg-emerald-500/10",
-      iconBg: "bg-emerald-50/70 dark:bg-emerald-500/5 text-emerald-500 dark:text-emerald-400"
+      bg: "bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-emerald-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     },
     indigo: {
-      bar: "from-indigo-400/30 via-indigo-500 to-indigo-600/30",
-      glow: "bg-indigo-500/5 dark:bg-indigo-500/10",
-      iconBg: "bg-indigo-50/70 dark:bg-indigo-500/5 text-indigo-500 dark:text-indigo-400"
+      bg: "bg-gradient-to-br from-indigo-500 to-indigo-700 shadow-indigo-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     },
     purple: {
-      bar: "from-purple-400/30 via-purple-500 to-purple-600/30",
-      glow: "bg-purple-500/5 dark:bg-purple-500/10",
-      iconBg: "bg-purple-50/70 dark:bg-purple-500/5 text-purple-500 dark:text-purple-400"
+      bg: "bg-gradient-to-br from-purple-500 to-purple-700 shadow-purple-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     },
     amber: {
-      bar: "from-amber-400/30 via-amber-500 to-amber-600/30",
-      glow: "bg-amber-500/5 dark:bg-amber-500/10",
-      iconBg: "bg-amber-50/70 dark:bg-amber-500/5 text-amber-500 dark:text-amber-400"
+      bg: "bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     },
     rose: {
-      bar: "from-rose-400/30 via-rose-500 to-rose-600/30",
-      glow: "bg-rose-500/5 dark:bg-rose-500/10",
-      iconBg: "bg-rose-50/70 dark:bg-rose-500/5 text-rose-500 dark:text-rose-400"
+      bg: "bg-gradient-to-br from-rose-400 to-rose-600 shadow-rose-500/20",
+      iconBg: "bg-white/20 text-white",
+      shape1: "bg-white/10",
+      shape2: "bg-white/5",
     }
   };
 
   const colors = colorMap[glowColor];
 
   return (
-    <div className="transition-all duration-300 relative overflow-hidden group bg-white dark:bg-[#111115] border border-slate-200/60 dark:border-white/5 rounded-lg shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] hover:shadow-md hover:border-slate-300 dark:hover:border-white/10 p-3 sm:p-3.5 flex flex-col justify-between min-h-[110px] w-full">
-      {/* Accent Bar */}
-      <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${colors.bar} transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
-
-      {/* Glow effect */}
-      <div className={`absolute -right-8 -bottom-8 w-24 h-24 ${colors.glow} rounded-full blur-2xl group-hover:scale-110 transition-all duration-500`}></div>
+    <div className={`transition-all duration-300 relative overflow-hidden group rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 p-4 sm:p-5 flex flex-col justify-between min-h-[110px] w-full ${colors.bg}`}>
+      
+      {/* Decorative Shapes */}
+      <div className={`absolute -right-8 -top-8 w-32 h-32 rounded-full ${colors.shape1} blur-[2px] group-hover:scale-110 group-hover:rotate-12 transition-all duration-500`}></div>
+      <div className={`absolute -left-6 -bottom-6 w-24 h-24 rounded-3xl rotate-12 ${colors.shape2} blur-[1px] group-hover:-translate-y-2 group-hover:scale-105 transition-all duration-700`}></div>
 
       <div className="relative z-10 flex flex-col justify-between h-full flex-1 min-w-0">
         <div className="min-w-0">
-          <div className="flex items-center justify-between gap-1.5 mb-2.5">
-            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-zinc-500 select-none truncate block">
+          <div className="flex items-center justify-between gap-1.5 mb-3">
+            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-white/90 select-none truncate block drop-shadow-sm">
               {title}
             </span>
-            <div className={`p-1.5 rounded-lg transition-all duration-300 flex items-center justify-center shrink-0 ${colors.iconBg} group-hover:scale-105`}>
-              {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: 'w-3.5 h-3.5' }) : icon}
+            <div className={`p-2 rounded-xl transition-all duration-300 flex items-center justify-center shrink-0 ${colors.iconBg} group-hover:scale-110 group-hover:rotate-[15deg] backdrop-blur-sm shadow-sm`}>
+              {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: 'w-4 h-4' }) : icon}
             </div>
           </div>
 
           <div className="flex items-baseline min-w-0">
-            <span className="text-base sm:text-lg lg:text-base xl:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight font-display truncate block w-full" title={value.toString()}>
+            <span className="text-xl sm:text-2xl lg:text-xl xl:text-3xl font-extrabold text-white tracking-tight font-display truncate block w-full drop-shadow-md" title={value.toString()}>
               {value}
             </span>
           </div>
         </div>
 
         {subtitle && (
-          <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-white/5 min-w-0">
-            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block truncate" title={subtitle}>
+          <div className="mt-4 pt-3 border-t border-white/20 min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/80 block truncate" title={subtitle}>
               {subtitle}
             </span>
           </div>
@@ -196,7 +201,7 @@ export default function SuperadminDashboardPage() {
         subtitle="Global analytics, revenues, and partner commission tracking"
       />
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 py-2 space-y-4">
 
         {/* Filters Panel */}
         <FilterContainer>
