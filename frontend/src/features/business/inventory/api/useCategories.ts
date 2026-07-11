@@ -1,17 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-
-export interface Category {
-  id: number;
-  name: string;
-  business_id: number;
-  products_count?: number;
-  created_at: string;
-}
-
-export type CategoryFormValues = {
-  name: string;
-};
+import type { Category, CategoryFormValues } from '../schemas/categorySchema';
 
 export const useCategories = () => {
   return useQuery<{data: Category[]}>({

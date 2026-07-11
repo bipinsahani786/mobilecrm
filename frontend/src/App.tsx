@@ -2,6 +2,8 @@ import { Suspense, lazy, useEffect } from 'react';
 import { useThemeStore } from './store/themeStore';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { FeatureGuard } from './components/auth/FeatureGuard';
+import { useTenantStore } from './store/tenantStore';
 import { Toaster } from 'sonner';
 import { PageLoadingSkeleton } from './components/ui/PageLoadingSkeleton';
 import { AppLayout } from './components/layout/AppLayout';
@@ -15,7 +17,18 @@ const BusinessProfile = lazy(() => import('@/features/business/profile/pages/Bus
 const CategoriesPage = lazy(() => import('@/features/business/inventory/pages/CategoriesPage'));
 const BrandsPage = lazy(() => import('@/features/business/inventory/pages/BrandsPage'));
 const InventoryPage = lazy(() => import('@/features/business/inventory/pages/InventoryPage'));
+const SuppliersPage = lazy(() => import('@/features/business/suppliers/pages/SuppliersPage'));
+const SupplierDetailsPage = lazy(() => import('@/features/business/suppliers/pages/SupplierDetailsPage'));
+const AddPurchasePage = lazy(() => import('@/features/business/suppliers/pages/AddPurchasePage'));
 
+const CustomersPage = lazy(() => import('@/features/business/customers/pages/CustomersPage'));
+const CustomerDetailsPage = lazy(() => import('@/features/business/customers/pages/CustomerDetailsPage'));
+
+const PosPage = lazy(() => import('@/features/business/pos/pages/PosPage'));
+const InvoicesPage = lazy(() => import('@/features/business/pos/pages/InvoicesPage'));
+const InvoiceDetailsPage = lazy(() => import('@/features/business/pos/pages/InvoiceDetailsPage'));
+const ExpensesPage = lazy(() => import('@/features/business/expenses/pages/ExpensesPage'));
+const FinanceLedgerPage = lazy(() => import('@/features/business/finance/pages/FinanceLedgerPage'));
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
 const TenantsPage = lazy(() => import('@/features/superadmin/tenants/pages/TenantsPage'));
 const PlansPage = lazy(() => import('@/features/superadmin/plans/pages/PlansPage'));
@@ -57,11 +70,13 @@ function SuperadminRoute({ children }: { children: React.ReactNode }) {
 
 function BusinessRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
+  const { activeBusiness, isLoading } = useTenantStore();
   const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin');
   const isPartner = user?.roles?.some(r => r.name === 'Partner');
   
   if (isSuperadmin) return <Navigate to="/superadmin/dashboard" replace />;
   if (isPartner && !user?.businesses?.length) return <Navigate to="/partner/dashboard" replace />;
+  if (!isLoading && !activeBusiness) return <Navigate to="/setup/profile" replace />;
   
   return <>{children}</>;
 }
@@ -159,10 +174,20 @@ function App() {
             {/* Business Routes */}
             <Route path="/dashboard" element={<BusinessRoute><Dashboard /></BusinessRoute>} />
             <Route path="/profile" element={<BusinessRoute><ProfilePage /></BusinessRoute>} />
-            <Route path="/setup/profile" element={<BusinessRoute><BusinessProfile /></BusinessRoute>} />
+            <Route path="/setup/profile" element={<BusinessProfile />} />
             <Route path="/categories" element={<BusinessRoute><CategoriesPage /></BusinessRoute>} />
             <Route path="/brands" element={<BusinessRoute><BrandsPage /></BusinessRoute>} />
             <Route path="/items" element={<BusinessRoute><InventoryPage /></BusinessRoute>} />
+            <Route path="/suppliers" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><SuppliersPage /></FeatureGuard></BusinessRoute>} />
+            <Route path="/suppliers/:id" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><SupplierDetailsPage /></FeatureGuard></BusinessRoute>} />
+            <Route path="/suppliers/:id/purchases/new" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><AddPurchasePage /></FeatureGuard></BusinessRoute>} />
+            <Route path="/customers" element={<BusinessRoute><CustomersPage /></BusinessRoute>} />
+            <Route path="/customers/:id" element={<BusinessRoute><CustomerDetailsPage /></BusinessRoute>} />
+            <Route path="/pos" element={<BusinessRoute><PosPage /></BusinessRoute>} />
+            <Route path="/invoices" element={<BusinessRoute><InvoicesPage /></BusinessRoute>} />
+            <Route path="/invoices/:id" element={<BusinessRoute><InvoiceDetailsPage /></BusinessRoute>} />
+            <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
+            <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
             
             {/* Superadmin Routes */}
             <Route path="/superadmin/dashboard" element={<SuperadminRoute><PermissionGuard permission="view_dashboard"><SuperadminDashboard /></PermissionGuard></SuperadminRoute>} />

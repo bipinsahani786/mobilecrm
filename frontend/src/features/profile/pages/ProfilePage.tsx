@@ -223,9 +223,9 @@ export default function ProfilePage() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
           </div>
 
-          <div className="px-8 pb-8 -mt-16 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
+          <div className="px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
             {/* Avatar Container with Glow */}
-            <div className="relative">
+            <div className="relative -mt-16 md:-mt-20">
               <div className="absolute -inset-1 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
               <div className="relative w-32 h-32 rounded-2xl border-4 border-white dark:border-[#111115] shadow-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800 transform group-hover:-translate-y-1 transition duration-500">
                 {profile?.avatar ? (

@@ -111,18 +111,18 @@ export default function PlansPage() {
               description={hasFilters ? "Try adjusting your search criteria." : "Create your first subscription plan to start billing tenants."}
               action={
                 !hasFilters ? (
-                  <Button onClick={handleCreate} className="bg-primary-500 hover:bg-primary-600 text-white shadow-sm mt-4">
+                  <Button size="sm" onClick={handleCreate} className="bg-primary-500 hover:bg-primary-600 text-white shadow-sm mt-4">
                     <Plus className="w-4 h-4 mr-2" />
                     Create Plan
                   </Button>
                 ) : (
                   <Button 
+                    size="sm"
                     onClick={() => setSearch('')} 
                     variant="outline" 
-                    size="sm" 
                     className="mt-4"
                   >
-                    Clear Search
+                    Clear Filter
                   </Button>
                 )
               }

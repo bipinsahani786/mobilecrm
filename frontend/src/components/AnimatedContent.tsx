@@ -11,7 +11,7 @@ interface AnimatedContentProps {
  */
 export const AnimatedContent: React.FC<AnimatedContentProps> = ({ isLoading, children }) => {
   return (
-    <div key={isLoading} data-enter className="animate-in fade-light page-enter">
+    <div key={String(isLoading)} data-enter className="animate-in fade-light page-enter">
       {children}
     </div>
   );

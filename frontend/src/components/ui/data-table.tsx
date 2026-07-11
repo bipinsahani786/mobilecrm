@@ -23,6 +23,11 @@ interface DataTableProps<T> {
   searchPlaceholder?: string;
   searchKeys?: (keyof T | ((item: T) => string))[];
   itemsPerPage?: number;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+  };
   onRowClick?: (item: T) => void;
 
   // Server-side pagination parameters
@@ -30,9 +35,10 @@ interface DataTableProps<T> {
   totalItems?: number;
   page?: number;
   onPageChange?: (page: number) => void;
-  onPageSizeChange?: (pageSize: number) => void;
-  onSearchChange?: (searchTerm: string) => void;
-  onSortChange?: (key: keyof T | null, direction: 'asc' | 'desc' | null) => void;
+  onPageSizeChange?: (size: number) => void;
+  onSearchChange?: (term: string) => void;
+  onSortChange?: (key: keyof T, direction: 'asc' | 'desc') => void;
+  renderSubComponent?: (item: T) => React.ReactNode;
 }
 
 export function DataTable<T>({
@@ -54,8 +60,10 @@ export function DataTable<T>({
   onPageSizeChange,
   onSearchChange,
   onSortChange,
+  renderSubComponent,
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [internalSortConfig, setSortConfig] = useState<{ key: keyof T | null; direction: 'asc' | 'desc' | null }>({
     key: null,
     direction: null,
@@ -124,7 +132,9 @@ export function DataTable<T>({
     setSortConfig(nextConfig);
 
     if (serverSide && onSortChange) {
-      onSortChange(nextConfig.key, nextConfig.direction);
+      if (nextConfig.key && nextConfig.direction) {
+        onSortChange(nextConfig.key, nextConfig.direction);
+      }
     }
   };
 
@@ -259,19 +269,47 @@ export function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              paginatedData.map((item, rowIdx) => (
-                <tr
-                  key={rowIdx}
-                  onClick={() => onRowClick && onRowClick(item)}
-                  className={`border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group ${onRowClick ? 'cursor-pointer' : ''}`}
-                >
-                  {columns.map((col, colIdx) => (
-                    <td key={colIdx} className={`px-4 py-3 align-middle ${col.className || ''}`}>
-                      {col.cell ? col.cell(item) : (col.accessorKey ? String(item[col.accessorKey] || '') : '')}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              paginatedData.map((item, rowIdx) => {
+                const isExpanded = expandedRows.has(rowIdx);
+                const handleRowClick = () => {
+                  if (renderSubComponent) {
+                    setExpandedRows(prev => {
+                      const newSet = new Set(prev);
+                      if (newSet.has(rowIdx)) {
+                        newSet.delete(rowIdx);
+                      } else {
+                        newSet.add(rowIdx);
+                      }
+                      return newSet;
+                    });
+                  }
+                  if (onRowClick) onRowClick(item);
+                };
+
+                return (
+                  <React.Fragment key={rowIdx}>
+                    <tr
+                      onClick={handleRowClick}
+                      className={`border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors group ${(onRowClick || renderSubComponent) ? 'cursor-pointer' : ''}`}
+                    >
+                      {columns.map((col, colIdx) => (
+                        <td key={colIdx} className={`px-4 py-3 align-middle ${col.className || ''}`}>
+                          {col.cell ? col.cell(item) : (col.accessorKey ? String(item[col.accessorKey] || '') : '')}
+                        </td>
+                      ))}
+                    </tr>
+                    {isExpanded && renderSubComponent && (
+                      <tr>
+                        <td colSpan={columns.length} className="p-0 border-b border-slate-100 dark:border-white/5">
+                          <div className="animate-in slide-in-from-top-2 fade-in duration-200">
+                            {renderSubComponent(item)}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
             )}
           </tbody>
         </table>

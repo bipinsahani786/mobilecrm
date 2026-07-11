@@ -12,7 +12,7 @@ class BusinessService
      */
     public function getBusinessesForUser(User $user)
     {
-        return Business::where('owner_id', $user->id)
+        return Business::with('plan')->where('owner_id', $user->id)
             ->orWhereHas('users', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->get();
@@ -24,6 +24,13 @@ class BusinessService
     public function createBusiness(User $owner, array $data): Business
     {
         $data['owner_id'] = $owner->id;
+
+        // Assign default plan (e.g. Enterprise Trial) if none provided
+        if (!isset($data['plan_id'])) {
+            $data['plan_id'] = 4; // Assuming 4 is Enterprise
+            $data['plan_expires_at'] = now()->addDays(14);
+        }
+
         $business = Business::create($data);
         
         // Ensure owner is attached as a user to the branch

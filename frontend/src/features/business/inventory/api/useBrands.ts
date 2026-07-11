@@ -1,21 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
-
-export interface Brand {
-  id: number;
-  business_id: number;
-  name: string;
-  created_at: string;
-}
-
-export type BrandFormValues = Omit<Brand, 'id' | 'business_id' | 'created_at'>;
+import type { Brand, BrandFormValues } from '../schemas/brandSchema';
 
 export function useBrands() {
   return useQuery({
     queryKey: ['brands'],
     queryFn: async () => {
       const response = await api.get<{ data: Brand[] }>('/business/brands');
-      return response.data;
+      return response.data.data;
     },
   });
 }

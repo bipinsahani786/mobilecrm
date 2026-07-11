@@ -3,7 +3,7 @@ import { Tags, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useBrands, useDeleteBrand } from '../api/useBrands';
-import type { Brand } from '../api/useBrands';
+import type { Brand } from '../schemas/brandSchema';
 import { toast } from 'sonner';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { BrandFormModal } from '../components/BrandFormModal';
@@ -16,7 +16,7 @@ export default function BrandsPage() {
   const { data: brandsData, isLoading } = useBrands();
   const deleteMutation = useDeleteBrand();
   
-  const brands = brandsData?.data || brandsData || [];
+  const brands = brandsData || [];
   const [brandToDelete, setBrandToDelete] = useState<Brand | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [brandToEdit, setBrandToEdit] = useState<Brand | null>(null);

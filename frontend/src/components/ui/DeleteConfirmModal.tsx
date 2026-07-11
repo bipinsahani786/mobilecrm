@@ -12,6 +12,7 @@ interface DeleteConfirmModalProps {
   description: string;
   confirmText?: string;
   itemName?: string;
+  isLoading?: boolean;
 }
 
 export function DeleteConfirmModal({
@@ -22,6 +23,7 @@ export function DeleteConfirmModal({
   description,
   confirmText = 'DELETE',
   itemName,
+  isLoading,
 }: DeleteConfirmModalProps) {
   const [inputValue, setInputValue] = useState('');
 
@@ -54,11 +56,11 @@ export function DeleteConfirmModal({
       <Button
         variant="destructive"
         size="sm"
-        disabled={!isConfirmed}
+        disabled={!isConfirmed || isLoading}
         onClick={handleConfirm}
         className="rounded-lg h-9 px-4 text-xs font-semibold disabled:opacity-50"
       >
-        Confirm Delete
+        {isLoading ? 'Deleting...' : 'Confirm Delete'}
       </Button>
     </div>
   );

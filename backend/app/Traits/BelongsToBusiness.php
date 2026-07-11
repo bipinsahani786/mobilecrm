@@ -16,8 +16,12 @@ trait BelongsToBusiness
 
         // 2. Automatically set the business_id when creating new records.
         static::creating(function ($model) {
-            if (app()->has('current_business_id') && empty($model->business_id)) {
-                $model->business_id = app('current_business_id');
+            if (empty($model->business_id)) {
+                if (app()->has('current_business_id')) {
+                    $model->business_id = app('current_business_id');
+                } elseif (auth()->check()) {
+                    $model->business_id = auth()->user()->business_id;
+                }
             }
         });
     }

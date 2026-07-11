@@ -146,7 +146,6 @@ class InventoryController extends BaseController
             'variant' => 'nullable|string|max:255',
             'purchase_price' => 'sometimes|numeric|min:0',
             'mrp' => 'sometimes|numeric|min:0',
-            'quantity' => 'sometimes|integer|min:0',
             'supplier_id' => 'nullable|integer',
             'status' => 'nullable|string|in:in_stock,sold,damaged'
         ]);
@@ -175,5 +174,41 @@ class InventoryController extends BaseController
             $this->inventoryService->deleteProduct($inventory);
             return null;
         }, 'Product deleted successfully');
+    }
+
+    #[OA\Post(
+        path: '/business/inventory/direct-inward',
+        summary: 'Direct Add Stock',
+        description: 'Directly add stock to an existing product without a supplier bill.',
+        tags: ['Business - Inventory'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['product_id', 'quantity'],
+                properties: [
+                    new OA\Property(property: 'product_id', type: 'integer'),
+                    new OA\Property(property: 'quantity', type: 'integer'),
+                    new OA\Property(property: 'purchase_price', type: 'number', nullable: true)
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Stock added successfully')
+        ]
+    )]
+    public function directInward(Request $request)
+    {
+        $validated = $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
+            'purchase_price' => 'nullable|numeric|min:0',
+            'mrp' => 'nullable|numeric|min:0',
+            'batch_number' => 'nullable|string|max:255',
+        ]);
+
+        return $this->executeAction(function () use ($validated) {
+            return $this->inventoryService->directInward($validated);
+        }, 'Stock added successfully');
     }
 }

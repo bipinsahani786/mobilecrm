@@ -7,7 +7,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Loader2, Tags } from 'lucide-react';
 import { useCreateCategory, useUpdateCategory } from '../api/useCategories';
-import type { Category, CategoryFormValues } from '../api/useCategories';
+import type { Category, CategoryFormValues } from '../schemas/categorySchema';
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import { getCategoryFormConfig } from '../constants/categoryForm';
 

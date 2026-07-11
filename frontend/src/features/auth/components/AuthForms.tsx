@@ -77,7 +77,12 @@ export const LoginForm = ({ identifier, goBack }: any) => {
         const isSuperadmin = res.user.roles?.some((r: any) => r.name === 'Superadmin');
         navigate(isSuperadmin ? '/superadmin/dashboard' : '/dashboard');
       },
-      onError: (err: any) => toast.error(err.response?.data?.message || 'Login failed')
+      onError: (err: any) => {
+        const errorMsg = err.response?.data?.errors 
+          ? (Object.values(err.response.data.errors)[0] as any)?.[0] as string
+          : err.response?.data?.message;
+        toast.error(errorMsg || 'Login failed');
+      }
     });
   };
 
@@ -133,7 +138,12 @@ export const OtpForm = ({ identifier, onNext, goBack, setOtpToken }: any) => {
         toast.success('OTP Verified!');
         onNext('SET_PASSWORD');
       },
-      onError: (err: any) => toast.error(err.response?.data?.message || 'Invalid OTP')
+      onError: (err: any) => {
+        const errorMsg = err.response?.data?.errors 
+          ? (Object.values(err.response.data.errors)[0] as any)?.[0] as string
+          : err.response?.data?.message;
+        toast.error(errorMsg || 'Invalid OTP');
+      }
     });
   };
 
@@ -178,7 +188,12 @@ export const SetPasswordForm = ({ otpToken }: any) => {
         const isSuperadmin = res.user.roles?.some((r: any) => r.name === 'Superadmin');
         navigate(isSuperadmin ? '/superadmin/dashboard' : '/dashboard');
       },
-      onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to set password')
+      onError: (err: any) => {
+        const errorMsg = err.response?.data?.errors 
+          ? (Object.values(err.response.data.errors)[0] as any)?.[0] as string
+          : err.response?.data?.message;
+        toast.error(errorMsg || 'Failed to set password');
+      }
     });
   };
 

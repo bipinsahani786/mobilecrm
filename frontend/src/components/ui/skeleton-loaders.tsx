@@ -2,129 +2,57 @@ import { Skeleton } from './skeleton';
 import { Card, CardContent } from './card';
 
 export function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
-  // Helper to render skeleton cell content based on column count and column index
-  const renderCellContent = (colIdx: number) => {
-    if (cols === 7) {
-      // Commissions page
-      switch (colIdx) {
-        case 0: // Date
-          return <Skeleton className="h-4 w-20" />;
-        case 1: // Partner
-          return (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-          );
-        case 2: // Business / Plan
-          return (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          );
-        case 3: // Sale Amount
-          return <Skeleton className="h-4 w-16 ml-auto" />;
-        case 4: // Commission
-          return <Skeleton className="h-4 w-16 ml-auto" />;
-        case 5: // Status
-          return <Skeleton className="h-5 w-16 mx-auto rounded-full" />;
-        case 6: // Actions
-          return <Skeleton className="h-8 w-20 ml-auto rounded-md" />;
-        default:
-          return <Skeleton className="h-4 w-16" />;
-      }
-    }
-
-    if (cols === 6) {
-      // Leads page
-      switch (colIdx) {
-        case 0: // Date
-          return <Skeleton className="h-4 w-16" />;
-        case 1: // Business
-          return (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-20" />
-            </div>
-          );
-        case 2: // Contact Person
-          return (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-28" />
-              <Skeleton className="h-3 w-36" />
-            </div>
-          );
-        case 3: // Partner
-          return (
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-          );
-        case 4: // Status
-          return <Skeleton className="h-8 w-28 mx-auto rounded-md" />;
-        case 5: // Actions
-          return <Skeleton className="h-8 w-16 ml-auto rounded-md" />;
-        default:
-          return <Skeleton className="h-4 w-16" />;
-      }
-    }
-
-    // Default 5 columns (Tenants / default)
-    switch (colIdx) {
-      case 0: // Business (with icon box)
-        return (
-          <div className="flex items-center gap-3">
-            <Skeleton className="w-8 h-8 rounded-md shrink-0" />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-          </div>
-        );
-      case 1: // Owner details
-        return (
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-28" />
-            <Skeleton className="h-3 w-36" />
-          </div>
-        );
-      case 2: // Joined on
-        return <Skeleton className="h-4 w-24" />;
-      case 3: // Status
-        return <Skeleton className="h-5 w-16 rounded" />;
-      case 4: // Actions
-        return <Skeleton className="h-8 w-20 ml-auto rounded-md" />;
-      default:
-        return <Skeleton className="h-4 w-16" />;
-    }
-  };
-
+  // A generic skeleton that looks good for any table, creating visual rhythm
   const getCellClassName = (colIdx: number) => {
-    if (cols === 7) {
-      if (colIdx === 3 || colIdx === 4 || colIdx === 6) return "px-4 py-4 text-right";
-      if (colIdx === 5) return "px-4 py-4 text-center";
-    }
-    if (cols === 6) {
-      if (colIdx === 4) return "px-4 py-4 text-center";
-      if (colIdx === 5) return "px-4 py-4 text-right";
-    }
-    if (cols === 5) {
-      if (colIdx === 4) return "px-4 py-4 text-right";
-    }
+    // Actions are usually last, align right
+    if (colIdx === cols - 1) return "px-4 py-4 text-right";
+    // Status is usually second to last, align center
+    if (colIdx === cols - 2) return "px-4 py-4 text-center";
     return "px-4 py-4";
   };
 
   return (
     <>
-      {[...Array(rows)].map((_, i) => (
-        <tr key={i} className="border-b border-slate-100 dark:border-white/5">
-          {[...Array(cols)].map((_, colIdx) => (
-            <td key={colIdx} className={getCellClassName(colIdx)}>
-              {renderCellContent(colIdx)}
-            </td>
-          ))}
+      {[...Array(rows)].map((_, rowIndex) => (
+        <tr key={rowIndex} className="border-b border-slate-100 dark:border-white/5">
+          {[...Array(cols)].map((_, colIdx) => {
+            
+            let cellContent;
+            
+            // Actions Column (Last)
+            if (colIdx === cols - 1) {
+              cellContent = <Skeleton className="h-8 w-16 ml-auto rounded-md" />;
+            }
+            // Status Column (Second to last)
+            else if (colIdx === cols - 2) {
+              cellContent = <Skeleton className="h-5 w-20 mx-auto rounded-full" />;
+            }
+            // Main identity column (usually 2nd or 3rd) - give it a stacked look
+            else if (colIdx === 1 || (cols > 5 && colIdx === 2)) {
+               // Use rowIndex to vary the width slightly for a natural look
+               const topWidths = ['w-32', 'w-40', 'w-48', 'w-36'];
+               const bottomWidths = ['w-24', 'w-20', 'w-32', 'w-28'];
+               cellContent = (
+                 <div className="space-y-2">
+                   <Skeleton className={`h-4 ${topWidths[rowIndex % topWidths.length]}`} />
+                   <Skeleton className={`h-3 ${bottomWidths[rowIndex % bottomWidths.length]}`} />
+                 </div>
+               );
+            }
+            // Other generic columns
+            else {
+               const genericWidths = ['w-16', 'w-24', 'w-20', 'w-28', 'w-32'];
+               // Add colIdx to rowIndex so columns don't look identical in the same row
+               const width = genericWidths[(rowIndex + colIdx) % genericWidths.length];
+               cellContent = <Skeleton className={`h-4 ${width}`} />;
+            }
+
+            return (
+              <td key={colIdx} className={getCellClassName(colIdx)}>
+                {cellContent}
+              </td>
+            );
+          })}
         </tr>
       ))}
     </>

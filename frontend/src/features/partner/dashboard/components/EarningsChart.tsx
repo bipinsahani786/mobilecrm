@@ -35,7 +35,7 @@ export function EarningsChart({ data }: EarningsChartProps) {
               fontSize: '12px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
-            formatter={(value: number) => [`₹${value.toLocaleString('en-IN')}`, 'Commission']}
+            formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Commission']}
           />
           <Bar 
             dataKey="total" 

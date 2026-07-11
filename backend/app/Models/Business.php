@@ -35,6 +35,7 @@ class Business extends Model
         'custom_features',
         'plan_expires_at',
         'partner_id',
+        'settings',
     ];
 
     protected $casts = [
@@ -42,6 +43,7 @@ class Business extends Model
         'books_opening_date' => 'date',
         'custom_features' => 'array',
         'plan_expires_at' => 'datetime',
+        'settings' => 'array',
     ];
 
     /**

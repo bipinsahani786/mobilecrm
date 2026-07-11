@@ -9,9 +9,13 @@ use App\Models\Plan;
 use App\Models\Commission;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Services\System\ActivityLogService;
 
 class TenantService
 {
+    public function __construct(private ActivityLogService $activityLogService)
+    {
+    }
     /**
      * Get paginated, filtered, and sorted tenants list.
      */
@@ -110,8 +114,21 @@ class TenantService
     {
         $business = Business::findOrFail($id);
         $oldPlanId = $business->plan_id;
+        $oldFeatures = $business->custom_features;
         
         $business->update($data);
+
+        // Log the tenant update and feature changes
+        if (isset($data['custom_features']) && $data['custom_features'] !== $oldFeatures) {
+            $this->activityLogService->log(
+                action: 'tenant_features_updated',
+                modelType: Business::class,
+                modelId: $business->id,
+                description: "Superadmin updated custom features for tenant {$business->name}",
+                properties: ['old' => $oldFeatures, 'new' => $data['custom_features']],
+                tenantId: $business->id
+            );
+        }
 
         // Generate Commission if plan changed and partner exists
         if (!empty($data['plan_id']) && $data['plan_id'] != $oldPlanId && !empty($business->partner_id)) {

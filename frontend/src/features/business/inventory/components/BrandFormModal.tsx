@@ -7,7 +7,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Loader2, Tags } from 'lucide-react';
 import { useCreateBrand, useUpdateBrand } from '../api/useBrands';
-import type { Brand, BrandFormValues } from '../api/useBrands';
+import type { Brand, BrandFormValues } from '../schemas/brandSchema';
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import { brandFormConfig } from '../constants/brandForm';
 
