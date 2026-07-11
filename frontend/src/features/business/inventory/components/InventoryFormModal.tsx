@@ -8,8 +8,9 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Loader2, Package } from 'lucide-react';
 import { useCreateProduct, useUpdateProduct } from '../api/useInventory';
-import type { Product, ProductFormValues } from '../api/useInventory';
-import { useBrands, useCreateBrand, type Brand } from '../api/useBrands';
+import type { Product, ProductFormValues } from '../schemas/productSchema';
+import type { Brand } from '../schemas/brandSchema';
+import { useBrands, useCreateBrand } from '../api/useBrands';
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import { getInventoryFormConfig } from '../constants/inventoryForm';
 import { useCategories, useCreateCategory } from '../api/useCategories';
@@ -24,7 +25,7 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.data || [];
   const { data: brandsData } = useBrands();
-  const brands: Brand[] = brandsData?.data || [];
+  const brands: Brand[] = brandsData || [];
   const createBrandMutation = useCreateBrand();
   const createCategoryMutation = useCreateCategory();
 
@@ -133,7 +134,8 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
             { value: 0, label: 'Select a category' },
             ...categories.map(cat => ({ value: cat.id, label: cat.name }))
           ],
-          brands.map(brand => ({ value: brand.id, label: brand.name }))
+          brands.map(brand => ({ value: brand.id, label: brand.name })),
+          !!productToEdit
         ).map(section => {
           // If this is the section with Brand, inject the onCreate handler
           const modifiedFields = section.fields.map(field => {

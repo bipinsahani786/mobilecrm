@@ -1,5 +1,5 @@
 import type { ColumnDef } from '@/components/ui/data-table';
-import type { Category } from '../api/useCategories';
+import type { Category } from '../schemas/categorySchema';
 import { MetaCell } from '@/components/ui/table-cells';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';

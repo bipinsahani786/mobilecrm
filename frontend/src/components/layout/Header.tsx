@@ -424,12 +424,16 @@ export function Header({ className }: { className?: string }) {
             </div>
             <div>
               <div className="text-[8px] font-bold text-slate-400 dark:text-slate-500 tracking-widest uppercase mb-0.5">Current Plan</div>
-              <div className="text-[10px] font-bold text-slate-800 dark:text-white uppercase tracking-wider">PROFESSIONAL Z</div>
+              <div className="text-[10px] font-bold text-slate-800 dark:text-white uppercase tracking-wider">{activeBusiness?.plan?.name || 'FREE PLAN'}</div>
             </div>
-            <div className="border-l border-slate-200 dark:border-white/10 pl-3 ml-1">
-              <div className="text-[8px] font-bold text-emerald-500 tracking-widest uppercase">14+ DAYS LEFT</div>
-              <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">ACTIVE TRIAL</div>
-            </div>
+            {activeBusiness?.plan_expires_at && (
+              <div className="border-l border-slate-200 dark:border-white/10 pl-3 ml-1">
+                <div className="text-[8px] font-bold text-emerald-500 tracking-widest uppercase">
+                  {Math.max(0, Math.ceil((new Date(activeBusiness.plan_expires_at).getTime() - new Date().getTime()) / (1000 * 3600 * 24)))} DAYS LEFT
+                </div>
+                <div className="text-[9px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider mt-0.5">ACTIVE PLAN</div>
+              </div>
+            )}
           </div>
         )}
 

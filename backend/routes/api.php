@@ -32,7 +32,39 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['tenant'])->prefix('business')->group(function () {
             Route::apiResource('categories', \App\Http\Controllers\Api\Business\CategoryController::class);
             Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
+            
+            Route::post('inventory/direct-inward', [\App\Http\Controllers\Api\Business\InventoryController::class, 'directInward']);
             Route::apiResource('inventory', \App\Http\Controllers\Api\Business\InventoryController::class);
+            
+            // Supplier Routes
+            Route::apiResource('suppliers', \App\Http\Controllers\Api\SupplierController::class);
+            Route::post('suppliers/{supplier}/purchases', [\App\Http\Controllers\Api\SupplierController::class, 'storePurchase']);
+            Route::post('suppliers/{supplier}/payments', [\App\Http\Controllers\Api\SupplierController::class, 'storePayment']);
+            
+            // Customer Routes
+            Route::apiResource('customers', \App\Http\Controllers\Api\CustomerController::class);
+            
+            // Sales Routes
+            Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);
+            
+            // Expense Routes
+            Route::apiResource('expenses', \App\Http\Controllers\Api\Business\ExpenseController::class);
+            
+            // EMI & Installments Routes
+            Route::get('emis/customer/{customerId}', [\App\Http\Controllers\Api\Business\EmiController::class, 'getCustomerEmis']);
+            Route::post('emis/installments/{installmentId}/pay', [\App\Http\Controllers\Api\Business\EmiController::class, 'payInstallment']);
+            Route::post('emis/{emiDetailId}/payout', [\App\Http\Controllers\Api\Business\EmiController::class, 'markPayoutReceived']);
+            
+            // Finance Ledger Routes
+            Route::get('finance/pending', [\App\Http\Controllers\Api\FinanceController::class, 'pending']);
+            Route::get('finance/completed', [\App\Http\Controllers\Api\FinanceController::class, 'completed']);
+            Route::post('finance/{id}/mark-received', [\App\Http\Controllers\Api\FinanceController::class, 'markReceived']);
+        });
+
+        Route::get('test-finance', function() {
+            return \App\Models\EmiDetail::with(['sale.customer', 'sale.items.product'])
+                ->orderByDesc('created_at')
+                ->paginate(15);
         });
 
         // Profile (any authenticated user)

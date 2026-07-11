@@ -11,7 +11,8 @@ import {
   ClipboardList,
   Package,
   Wallet,
-  FileStack
+  FileStack,
+  Receipt
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/store/layoutStore";
@@ -19,6 +20,7 @@ import { useAuthStore } from "@/store/authStore";
 import { useAppStore } from "@/store/appStore";
 import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useFeature } from "@/hooks/useFeature";
 
 const businessMenuGroups = [
   {
@@ -32,14 +34,15 @@ const businessMenuGroups = [
     items: [
       { name: "NEW BILL (POS)", href: "/pos", icon: FileText },
       { name: "ALL INVOICES", href: "/invoices", icon: ClipboardList },
-      { name: "QUOTATIONS", href: "/quotations", icon: Activity },
+      { name: "FINANCE LEDGER", href: "/finance", icon: Wallet },
+      { name: "EXPENSES", href: "/expenses", icon: Receipt },
     ]
   },
   {
     title: "RELATIONSHIPS",
     items: [
       { name: "CUSTOMERS", href: "/customers", icon: Users },
-      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus },
+      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus, feature: "suppliers" },
     ]
   },
   {
@@ -103,7 +106,7 @@ const partnerMenuGroups = [
   }
 ];
 
-function PortalTooltip({ text, children, visible }: { text: string, children: React.ReactElement, visible: boolean }) {
+export function PortalTooltip({ text, children, visible = true }: { text: string, children: React.ReactElement, visible?: boolean }) {
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const ref = useRef<HTMLElement>(null);
@@ -114,15 +117,15 @@ function PortalTooltip({ text, children, visible }: { text: string, children: Re
       setPos({ top: rect.top + rect.height / 2, left: rect.right + 12 });
       setShow(true);
     }
-    if (children.props.onMouseEnter) children.props.onMouseEnter(e);
+    if ((children.props as any).onMouseEnter) (children.props as any).onMouseEnter(e);
   };
 
   const handleMouseLeave = (e: any) => {
     setShow(false);
-    if (children.props.onMouseLeave) children.props.onMouseLeave(e);
+    if ((children.props as any).onMouseLeave) (children.props as any).onMouseLeave(e);
   };
 
-  const child = React.cloneElement(children as React.ReactElement, {
+  const child = React.cloneElement(children as React.ReactElement<any>, {
     ref,
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
@@ -151,10 +154,16 @@ export function Sidebar({ className }: { className?: string }) {
   const user = useAuthStore((state) => state.user);
   const { appName, appLogo } = useAppStore();
   const { hasPermission } = usePermissions();
+  const { hasFeature } = useFeature();
 
   const isSuperadmin = user?.roles?.some((r) => r.name === 'Superadmin');
   const isPartner = user?.roles?.some((r) => r.name === 'Partner');
   
+  const filteredBusinessGroups = businessMenuGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => !item.feature || hasFeature(item.feature))
+  })).filter(group => group.items.length > 0);
+
   const filteredSuperadminGroups = superadminMenuGroups.map(group => ({
     ...group,
     items: group.items.filter(item => hasPermission(item.permission))
@@ -171,7 +180,7 @@ export function Sidebar({ className }: { className?: string }) {
   
   const activeMenuGroups = isSuperadmin 
     ? filteredSuperadminGroups 
-    : (isPartnerRoute || (!user?.businesses?.length && isPartner)) ? filteredPartnerGroups : businessMenuGroups;
+    : (isPartnerRoute || (!user?.businesses?.length && isPartner)) ? filteredPartnerGroups : filteredBusinessGroups;
 
   return (
     <>

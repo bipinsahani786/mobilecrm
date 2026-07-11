@@ -3,7 +3,7 @@ import { Building2, Plus, Tags } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useCategories, useDeleteCategory } from '../api/useCategories';
-import type { Category } from '../api/useCategories';
+import type { Category } from '../schemas/categorySchema';
 import { toast } from 'sonner';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { CategoryFormModal } from '../components/CategoryFormModal';

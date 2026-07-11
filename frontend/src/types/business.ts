@@ -20,4 +20,10 @@ export interface Business {
     show_phone_2?: boolean;
     show_gst?: boolean;
   } | null;
+  plan_expires_at?: string | null;
+  plan?: {
+    name: string;
+    features?: string[];
+  } | null;
+  custom_features?: Record<string, boolean> | null;
 }

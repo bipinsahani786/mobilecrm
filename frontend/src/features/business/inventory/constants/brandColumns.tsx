@@ -1,6 +1,5 @@
 import type { ColumnDef } from '@/components/ui/data-table';
-import type { Brand } from '../api/useBrands';
-import { MetaCell } from '@/components/ui/table-cells';
+import type { Brand } from '../schemas/brandSchema';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 
@@ -17,7 +16,7 @@ export const getBrandColumns = ({ onEdit, onDelete }: BrandColumnsProps): Column
   },
   {
     header: 'Created At',
-    cell: (brand) => <MetaCell date={brand.created_at} />,
+    cell: (brand) => <span className="text-sm text-slate-500">{new Date(brand.created_at).toLocaleDateString()}</span>,
   },
   {
     header: 'Actions',

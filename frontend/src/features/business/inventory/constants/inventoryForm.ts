@@ -3,7 +3,8 @@ import type { FormSectionConfig } from '@/components/ui/dynamic-form';
 
 export const getInventoryFormConfig = (
   categories: { value: string | number; label: string }[],
-  brands: { value: string | number; label: string }[]
+  brands: { value: string | number; label: string }[],
+  isEditing?: boolean
 ): FormSectionConfig[] => [
   {
     title: 'Basic Info',
@@ -67,8 +68,8 @@ export const getInventoryFormConfig = (
     ],
   },
   {
-    title: 'Pricing & Stock',
-    description: 'Set your purchase cost, selling price, and initial stock.',
+    title: isEditing ? 'Pricing' : 'Pricing & Stock',
+    description: isEditing ? 'Update your product pricing.' : 'Set your purchase cost, selling price, and initial stock.',
     fields: [
       {
         name: 'purchase_price',
@@ -86,14 +87,16 @@ export const getInventoryFormConfig = (
         step: '0.01',
         tooltip: 'Maximum Retail Price. This will be the default selling price.',
       },
-      {
-        name: 'quantity',
-        label: 'Current Stock',
-        type: 'number',
-        required: true,
-        step: '1',
-        tooltip: 'The initial number of units available in your inventory.',
-      },
+      ...(isEditing ? [] : [
+        {
+          name: 'quantity',
+          label: 'Initial Stock',
+          type: 'number' as const,
+          required: true,
+          step: '1',
+          tooltip: 'The initial number of units available in your inventory.',
+        }
+      ]),
     ],
   },
 ];

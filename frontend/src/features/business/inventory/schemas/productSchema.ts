@@ -1,5 +1,48 @@
 import { z } from 'zod';
+import type { Category } from './categorySchema';
+import type { Brand } from './brandSchema';
 
+// --- Interfaces ---
+export interface ProductBatch {
+  id: number;
+  batch_number: string | null;
+  original_quantity: number;
+  remaining_quantity: number;
+  purchase_price: number;
+  mrp: number;
+  created_at: string;
+}
+
+export interface Product {
+  id: number;
+  business_id: number;
+  category_id: number;
+  brand_id: number | null;
+  model_name: string;
+  imei: string | null;
+  serial_no: string | null;
+  variant: string | null;
+  purchase_price: number;
+  mrp: number;
+  quantity: number;
+  supplier_id: number | null;
+  status: 'in_stock' | 'sold' | 'damaged';
+  category?: Category;
+  brand?: Brand;
+  batches?: ProductBatch[];
+  created_at: string;
+}
+
+export interface InventoryQueryFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  category_id?: number;
+  brand_id?: number;
+  low_stock_days?: number | string;
+}
+
+// --- Zod Schemas ---
 export const productSchema = z.object({
   category_id: z.coerce.number().min(1, 'Category is required'),
   brand_id: z.coerce.number().optional().or(z.literal('')),
@@ -14,4 +57,4 @@ export const productSchema = z.object({
   status: z.enum(['in_stock', 'sold', 'damaged']).default('in_stock')
 });
 
-export type ProductFormSchemaType = z.infer<typeof productSchema>;
+export type ProductFormValues = z.infer<typeof productSchema>;
