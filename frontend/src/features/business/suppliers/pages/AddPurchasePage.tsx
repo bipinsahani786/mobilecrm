@@ -242,7 +242,7 @@ export default function AddPurchasePage() {
                     </div>
                     
                     <div className="pt-5">
-                      <PortalTooltip text="Remove Item">
+                      <PortalTooltip text="Remove Item" visible={true}>
                         <Button 
                           variant="ghost" 
                           size="icon" 

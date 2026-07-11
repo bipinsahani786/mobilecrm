@@ -24,6 +24,10 @@ class ExpenseService
      */
     public function createExpense(array $data): Expense
     {
+        if (isset($data['category'])) {
+            $this->ensureCategoryExists($data['category']);
+        }
+
         if (isset($data['receipt']) && $data['receipt'] instanceof \Illuminate\Http\UploadedFile) {
             $data['receipt_path'] = $data['receipt']->store('receipts', 'public');
         }
@@ -38,6 +42,10 @@ class ExpenseService
      */
     public function updateExpense(Expense $expense, array $data): Expense
     {
+        if (isset($data['category'])) {
+            $this->ensureCategoryExists($data['category']);
+        }
+
         if (isset($data['receipt']) && $data['receipt'] instanceof \Illuminate\Http\UploadedFile) {
             // Delete old receipt if exists
             if ($expense->receipt_path) {
@@ -61,5 +69,29 @@ class ExpenseService
         }
         
         return $expense->delete();
+    }
+
+    /**
+     * Ensure the category exists in the business's expense categories.
+     */
+    private function ensureCategoryExists(string $categoryName): void
+    {
+        // Trim category just in case
+        $categoryName = trim($categoryName);
+        if (empty($categoryName)) {
+            return;
+        }
+
+        // We use firstOrCreate which will respect the TenantScope for business_id
+        // since TenantScope automatically applies business_id to the query.
+        // Wait, TenantScope applies to select. For firstOrCreate we need business_id.
+        $businessId = app('current_business_id') ?? (auth()->check() ? auth()->user()->business_id : null);
+        
+        if ($businessId) {
+            \App\Models\ExpenseCategory::firstOrCreate([
+                'business_id' => $businessId,
+                'name' => $categoryName
+            ]);
+        }
     }
 }

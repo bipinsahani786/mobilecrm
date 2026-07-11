@@ -52,6 +52,26 @@ class ExpenseController extends BaseController
         }
     }
 
+    #[OA\Get(
+        path: '/business/expenses/categories',
+        summary: 'List Expense Categories',
+        description: 'Get a list of all expense categories for the current business.',
+        tags: ['Business - Expenses'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation')
+        ]
+    )]
+    public function categories()
+    {
+        try {
+            $categories = \App\Models\ExpenseCategory::select('id', 'name')->orderBy('name')->get();
+            return $this->success($categories, 'Categories retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
     #[OA\Post(
         path: '/business/expenses',
         summary: 'Create Expense',

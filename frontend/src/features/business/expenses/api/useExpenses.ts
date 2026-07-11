@@ -5,6 +5,17 @@ import type { Expense } from '../schemas';
 import { toast } from 'sonner';
 
 // Fetch paginated expenses
+export const useExpenseCategories = () => {
+  return useQuery({
+    queryKey: ['expense-categories'],
+    queryFn: async () => {
+      const { data } = await api.get('/business/expenses/categories');
+      // The API returns { success: true, data: [{id: 1, name: 'Rent'}, ...] }
+      return data.data as { id: number; name: string }[];
+    },
+  });
+};
+
 export const useExpenses = (filters: Record<string, any> = {}) => {
   return useQuery({
     queryKey: EXPENSE_QUERY_KEYS.list(filters),

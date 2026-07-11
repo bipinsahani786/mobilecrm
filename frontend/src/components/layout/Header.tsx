@@ -7,7 +7,7 @@ import { useTenantStore } from "@/store/tenantStore";
 import { cn } from "@/lib/utils";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ModeToggle } from "@/components/ui/mode-toggle";
-import { businessMenuGroups, superadminMenuGroups, isRouteActive } from "./Sidebar";
+import { businessMenuGroups, superadminMenuGroups } from "./Sidebar";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 
@@ -177,9 +177,7 @@ function ProfileMenu() {
   const location = useLocation();
 
   // Use both roles and route path for robust determination
-  const isSuperadmin = user?.role === 'super_admin'
-    || user?.role === 'admin'
-    || user?.roles?.some(r => r.name === 'Superadmin')
+  const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin')
     || location.pathname.startsWith('/superadmin')
     || location.pathname === '/dashboard';
   const isPartner = user?.roles?.some(r => r.name === 'Partner') || location.pathname.startsWith('/partner');
@@ -319,9 +317,7 @@ export function Header({ className }: { className?: string }) {
   const user = useAuthStore(state => state.user);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const location = useLocation();
-  const isSuperadminMode = user?.role === 'super_admin'
-    || user?.role === 'admin'
-    || user?.roles?.some(r => r.name === 'Superadmin')
+  const isSuperadminMode = user?.roles?.some(r => r.name === 'Superadmin')
     || location.pathname.startsWith('/superadmin')
     || location.pathname === '/dashboard';
 
@@ -368,11 +364,17 @@ export function Header({ className }: { className?: string }) {
       ...superadminMenuGroups.flatMap(g => g.items),
       ...businessMenuGroups.flatMap(g => g.items)
     ];
+    const isRouteActive = (itemHref: string, currentPath: string) => {
+      return currentPath === itemHref || 
+             (itemHref === "/dashboard" && currentPath === "/") ||
+             (itemHref === "/superadmin/dashboard" && currentPath === "/superadmin");
+    };
+
     const activeItem = allItems.find(item => isRouteActive(item.href, location.pathname));
     if (activeItem) {
       currentHeader = {
         title: activeItem.name,
-        subtitle: activeItem.subtitle || '',
+        subtitle: 'subtitle' in activeItem ? (activeItem as any).subtitle : 'Intelligent Retail Dashboard',
       };
       ActiveIcon = activeItem.icon;
     }

@@ -237,7 +237,7 @@ const partnerMenuGroups = [
   },
 ];
 
-function PortalTooltip({ text, children, visible }: { text: string, children: React.ReactElement, visible: boolean }) {
+export function PortalTooltip({ text, children, visible }: { text: string, children: React.ReactElement<any>, visible: boolean }) {
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState({
     top: 0,
@@ -265,7 +265,7 @@ function PortalTooltip({ text, children, visible }: { text: string, children: Re
     if (children.props.onMouseLeave) children.props.onMouseLeave(e);
   };
 
-  const child = React.cloneElement(children as React.ReactElement, {
+  const child = React.cloneElement(children, {
     ref,
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,

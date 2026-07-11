@@ -48,6 +48,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);
             
             // Expense Routes
+            Route::get('expenses/categories', [\App\Http\Controllers\Api\Business\ExpenseController::class, 'categories']);
             Route::apiResource('expenses', \App\Http\Controllers\Api\Business\ExpenseController::class);
             
             // EMI & Installments Routes

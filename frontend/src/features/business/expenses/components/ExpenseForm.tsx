@@ -3,11 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseSchema } from '../schemas';
 import type { ExpenseFormData, Expense } from '../schemas';
-import { EXPENSE_CATEGORIES } from '../constants';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { useExpenseCategories } from '../api/useExpenses';
 
 interface ExpenseFormProps {
   initialData?: Expense;
@@ -22,6 +21,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   isLoading,
   onCancel
 }) => {
+  const { data: categories = [] } = useExpenseCategories();
+  
   const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -69,16 +70,18 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
       <div>
         <label className="block text-sm font-medium mb-1">Category</label>
-        <select 
+        <Input 
+          type="text"
+          list="expense-categories"
+          placeholder="Select or type new category"
           {...register('category')}
-          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <option value="">Select Category</option>
-          {EXPENSE_CATEGORIES.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
+          error={errors.category?.message}
+        />
+        <datalist id="expense-categories">
+          {categories.map((cat: any) => (
+            <option key={cat.id} value={cat.name} />
           ))}
-        </select>
-        {errors.category && <span className="text-red-500 text-xs">{errors.category.message}</span>}
+        </datalist>
       </div>
 
       <div>

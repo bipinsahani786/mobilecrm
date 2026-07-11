@@ -50,29 +50,33 @@ const ExpensesPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
       <PageHeader 
         icon={Receipt}
         title="Expenses" 
         subtitle="Manage your business expenses"
         actions={
-          <Button onClick={() => handleOpenModal()}>
-            <Plus size={16} className="mr-2" /> Add Expense
+          <Button size="sm" onClick={() => handleOpenModal()}>
+            <Plus size={14} className="mr-2" /> Add Expense
           </Button>
         }
       />
 
-      <ExpensesList 
-        expenses={expensesData?.data || []}
-        isLoading={isLoading}
-        onEdit={handleOpenModal}
-        onDelete={setDeletingExpense}
-        pagination={{
-          currentPage: expensesData?.meta?.current_page || 1,
-          totalPages: expensesData?.meta?.last_page || 1,
-          onPageChange: setPage,
-        }}
-      />
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
+          <ExpensesList 
+            expenses={expensesData?.data || []}
+            isLoading={isLoading}
+            onEdit={handleOpenModal}
+            onDelete={setDeletingExpense}
+            pagination={{
+              currentPage: expensesData?.meta?.current_page || 1,
+              totalPages: expensesData?.meta?.last_page || 1,
+              onPageChange: setPage,
+            }}
+          />
+        </div>
+      </div>
 
       <ExpenseModal 
         isOpen={isModalOpen}
