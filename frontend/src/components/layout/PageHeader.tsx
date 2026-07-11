@@ -17,21 +17,11 @@ export interface PageHeaderProps {
 
 export function PageHeader({ icon: Icon, title, subtitle, breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="w-full bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-white/5 py-2.5 px-4 sm:px-6">
+    <div className="w-full bg-transparent pt-0 pb-2 px-3 sm:px-4">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-2 sm:gap-5">
-          <div className="w-8 h-8 sm:w-10 sm:h-10 shrink-0 bg-primary-50 dark:bg-primary-500/10 rounded-xl flex items-center justify-center text-primary-600 dark:text-primary-500 shadow-sm border border-primary-100 dark:border-primary-500/20">
-             <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-          </div>
-          <div className="flex-1">
-            <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white uppercase tracking-tight font-display leading-tight">
-              {title}
-            </h1>
-            <p className="text-[9px] sm:text-[10px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5 tracking-widest uppercase">
-              {subtitle}
-            </p>
-          </div>
-          
+        <div className="flex flex-col md:flex-row md:items-center gap-2 sm:gap-5 flex-1">
+          {/* Title and Icon removed as per request */}
+
           {breadcrumbs && breadcrumbs.length > 0 && (
             <>
               {/* Divider */}

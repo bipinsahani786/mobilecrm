@@ -9,7 +9,7 @@ export function FilterContainer({ className, children, ...props }: FilterContain
   return (
     <div
       className={cn(
-        "bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm mb-6 flex flex-wrap items-center gap-3",
+        "bg-white/70 dark:bg-zinc-950/70 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 rounded-2xl p-2 md:p-3 shadow-sm mb-6 flex flex-wrap items-center gap-2 lg:gap-3 w-fit",
         className
       )}
       {...props}
@@ -36,11 +36,11 @@ export function FilterSearch({
   return (
     <div
       className={cn(
-        "relative flex items-center w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all overflow-hidden h-10 pr-3",
+        "relative flex items-center w-full bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 rounded-xl shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all overflow-hidden h-9 pr-3 group hover:border-primary-500/50",
         wrapperClassName
       )}
     >
-      <div className="h-10 w-10 flex items-center justify-center bg-primary-50 dark:bg-primary-500/10 border-r border-slate-200 dark:border-zinc-800 text-primary-500 dark:text-primary-400 shrink-0">
+      <div className="h-9 w-9 flex items-center justify-center bg-transparent border-r border-slate-100 dark:border-white/5 text-slate-400 group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400 shrink-0 transition-colors">
         <Search className="w-4 h-4" />
       </div>
       <input
@@ -223,11 +223,11 @@ export function FilterDate({
   return (
     <div
       className={cn(
-        "flex items-center bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg overflow-hidden h-10 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all",
+        "flex items-center bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden h-9 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50",
         wrapperClassName
       )}
     >
-      <span className="h-full px-2.5 flex items-center bg-slate-50 dark:bg-white/5 border-r border-slate-200 dark:border-zinc-800 text-xs font-bold tracking-wider text-slate-500 dark:text-zinc-400 uppercase select-none">
+      <span className="h-full px-3 flex items-center bg-slate-50/50 dark:bg-white/5 border-r border-slate-100 dark:border-white/5 text-[10px] sm:text-xs font-bold tracking-widest text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400">
         {label}
       </span>
       <input
