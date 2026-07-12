@@ -33,7 +33,7 @@ export function AppLayout() {
       <Sidebar className={isSemiDark ? "dark" : ""} />
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
         <Header className={isSemiDark ? "dark" : ""} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full transition-all duration-300">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full transition-all duration-300 bg-slate-50 dark:bg-[#0a0a0f]">
           <PageWrapper>
             <Outlet />
           </PageWrapper>
