@@ -26,30 +26,25 @@ export function MarkReceivedModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-          <CheckCircle2 className="w-5 h-5" />
-          Confirm Payout Received
-        </div>
-      }
+      title=""
       maxWidth="sm"
-      footer={
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
-            Cancel
-          </Button>
-          <Button onClick={onConfirm} className="bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isLoading}>
-            {isLoading ? 'Confirming...' : 'Confirm Received'}
-          </Button>
-        </div>
-      }
     >
-      <div className="space-y-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
-          Please confirm the date when this payout was received in your bank account.
+      <div className="flex flex-col items-center text-center p-2">
+        {/* Theme-based animated icon */}
+        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/30 mb-4 animate-in zoom-in duration-300">
+          <CheckCircle2 className="w-6 h-6 text-white" />
+        </div>
+        
+        <h2 className="text-lg font-black text-slate-900 dark:text-white mb-1.5 tracking-tight">
+          Mark as Received
+        </h2>
+        
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-6 max-w-[280px] leading-relaxed">
+          Confirm the exact date this payout landed in your bank account to keep ledgers accurate.
         </p>
-        <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+
+        <div className="w-full text-left bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 p-3 rounded-xl mb-6">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
             Received Date
           </label>
           <Input 
@@ -57,7 +52,26 @@ export function MarkReceivedModal({
             value={payoutDate}
             onChange={(e) => setPayoutDate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
+            className="w-full h-9 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-[#111118]"
           />
+        </div>
+
+        <div className="flex items-center gap-3 w-full">
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={isLoading} 
+            className="flex-1 h-9 rounded-lg text-xs font-bold uppercase tracking-wider"
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={onConfirm} 
+            disabled={isLoading}
+            className="flex-1 h-9 rounded-lg bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-[10px] font-black uppercase tracking-widest shadow-md shadow-primary-500/30 hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+          >
+            {isLoading ? 'Confirming...' : 'Confirm'}
+          </Button>
         </div>
       </div>
     </Modal>

@@ -20,7 +20,7 @@ export const getCommissionColumns = ({
     sortable: true,
     className: '!px-3 !py-1.5 text-xs',
     cell: (commission) => (
-      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+      <p className="text-xs font-bold text-[10px] font-bold text-slate-400 mt-0.5 dark:text-slate-400">
         {format(new Date(commission.created_at), 'MMM dd, yyyy')}
       </p>
     )
@@ -30,7 +30,7 @@ export const getCommissionColumns = ({
     className: '!px-3 !py-1.5 text-xs',
     cell: (commission) => (
       <div>
-        <p className="font-semibold text-slate-800 dark:text-slate-200 leading-tight">{commission.partner?.name || 'N/A'}</p>
+        <p className="font-bold text-xs text-slate-800 dark:text-slate-200 leading-tight">{commission.partner?.name || 'N/A'}</p>
         <p className="text-[10px] text-slate-500 mt-0.5">{commission.partner?.referral_code || 'N/A'}</p>
       </div>
     )
@@ -40,7 +40,7 @@ export const getCommissionColumns = ({
     className: '!px-3 !py-1.5 text-xs',
     cell: (commission) => (
       <div>
-        <p className="font-semibold text-slate-800 dark:text-slate-200 leading-tight">{commission.business?.name || 'N/A'}</p>
+        <p className="font-bold text-xs text-slate-800 dark:text-slate-200 leading-tight">{commission.business?.name || 'N/A'}</p>
         <p className="text-[10px] text-slate-500 mt-0.5">{commission.plan?.name || 'Custom Plan'}</p>
       </div>
     )
@@ -52,7 +52,7 @@ export const getCommissionColumns = ({
     className: 'text-right !px-3 !py-1.5 text-xs',
     cell: (commission) => (
       <div className="flex flex-col items-end">
-        <p className="font-medium text-slate-800 dark:text-slate-200">
+        <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
           ₹{commission.amount_paid_by_tenant}
         </p>
         {commission.payment_collected_by === 'partner' && (
@@ -108,11 +108,11 @@ export const getCommissionColumns = ({
           </Button>
         ) : (
           commission.paid_at ? (
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">
               Paid on {format(new Date(commission.paid_at), 'MMM dd')}
             </span>
           ) : (
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Paid</span>
+            <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider">Paid</span>
           )
         )}
       </div>

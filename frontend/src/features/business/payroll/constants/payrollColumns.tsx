@@ -15,7 +15,7 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
     header: 'Staff Member',
     accessorKey: 'user.name',
     cell: (row: PayrollRecord) => (
-      <div className="font-medium text-slate-900 dark:text-white">
+      <div className="font-bold text-xs text-slate-900 dark:text-white">
         {row.user?.name}
       </div>
     )
@@ -31,8 +31,8 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
     cell: (row: PayrollRecord) => {
       return (
         <div className="text-sm">
-          <span className="text-emerald-600 font-medium">{row.present_days}P</span> / 
-          <span className="text-red-500 font-medium ml-1">{row.absent_days}A</span>
+          <span className="text-emerald-600 font-bold text-xs">{row.present_days}P</span> / 
+          <span className="text-red-500 font-bold text-xs ml-1">{row.absent_days}A</span>
           <span className="text-slate-500 text-xs ml-1">({row.total_days} days)</span>
         </div>
       );

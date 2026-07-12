@@ -51,20 +51,19 @@ const ExpensesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
-      <PageHeader 
-        icon={Receipt}
-        title="Expenses" 
-        subtitle="Manage your business expenses"
-        actions={
-          <Button size="sm" onClick={() => handleOpenModal()}>
-            <Plus size={14} className="mr-2" /> Add Expense
-          </Button>
-        }
-      />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200 relative overflow-hidden">
+      
+      {/* Massive Fintech Mesh Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] bg-blue-500/10 dark:bg-blue-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-emerald-500/10 dark:bg-emerald-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '9s', animationDelay: '1s' }} />
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
-        <ExpenseAnalytics />
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6 relative z-10">
+        
+
+        <ExpenseAnalytics onRecordExpense={() => handleOpenModal()} />
         <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
           <ExpensesList 
             expenses={expensesData?.data || []}

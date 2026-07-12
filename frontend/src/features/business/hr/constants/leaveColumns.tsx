@@ -37,7 +37,7 @@ export const getLeaveColumns = ({
     {
       header: 'Reason',
       accessorKey: 'reason',
-      cell: (row: LeaveRequest) => <span className="text-sm text-slate-500 truncate max-w-[200px] block">{row.reason}</span>
+      cell: (row: LeaveRequest) => <span className="text-xs font-bold text-slate-500 truncate max-w-[200px] block">{row.reason}</span>
     },
     {
       header: 'Status',

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useTenantStore } from './tenantStore';
 
 interface User {
   id: number;
@@ -35,15 +36,8 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('auth_token');
         set({ user: null, token: null, isAuthenticated: false });
-        
-        // Dynamic import to prevent circular dependency at module load time
-        import('./tenantStore')
-          .then((module) => {
-            module.useTenantStore.getState().reset();
-          })
-          .catch((err) => {
-            console.error('Failed to reset tenantStore on logout:', err);
-          });
+        // Static import since there is no circular dependency
+        useTenantStore.getState().reset();
       },
     }),
     {

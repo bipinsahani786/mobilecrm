@@ -5,13 +5,13 @@ import { useForm } from 'react-hook-form';
 import { useCreateSale } from '../api/useSales';
 import { useCustomers, useCreateCustomer } from '../../customers/api/useCustomers';
 import { toast } from 'sonner';
-import { Select } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { OrderSummary } from './checkout/OrderSummary';
 import { PaymentForms } from './checkout/PaymentForms';
 import type { PaymentMode } from '../constants/index';
 import type { CartItem } from '../schemas/saleSchema';
-import { Plus } from 'lucide-react';
+import { Plus, UserPlus, X } from 'lucide-react';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -24,78 +24,62 @@ interface CheckoutModalProps {
 export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess }: CheckoutModalProps) {
   const [paymentType, setPaymentType] = useState<PaymentMode>('cash');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
-  
+
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [quickCustName, setQuickCustName] = useState('');
   const [quickCustPhone, setQuickCustPhone] = useState('');
   const [quickCustAddress, setQuickCustAddress] = useState('');
-  
+
   const { data: customersResponse } = useCustomers(1, 100);
   const customers = customersResponse?.data || [];
-  
+
   const { register, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm();
   const createSale = useCreateSale();
   const createCustomer = useCreateCustomer();
 
   const handleQuickAddCustomer = async () => {
-    if (!quickCustName.trim()) {
-      toast.error('Customer name is required');
-      return;
-    }
-    
+    if (!quickCustName.trim()) { toast.error('Customer name is required'); return; }
     try {
       const newCustomer = await createCustomer.mutateAsync({
         name: quickCustName.trim(),
         phone: quickCustPhone.trim() || undefined,
-        address: quickCustAddress.trim() || undefined
+        address: quickCustAddress.trim() || undefined,
       });
-      
-      toast.success('Customer added successfully!');
+      toast.success('Customer added!');
       setSelectedCustomerId(String(newCustomer.id));
       setIsQuickAddOpen(false);
-      setQuickCustName('');
-      setQuickCustPhone('');
-      setQuickCustAddress('');
+      setQuickCustName(''); setQuickCustPhone(''); setQuickCustAddress('');
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to add customer');
     }
   };
 
-  const discount = watch('discount') || 0;
-  const roundOff = watch('round_off') || 0;
+  const discount    = watch('discount')    || 0;
+  const roundOff    = watch('round_off')   || 0;
   const finalAmount = cartTotal - Number(discount) + Number(roundOff);
 
   const splitCash = watch('split_cash') || 0;
-  const splitUpi = watch('split_upi') || 0;
+  const splitUpi  = watch('split_upi')  || 0;
   const splitCard = watch('split_card') || 0;
 
   const emiDownPayment = watch('emi_down_payment') || 0;
-  const emiLoanAmount = watch('emi_loan_amount') || 0;
-  const emiTenure = watch('emi_tenure') || 0;
+  const emiTenure      = watch('emi_tenure')       || 0;
 
   useEffect(() => {
-    if (isOpen) {
-      setValue('discount', 0);
-      setValue('round_off', 0);
-      setPaymentType('cash');
-    }
+    if (isOpen) { setValue('discount', 0); setValue('round_off', 0); setPaymentType('cash'); }
   }, [isOpen, setValue]);
-  
+
   useEffect(() => {
     if (paymentType === 'emi') {
       const loan = Math.max(0, finalAmount - Number(emiDownPayment));
       setValue('emi_loan_amount', loan);
-      
-      if (Number(emiTenure) > 0) {
-        setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
-      }
+      if (Number(emiTenure) > 0) setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
     }
   }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue]);
 
   const onSubmit = async (data: any) => {
     if (!selectedCustomerId && paymentType === 'emi') {
-      toast.error('Customer is required for EMI sales');
-      return;
+      toast.error('Customer is required for EMI sales'); return;
     }
 
     const payload: any = {
@@ -108,32 +92,26 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
         product_batch_id: item.batch_id,
         quantity: item.quantity,
         unit_price: item.unit_price,
-      }))
+      })),
     };
 
     if (paymentType === 'cash') {
       payload.payment_mode = 'Cash';
-      payload.payments = [
-        { payment_mode: 'Cash', amount: finalAmount }
-      ];
+      payload.payments = [{ payment_mode: 'Cash', amount: finalAmount }];
     } else if (paymentType === 'split') {
       payload.payment_mode = 'Split';
       payload.payments = [];
       if (Number(splitCash) > 0) payload.payments.push({ payment_mode: 'Cash', amount: Number(splitCash) });
-      if (Number(splitUpi) > 0) payload.payments.push({ payment_mode: 'UPI', amount: Number(splitUpi) });
+      if (Number(splitUpi)  > 0) payload.payments.push({ payment_mode: 'UPI',  amount: Number(splitUpi)  });
       if (Number(splitCard) > 0) payload.payments.push({ payment_mode: 'Card', amount: Number(splitCard) });
-      
-      const totalSplit = Number(splitCash) + Number(splitUpi) + Number(splitCard);
-      if (totalSplit > finalAmount) {
-        toast.error('Split payment total exceeds final amount');
-        return;
+      if (Number(splitCash) + Number(splitUpi) + Number(splitCard) > finalAmount) {
+        toast.error('Split payment total exceeds final amount'); return;
       }
     } else if (paymentType === 'emi') {
       payload.payment_mode = 'EMI';
       payload.payments = [];
-      if (Number(emiDownPayment) > 0) {
+      if (Number(emiDownPayment) > 0)
         payload.payments.push({ payment_mode: 'Cash', amount: Number(emiDownPayment), notes: 'EMI Down Payment' });
-      }
       payload.emi_detail = {
         financier_name: data.emi_financier,
         down_payment: Number(emiDownPayment),
@@ -148,8 +126,7 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
     try {
       await createSale.mutateAsync(payload);
       toast.success('Sale completed successfully!');
-      onSuccess();
-      onClose();
+      onSuccess(); onClose();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to complete sale');
     }
@@ -157,100 +134,95 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
 
   if (!isOpen) return null;
 
+  // Build customer options for CustomSelect
+  const customerOptions = [
+    { value: '', label: '— Walk-in Customer —' },
+    ...customers.map((c: any) => ({
+      value: String(c.id),
+      label: c.name,
+      description: c.phone || undefined,
+    })),
+  ];
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Complete Checkout"
-      maxWidth="3xl"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Complete Checkout" maxWidth="3xl">
       <form onSubmit={handleSubmit(onSubmit)} className="p-1">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <div className="space-y-4">
-            <OrderSummary 
-              cartTotal={cartTotal} 
-              finalAmount={finalAmount} 
-              register={register} 
-            />
 
-            <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/10 rounded-xl p-4 shadow-sm">
-              <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2 uppercase tracking-wider">
-                Customer Details
-              </label>
-              <div className="flex gap-2">
-                <Select 
-                  value={selectedCustomerId} 
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="flex-1 h-9 text-sm bg-slate-50 dark:bg-white/[0.02]"
+          {/* Left — Order Summary + Customer */}
+          <div className="space-y-4">
+            <OrderSummary cartTotal={cartTotal} finalAmount={finalAmount} register={register} />
+
+            {/* Customer Section */}
+            <div className="bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                  Customer
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsQuickAddOpen(p => !p)}
+                  className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border transition-all duration-150 ${
+                    isQuickAddOpen
+                      ? 'bg-primary-500 text-white border-primary-500 shadow-sm shadow-primary-500/30'
+                      : 'text-primary-500 border-primary-200 dark:border-primary-500/30 hover:bg-primary-50 dark:hover:bg-primary-500/10'
+                  }`}
                 >
-                  <option value="">Walk-in Customer</option>
-                  {customers.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
-                  ))}
-                </Select>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className={`h-9 px-3 flex items-center justify-center rounded-lg transition-colors ${isQuickAddOpen ? 'bg-primary-50 border-primary-200 text-primary-600' : ''}`}
-                  onClick={() => setIsQuickAddOpen(prev => !prev)}
-                  title="Quick Add Customer"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
+                  {isQuickAddOpen ? <X className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+                  {isQuickAddOpen ? 'Cancel' : 'New'}
+                </button>
               </div>
 
+              <CustomSelect
+                value={selectedCustomerId}
+                onChange={setSelectedCustomerId}
+                options={customerOptions}
+                placeholder="Walk-in Customer"
+              />
+
+              {/* Quick Add Form */}
               {isQuickAddOpen && (
-                <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg space-y-3 animate-in fade-in slide-in-from-top-2">
+                <div className="mt-3 p-3 bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-500/20 rounded-xl space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400">Quick Add Customer</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <Input 
-                      placeholder="Full Name *" 
-                      value={quickCustName} 
+                    <Input
+                      placeholder="Full Name *"
+                      value={quickCustName}
                       onChange={(e) => setQuickCustName(e.target.value)}
-                      className="h-8 text-xs bg-white dark:bg-black"
+                      className="h-8 text-xs"
                     />
-                    <Input 
-                      placeholder="Phone Number" 
-                      value={quickCustPhone} 
+                    <Input
+                      placeholder="Phone Number"
+                      value={quickCustPhone}
                       onChange={(e) => setQuickCustPhone(e.target.value)}
-                      className="h-8 text-xs bg-white dark:bg-black"
+                      className="h-8 text-xs"
                     />
                   </div>
-                  <Input 
-                    placeholder="Address (Optional)" 
-                    value={quickCustAddress} 
+                  <Input
+                    placeholder="Address (Optional)"
+                    value={quickCustAddress}
                     onChange={(e) => setQuickCustAddress(e.target.value)}
-                    className="h-8 text-xs w-full bg-white dark:bg-black"
+                    className="h-8 text-xs w-full"
                   />
-                  <div className="flex justify-end gap-2 pt-1">
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      className="h-7 px-3 text-xs font-medium text-slate-500 hover:text-slate-700" 
-                      onClick={() => {
-                        setIsQuickAddOpen(false);
-                        setQuickCustName('');
-                        setQuickCustPhone('');
-                        setQuickCustAddress('');
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="button" 
-                      className="h-7 px-4 text-xs font-medium"
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
                       onClick={handleQuickAddCustomer}
                       disabled={createCustomer.isPending}
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-primary-500 hover:bg-primary-600 text-white text-xs font-black rounded-lg shadow-sm shadow-primary-500/30 transition-all disabled:opacity-50"
                     >
-                      {createCustomer.isPending ? 'Saving...' : 'Save Customer'}
-                    </Button>
+                      <Plus className="w-3 h-3" />
+                      {createCustomer.isPending ? 'Saving…' : 'Save Customer'}
+                    </button>
                   </div>
                 </div>
               )}
             </div>
           </div>
 
+          {/* Right — Payment */}
           <div>
-            <PaymentForms 
+            <PaymentForms
               paymentType={paymentType}
               setPaymentType={setPaymentType}
               register={register}
@@ -262,11 +234,23 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-          <Button variant="outline" type="button" onClick={onClose} className="h-9 px-6 text-sm font-medium">Cancel</Button>
-          <Button type="submit" disabled={isSubmitting} className="h-9 px-8 text-sm font-semibold min-w-[140px] shadow-sm">
-            {isSubmitting ? 'Processing...' : 'Complete Sale'}
+        {/* Footer */}
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={onClose}
+            className="h-10 px-6 text-sm font-bold rounded-xl"
+          >
+            Cancel
           </Button>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-10 px-8 min-w-[150px] text-sm font-black uppercase tracking-widest bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-md shadow-primary-500/30 hover:shadow-lg hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none"
+          >
+            {isSubmitting ? 'Processing…' : '✓ Complete Sale'}
+          </button>
         </div>
       </form>
     </Modal>

@@ -17,20 +17,33 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full">
         <div className="relative group">
           {icon && (
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-[#fe7d02] transition-colors text-zinc-400">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-primary-500 transition-colors text-zinc-400">
               {icon}
             </div>
           )}
           <input
             type={inputType}
             className={cn(
-              "block w-full pr-5 py-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#fe7d02]/20 focus:border-[#fe7d02] transition-all font-medium text-sm text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-zinc-500",
+              "block w-full pr-5 py-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 dark:focus:border-primary-500 transition-all font-medium text-sm text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-zinc-500 [color-scheme:light] dark:[color-scheme:dark]",
               icon ? "pl-14" : "pl-5",
               isPassword && "pr-14",
               error && "border-red-500 focus:ring-red-500/10 focus:border-red-500",
               className
             )}
             ref={ref}
+            min={type === "number" && props.min === undefined ? "0" : props.min}
+            onWheel={(e) => {
+              if (type === "number") {
+                (e.target as HTMLInputElement).blur();
+              }
+              props.onWheel?.(e);
+            }}
+            onKeyDown={(e) => {
+              if (type === "number" && (e.key === "-" || e.key === "e" || e.key === "E" || e.key === "+")) {
+                e.preventDefault();
+              }
+              props.onKeyDown?.(e);
+            }}
             {...props}
           />
           {isPassword && (

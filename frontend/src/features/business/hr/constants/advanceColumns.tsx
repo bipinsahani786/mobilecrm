@@ -14,7 +14,7 @@ export const getAdvanceColumns = (): ColumnDef<SalaryAdvance>[] => {
     {
       header: 'Amount',
       accessorKey: 'amount',
-      cell: (row: SalaryAdvance) => <span className="font-medium">₹{Number(row.amount).toLocaleString()}</span>
+      cell: (row: SalaryAdvance) => <span className="font-bold text-xs">₹{Number(row.amount).toLocaleString()}</span>
     },
     {
       header: 'Date Requested',
@@ -27,7 +27,7 @@ export const getAdvanceColumns = (): ColumnDef<SalaryAdvance>[] => {
     {
       header: 'Reason',
       accessorKey: 'reason',
-      cell: (row: SalaryAdvance) => <span className="text-sm text-slate-500 truncate max-w-[200px] block">{row.reason}</span>
+      cell: (row: SalaryAdvance) => <span className="text-xs font-bold text-slate-500 truncate max-w-[200px] block">{row.reason}</span>
     },
     {
       header: 'Status',

@@ -20,8 +20,8 @@ export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): Co
           {customer.name.charAt(0)}
         </div>
         <div className="ml-3 group-hover:text-primary-600 transition-colors">
-          <p className="font-semibold text-slate-900 dark:text-white group-hover:text-primary-600">{customer.name}</p>
-          <p className="text-xs text-slate-500">ID: {customer.id}</p>
+          <p className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-primary-600">{customer.name}</p>
+          <p className="text-[10px] font-bold text-slate-400 mt-0.5">ID: {customer.id}</p>
         </div>
       </div>
     )
@@ -31,13 +31,13 @@ export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): Co
     cell: (customer) => (
       <div className="space-y-1">
         {customer.phone && (
-          <div className="flex items-center text-slate-600 dark:text-slate-400 text-xs">
+          <div className="flex items-center text-[10px] font-bold text-slate-400 mt-0.5">
             <Phone className="w-3.5 h-3.5 mr-1.5 shrink-0" />
             {customer.phone}
           </div>
         )}
         {customer.address && (
-          <div className="flex items-center text-slate-600 dark:text-slate-400 text-xs">
+          <div className="flex items-center text-[10px] font-bold text-slate-400 mt-0.5">
             <MapPin className="w-3.5 h-3.5 mr-1.5 shrink-0" />
             <span className="truncate max-w-[150px]">{customer.address}</span>
           </div>
@@ -54,7 +54,7 @@ export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): Co
       const udhar = billed - paid;
       return (
         <span className={cn(
-          "font-semibold font-display",
+          "font-bold text-xs font-display",
           udhar > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
         )}>
           {formatCurrency(udhar)}

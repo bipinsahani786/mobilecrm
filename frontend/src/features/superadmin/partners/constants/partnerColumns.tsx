@@ -25,7 +25,7 @@ export const getPartnerColumns = ({
     cell: (partner) => (
       <div>
         <p className="font-bold text-slate-800 dark:text-white leading-tight">{partner.name}</p>
-        <p className="text-[10px] text-slate-500 font-medium tracking-wider mt-0.5">
+        <p className="text-[10px] text-slate-500 font-bold text-xs tracking-wider mt-0.5">
           {partner.company_name || 'Individual'}
         </p>
       </div>
@@ -44,17 +44,17 @@ export const getPartnerColumns = ({
   {
     header: 'Referral Code',
     accessorKey: 'referral_code',
-    className: '!px-3 !py-1.5 text-xs font-mono font-semibold tracking-wider text-slate-700 dark:text-slate-300',
+    className: '!px-3 !py-1.5 text-xs font-mono font-bold text-xs tracking-wider text-slate-700 dark:text-slate-300',
   },
   {
     header: 'Commission',
     className: '!px-3 !py-1.5 text-xs',
     cell: (partner) => (
       <div>
-        <p className="font-semibold text-slate-800 dark:text-slate-200">
+        <p className="font-bold text-xs text-slate-800 dark:text-slate-200">
           {partner.commission_type === 'percentage' ? `${partner.commission_value}%` : `₹${partner.commission_value}`}
         </p>
-        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-wider">
+        <p className="text-[9px] text-slate-400 font-bold text-xs uppercase tracking-wider">
           {partner.is_recurring_commission ? 'Recurring' : 'One-time'}
         </p>
       </div>
@@ -64,7 +64,7 @@ export const getPartnerColumns = ({
     header: 'Clients Referred',
     accessorKey: 'businesses_count',
     sortable: true,
-    className: 'text-center !px-3 !py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200',
+    className: 'text-center !px-3 !py-1.5 text-xs font-bold text-xs text-slate-800 dark:text-slate-200',
     cell: (partner) => partner.businesses_count ?? 0
   },
   {
@@ -73,7 +73,7 @@ export const getPartnerColumns = ({
     sortable: true,
     className: '!px-3 !py-1.5 text-xs',
     cell: (partner) => (
-      <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+      <p className="text-xs font-bold text-xs text-slate-600 dark:text-slate-400">
         {format(new Date(partner.created_at), 'dd MMM yyyy')}
       </p>
     )
