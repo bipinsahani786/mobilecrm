@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { useThemeStore } from './store/themeStore';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { FeatureGuard } from './components/auth/FeatureGuard';
 import { useTenantStore } from './store/tenantStore';
@@ -146,12 +146,17 @@ const fontFamilies = {
 function App() {
   usePublicSettings();
   const { theme, primaryColor, fontFamily } = useThemeStore();
+  const location = useLocation();
 
   useEffect(() => {
     const root = window.document.documentElement;
     // Handle theme class
     root.classList.remove('light', 'dark', 'semi-dark');
-    if (theme === 'dark') {
+    
+    // Check if it's an auth page
+    const isAuthPage = location.pathname === '/login' || location.pathname === '/partner/register';
+
+    if (theme === 'dark' && !isAuthPage) {
       root.classList.add('dark');
     } else {
       root.classList.add('light');
@@ -168,7 +173,7 @@ function App() {
     for (const [key, value] of Object.entries(fonts)) {
       root.style.setProperty(key, value);
     }
-  }, [theme, primaryColor, fontFamily]);
+  }, [theme, primaryColor, fontFamily, location.pathname]);
 
   return (
     <>

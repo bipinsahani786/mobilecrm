@@ -62,15 +62,20 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 mt-2">
       
       <div>
-        <label className="block text-sm font-medium mb-1">Date</label>
-        <Input type="date" {...register('expense_date')} error={errors.expense_date?.message} />
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Date</label>
+        <Input 
+          type="date" 
+          {...register('expense_date')} 
+          error={errors.expense_date?.message} 
+          className="font-bold text-sm bg-white dark:bg-white/[0.02]"
+        />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Category</label>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Category</label>
         <Controller
           name="category"
           control={control}
@@ -88,26 +93,55 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Amount</label>
-        <Input type="number" step="0.01" {...register('amount', { valueAsNumber: true })} error={errors.amount?.message} />
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Amount</label>
+        <Input 
+          type="number" 
+          step="0.01" 
+          {...register('amount', { valueAsNumber: true })} 
+          error={errors.amount?.message} 
+          className="font-bold text-sm bg-white dark:bg-white/[0.02]"
+        />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Description</label>
-        <Textarea {...register('description')} rows={3} placeholder="Optional notes about the expense" />
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Description</label>
+        <Textarea 
+          {...register('description')} 
+          rows={3} 
+          placeholder="Optional notes about the expense..." 
+          className="font-medium text-sm bg-white dark:bg-white/[0.02]"
+        />
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1">Receipt Image</label>
-        <Input id="receipt" type="file" accept="image/*" />
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Receipt Image</label>
+        <Input 
+          id="receipt" 
+          type="file" 
+          accept="image/*" 
+          className="bg-white dark:bg-white/[0.02] text-sm"
+        />
         {initialData?.receipt_path && (
-           <p className="text-xs text-gray-500 mt-1">Leave empty to keep existing receipt.</p>
+           <p className="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-widest">Leave empty to keep existing receipt.</p>
         )}
       </div>
 
-      <div className="flex justify-end gap-2 pt-4">
-        <Button variant="outline" type="button" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" isLoading={isLoading}>Save Expense</Button>
+      <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
+        <Button 
+          variant="outline" 
+          type="button" 
+          onClick={onCancel}
+          className="h-10 px-6 rounded-xl text-xs font-bold uppercase tracking-wider"
+        >
+          Cancel
+        </Button>
+        <Button 
+          type="submit" 
+          disabled={isLoading}
+          className="h-10 px-6 rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white text-xs font-black uppercase tracking-widest shadow-md shadow-primary-500/30 hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300"
+        >
+          {isLoading ? 'Saving...' : 'Save Expense'}
+        </Button>
       </div>
     </form>
   );
