@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { exportToCsv } from '@/utils/exportToCsv';
 
 export interface ColumnDef<T> {
   header: string;
@@ -39,6 +40,8 @@ interface DataTableProps<T> {
   onSearchChange?: (term: string) => void;
   onSortChange?: (key: keyof T, direction: 'asc' | 'desc') => void;
   renderSubComponent?: (item: T) => React.ReactNode;
+  exportable?: boolean;
+  exportFilename?: string;
 }
 
 export function DataTable<T>({
@@ -61,6 +64,8 @@ export function DataTable<T>({
   onSearchChange,
   onSortChange,
   renderSubComponent,
+  exportable = false,
+  exportFilename = 'export'
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -162,6 +167,10 @@ export function DataTable<T>({
     }
   };
 
+  const handleExport = () => {
+    exportToCsv(filteredData, columns as any, exportFilename);
+  };
+
   // Reset page when search term changes or page size changes (Client side only)
   React.useEffect(() => {
     if (!serverSide) {
@@ -198,17 +207,24 @@ export function DataTable<T>({
     <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-hidden flex flex-col w-full">
 
       {/* Header Controls */}
-      {searchable && (
+      {(searchable || exportable) && (
         <div className="p-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="w-full sm:w-72 ml-auto">
-            <Input
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
-              icon={<Search className="w-4 h-4" />}
-              className="h-9 text-sm"
-            />
+          <div className="w-full sm:w-72">
+            {searchable && (
+                <Input
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder={searchPlaceholder}
+                icon={<Search className="w-4 h-4" />}
+                className="h-9 text-sm"
+                />
+            )}
           </div>
+          {exportable && (
+            <Button variant="outline" size="sm" onClick={handleExport} className="h-9 text-sm">
+                <Download className="w-4 h-4 mr-2" /> Export
+            </Button>
+          )}
         </div>
       )}
 

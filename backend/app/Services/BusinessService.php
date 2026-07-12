@@ -36,6 +36,14 @@ class BusinessService
         // Ensure owner is attached as a user to the branch
         $business->users()->attach($owner->id);
 
+        // Seed default payroll components
+        $business->payrollComponents()->createMany([
+            ['name' => 'Basic Salary', 'type' => 'earning', 'is_default' => true],
+            ['name' => 'House Rent Allowance (HRA)', 'type' => 'earning', 'is_default' => true],
+            ['name' => 'Other Allowances', 'type' => 'earning', 'is_default' => true],
+            ['name' => 'General Deductions', 'type' => 'deduction', 'is_default' => true],
+        ]);
+
         return $business;
     }
 

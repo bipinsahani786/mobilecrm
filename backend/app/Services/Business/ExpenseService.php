@@ -94,4 +94,44 @@ class ExpenseService
             ]);
         }
     }
+
+    /**
+     * Get expense analytics
+     */
+    public function getAnalytics(): array
+    {
+        $now = now();
+        $startOfThisMonth = $now->copy()->startOfMonth();
+        $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
+        $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
+
+        // Since TenantScope automatically applies business_id, we just query Expense directly
+        $totalAllTime = Expense::sum('amount') ?? 0;
+        
+        $totalThisMonth = Expense::where('expense_date', '>=', $startOfThisMonth)->sum('amount') ?? 0;
+        
+        $totalLastMonth = Expense::whereBetween('expense_date', [$startOfLastMonth, $endOfLastMonth])->sum('amount') ?? 0;
+
+        $percentChange = 0;
+        if ($totalLastMonth > 0) {
+            $percentChange = (($totalThisMonth - $totalLastMonth) / $totalLastMonth) * 100;
+        } else if ($totalThisMonth > 0) {
+            $percentChange = 100;
+        }
+
+        // Breakdown for current month
+        $categoryBreakdown = Expense::where('expense_date', '>=', $startOfThisMonth)
+            ->selectRaw('category as name, SUM(amount) as value')
+            ->groupBy('category')
+            ->orderByDesc('value')
+            ->get();
+
+        return [
+            'total_all_time' => (float) $totalAllTime,
+            'total_this_month' => (float) $totalThisMonth,
+            'total_last_month' => (float) $totalLastMonth,
+            'percent_change' => round((float) $percentChange, 1),
+            'category_breakdown' => $categoryBreakdown
+        ];
+    }
 }

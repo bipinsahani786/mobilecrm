@@ -92,4 +92,12 @@ class Business extends Model
     {
         return $this->belongsToMany(User::class);
     }
+
+    /**
+     * Get the payroll components for this business.
+     */
+    public function payrollComponents()
+    {
+        return $this->hasMany(PayrollComponent::class);
+    }
 }

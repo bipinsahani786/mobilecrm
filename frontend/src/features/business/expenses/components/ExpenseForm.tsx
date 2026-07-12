@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseSchema } from '../schemas';
 import type { ExpenseFormData, Expense } from '../schemas';
@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useExpenseCategories } from '../api/useExpenses';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface ExpenseFormProps {
   initialData?: Expense;
@@ -23,7 +24,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 }) => {
   const { data: categories = [] } = useExpenseCategories();
   
-  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<ExpenseFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue, control } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       category: '',
@@ -70,18 +71,20 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
       <div>
         <label className="block text-sm font-medium mb-1">Category</label>
-        <Input 
-          type="text"
-          list="expense-categories"
-          placeholder="Select or type new category"
-          {...register('category')}
-          error={errors.category?.message}
+        <Controller
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <SearchableSelect
+              options={categories.map((cat: any) => ({ value: cat.name, label: cat.name }))}
+              value={field.value}
+              onChange={field.onChange}
+              placeholder="Select or type new category"
+              creatable={true}
+              error={errors.category?.message}
+            />
+          )}
         />
-        <datalist id="expense-categories">
-          {categories.map((cat: any) => (
-            <option key={cat.id} value={cat.name} />
-          ))}
-        </datalist>
       </div>
 
       <div>

@@ -30,6 +30,8 @@ Route::prefix('v1')->group(function () {
 
         // CRM Routes (Scoped to Business via TenantMiddleware)
         Route::middleware(['tenant'])->prefix('business')->group(function () {
+            Route::get('/dashboard/stats', [\App\Http\Controllers\Api\Business\DashboardController::class, 'stats']);
+
             Route::apiResource('categories', \App\Http\Controllers\Api\Business\CategoryController::class);
             Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
             
@@ -48,6 +50,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);
             
             // Expense Routes
+            Route::get('expenses/analytics', [\App\Http\Controllers\Api\Business\ExpenseController::class, 'analytics']);
             Route::get('expenses/categories', [\App\Http\Controllers\Api\Business\ExpenseController::class, 'categories']);
             Route::apiResource('expenses', \App\Http\Controllers\Api\Business\ExpenseController::class);
             
@@ -60,13 +63,51 @@ Route::prefix('v1')->group(function () {
             Route::get('finance/pending', [\App\Http\Controllers\Api\FinanceController::class, 'pending']);
             Route::get('finance/completed', [\App\Http\Controllers\Api\FinanceController::class, 'completed']);
             Route::post('finance/{id}/mark-received', [\App\Http\Controllers\Api\FinanceController::class, 'markReceived']);
+
+            // Staff Management Routes
+            Route::get('staff/{id}/sales', [\App\Http\Controllers\Api\Business\StaffController::class, 'salesReport']);
+            Route::get('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'getPermissions']);
+            Route::put('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'updatePermissions']);
+            Route::apiResource('staff', \App\Http\Controllers\Api\Business\StaffController::class);
+
+            // Business Locations (Geo-fence)
+            Route::apiResource('locations', \App\Http\Controllers\Api\Business\LocationController::class);
+
+            // Attendance Routes
+            Route::get('attendance/today', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'todayStatus']);
+            Route::post('attendance/check-in', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'checkIn']);
+            Route::post('attendance/check-out', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'checkOut']);
+            Route::post('attendance/mark', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'markManual']);
+            Route::get('attendance/report', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'monthlyReport']);
+            Route::put('attendance/{id}/approve', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'approve']);
+            Route::apiResource('attendance', \App\Http\Controllers\Api\Business\AttendanceController::class)->only(['index']);
+
+            // Payroll Routes
+            Route::post('payroll/generate', [\App\Http\Controllers\Api\Business\PayrollController::class, 'generate']);
+            Route::post('payroll/{payroll}/confirm', [\App\Http\Controllers\Api\Business\PayrollController::class, 'confirm']);
+            Route::post('payroll/{payroll}/mark-paid', [\App\Http\Controllers\Api\Business\PayrollController::class, 'markPaid']);
+            Route::get('payroll', [\App\Http\Controllers\Api\Business\PayrollController::class, 'index']);
+            Route::get('payroll/{payroll}', [\App\Http\Controllers\Api\Business\PayrollController::class, 'show']);
+            Route::put('payroll/{payroll}', [\App\Http\Controllers\Api\Business\PayrollController::class, 'update']);
+            Route::apiResource('payroll-components', \App\Http\Controllers\Api\Business\PayrollComponentController::class);
+
+            // Leave Policies
+            Route::get('leave-policies', [\App\Http\Controllers\Api\Business\PayrollController::class, 'leavePolicies']);
+            Route::post('leave-policies', [\App\Http\Controllers\Api\Business\PayrollController::class, 'storeLeavePolicy']);
+            Route::put('leave-policies/{leavePolicy}', [\App\Http\Controllers\Api\Business\PayrollController::class, 'updateLeavePolicy']);
+            Route::delete('leave-policies/{leavePolicy}', [\App\Http\Controllers\Api\Business\PayrollController::class, 'deleteLeavePolicy']);
+
+            // Salary Advances
+            Route::get('salary-advances', [\App\Http\Controllers\Api\Business\PayrollController::class, 'salaryAdvances']);
+            Route::post('salary-advances', [\App\Http\Controllers\Api\Business\PayrollController::class, 'storeSalaryAdvance']);
+            
+            // Leave Requests
+            Route::apiResource('leave-requests', \App\Http\Controllers\Api\Business\LeaveRequestController::class);
+            Route::patch('leave-requests/{leave_request}/status', [\App\Http\Controllers\Api\Business\LeaveRequestController::class, 'updateStatus']);
         });
 
-        Route::get('test-finance', function() {
-            return \App\Models\EmiDetail::with(['sale.customer', 'sale.items.product'])
-                ->orderByDesc('created_at')
-                ->paginate(15);
-        });
+
+
 
         // Profile (any authenticated user)
         Route::get('/profile', [\App\Http\Controllers\Api\ProfileController::class, 'show']);

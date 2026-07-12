@@ -185,4 +185,24 @@ class ExpenseController extends BaseController
             return null;
         }, 'Expense deleted successfully', 200);
     }
+
+    #[OA\Get(
+        path: '/business/expenses/analytics',
+        summary: 'Get Expenses Analytics',
+        description: 'Get analytical data for expenses including totals and category breakdowns.',
+        tags: ['Business - Expenses'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation')
+        ]
+    )]
+    public function analytics()
+    {
+        try {
+            $data = $this->expenseService->getAnalytics();
+            return $this->success($data, 'Analytics retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
 }

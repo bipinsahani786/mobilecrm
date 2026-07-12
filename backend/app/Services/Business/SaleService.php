@@ -141,6 +141,26 @@ class SaleService
                 }
             }
 
+            // Auto-calculate Commission for Staff
+            $staffPivot = \Illuminate\Support\Facades\DB::table('business_user')
+                ->where('business_id', $sale->business_id)
+                ->where('user_id', auth()->id())
+                ->first();
+
+            if ($staffPivot && $staffPivot->commission_rate > 0) {
+                $commissionRate = (float) $staffPivot->commission_rate;
+                $commissionAmount = ($sale->final_amount * $commissionRate) / 100;
+                
+                \App\Models\SaleCommission::create([
+                    'business_id' => $sale->business_id,
+                    'user_id' => auth()->id(),
+                    'sale_id' => $sale->id,
+                    'sale_amount' => $sale->final_amount,
+                    'commission_rate' => $commissionRate,
+                    'commission_amount' => $commissionAmount,
+                ]);
+            }
+
             return $sale->load(['customer', 'items.product', 'payments', 'emiDetail']);
         });
     }

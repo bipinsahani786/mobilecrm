@@ -227,10 +227,13 @@ class DummyDataSeeder extends Seeder
                 'name' => 'Accessories'
             ]);
 
+            $brandSamsung = \App\Models\Brand::firstOrCreate(['business_id' => $business->id, 'name' => 'Samsung']);
+            $brandApple = \App\Models\Brand::firstOrCreate(['business_id' => $business->id, 'name' => 'Apple']);
+
             Product::create([
                 'business_id' => $business->id,
                 'category_id' => $cat1->id,
-                'brand' => 'Samsung',
+                'brand_id' => $brandSamsung->id,
                 'model_name' => 'Galaxy S23',
                 'imei' => '35' . rand(100000000, 999999999) . rand(1000, 9999),
                 'purchase_price' => 50000,
@@ -242,7 +245,7 @@ class DummyDataSeeder extends Seeder
             Product::create([
                 'business_id' => $business->id,
                 'category_id' => $cat2->id,
-                'brand' => 'Apple',
+                'brand_id' => $brandApple->id,
                 'model_name' => 'AirPods Pro',
                 'serial_no' => 'APP' . rand(10000, 99999),
                 'purchase_price' => 15000,

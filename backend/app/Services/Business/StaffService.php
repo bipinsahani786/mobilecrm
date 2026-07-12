@@ -1,0 +1,263 @@
+<?php
+
+namespace App\Services\Business;
+
+use App\Models\User;
+use App\Models\SaleCommission;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class StaffService
+{
+    /**
+     * Get all staff members for the current business.
+     */
+    public function getStaff()
+    {
+        $businessId = app('current_business_id');
+
+        return DB::table('business_user')
+            ->join('users', 'business_user.user_id', '=', 'users.id')
+            ->where('business_user.business_id', $businessId)
+            ->whereNull('users.deleted_at')
+            ->select(
+                'users.id',
+                'users.name',
+                'users.email',
+                'users.phone',
+                'users.avatar',
+                'business_user.role',
+                'business_user.monthly_salary',
+                'business_user.salary_components',
+                'business_user.commission_rate',
+                'business_user.join_date',
+                'business_user.status'
+            )
+            ->orderBy('users.name')
+            ->get();
+    }
+
+    /**
+     * Add a new staff member to the business.
+     */
+    public function addStaff(array $data): array
+    {
+        $businessId = app('current_business_id');
+
+        return DB::transaction(function () use ($data, $businessId) {
+            // Find existing user by phone or create new
+            $user = User::where('phone', $data['phone'])->first();
+
+            if (!$user) {
+                $user = User::create([
+                    'name' => $data['name'],
+                    'phone' => $data['phone'],
+                    'email' => $data['email'] ?? null,
+                    'password' => Hash::make($data['password'] ?? $data['phone']), // Default password = phone
+                    'status' => 'active',
+                ]);
+            }
+
+            // Check if already attached
+            $exists = DB::table('business_user')
+                ->where('business_id', $businessId)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if ($exists) {
+                throw new \Exception('This user is already a staff member of this business.');
+            }
+
+            // Attach to business with pivot data
+            DB::table('business_user')->insert([
+                'business_id' => $businessId,
+                'user_id' => $user->id,
+                'role' => $data['role'] ?? 'staff',
+                'monthly_salary' => $data['monthly_salary'] ?? 0,
+                'salary_components' => isset($data['salary_components']) ? json_encode($data['salary_components']) : null,
+                'commission_rate' => $data['commission_rate'] ?? 0,
+                'join_date' => $data['join_date'] ?? now()->toDateString(),
+                'status' => 'active',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Assign Staff role (Spatie)
+            if (!$user->hasRole('Staff')) {
+                // Create role if it doesn't exist
+                $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
+                $user->assignRole($role);
+            }
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'email' => $user->email,
+                'monthly_salary' => $data['monthly_salary'] ?? 0,
+                'salary_components' => $data['salary_components'] ?? null,
+                'commission_rate' => $data['commission_rate'] ?? 0,
+                'join_date' => $data['join_date'] ?? now()->toDateString(),
+                'status' => 'active',
+            ];
+        });
+    }
+
+    /**
+     * Update staff pivot data.
+     */
+    public function updateStaff(int $userId, array $data): void
+    {
+        $businessId = app('current_business_id');
+
+        // Update user basic info
+        $user = User::findOrFail($userId);
+        if (isset($data['name'])) $user->name = $data['name'];
+        if (isset($data['email'])) $user->email = $data['email'];
+        if (isset($data['phone'])) $user->phone = $data['phone'];
+        $user->save();
+
+        // Update pivot data
+        $pivotData = [];
+        if (isset($data['monthly_salary'])) $pivotData['monthly_salary'] = $data['monthly_salary'];
+        if (array_key_exists('salary_components', $data)) {
+            $pivotData['salary_components'] = is_array($data['salary_components']) ? json_encode($data['salary_components']) : $data['salary_components'];
+        }
+        if (isset($data['commission_rate'])) $pivotData['commission_rate'] = $data['commission_rate'];
+        if (isset($data['join_date'])) $pivotData['join_date'] = $data['join_date'];
+        if (isset($data['status'])) {
+            if ($data['status'] === 'inactive') {
+                if ($userId === auth()->id()) {
+                    throw new \Exception('You cannot deactivate your own account.');
+                }
+                $existingRole = DB::table('business_user')->where('business_id', $businessId)->where('user_id', $userId)->value('role');
+                if ($existingRole === 'admin') {
+                    throw new \Exception('A business admin cannot be deactivated.');
+                }
+            }
+            $pivotData['status'] = $data['status'];
+        }
+        if (isset($data['role'])) $pivotData['role'] = $data['role'];
+
+        if (!empty($pivotData)) {
+            $pivotData['updated_at'] = now();
+            DB::table('business_user')
+                ->where('business_id', $businessId)
+                ->where('user_id', $userId)
+                ->update($pivotData);
+        }
+    }
+
+    /**
+     * Deactivate a staff member.
+     */
+    public function deactivateStaff(int $userId): void
+    {
+        $businessId = app('current_business_id');
+
+        if ($userId === auth()->id()) {
+            throw new \Exception('You cannot deactivate your own account.');
+        }
+
+        $existingRole = DB::table('business_user')->where('business_id', $businessId)->where('user_id', $userId)->value('role');
+        if ($existingRole === 'admin') {
+            throw new \Exception('A business admin cannot be deactivated.');
+        }
+
+        DB::table('business_user')
+            ->where('business_id', $businessId)
+            ->where('user_id', $userId)
+            ->update(['status' => 'inactive', 'updated_at' => now()]);
+    }
+
+    /**
+     * Get staff detail with sales stats.
+     */
+    public function getStaffDetail(int $userId): array
+    {
+        $businessId = app('current_business_id');
+
+        $staff = DB::table('business_user')
+            ->join('users', 'business_user.user_id', '=', 'users.id')
+            ->where('business_user.business_id', $businessId)
+            ->where('business_user.user_id', $userId)
+            ->select(
+                'users.id', 'users.name', 'users.email', 'users.phone', 'users.avatar',
+                'business_user.role', 'business_user.monthly_salary', 'business_user.salary_components',
+                'business_user.commission_rate', 'business_user.join_date', 'business_user.status'
+            )
+            ->first();
+
+        if (!$staff) {
+            throw new \Exception('Staff member not found.');
+        }
+
+        // Sales stats
+        $totalSales = \App\Models\Sale::where('user_id', $userId)->count();
+        $totalSalesAmount = \App\Models\Sale::where('user_id', $userId)->sum('final_amount');
+        $totalCommission = SaleCommission::where('user_id', $userId)->sum('commission_amount');
+
+        // This month stats
+        $thisMonth = now()->startOfMonth();
+        $thisMonthSales = \App\Models\Sale::where('user_id', $userId)
+            ->where('date', '>=', $thisMonth)->count();
+        $thisMonthSalesAmount = \App\Models\Sale::where('user_id', $userId)
+            ->where('date', '>=', $thisMonth)->sum('final_amount');
+        $thisMonthCommission = SaleCommission::where('user_id', $userId)
+            ->where('created_at', '>=', $thisMonth)->sum('commission_amount');
+
+        return [
+            'staff' => $staff,
+            'stats' => [
+                'total_sales' => $totalSales,
+                'total_sales_amount' => (float) $totalSalesAmount,
+                'total_commission' => (float) $totalCommission,
+                'this_month_sales' => $thisMonthSales,
+                'this_month_sales_amount' => (float) $thisMonthSalesAmount,
+                'this_month_commission' => (float) $thisMonthCommission,
+            ],
+        ];
+    }
+
+    /**
+     * Get sales report for a staff member.
+     */
+    public function getStaffSalesReport(int $userId, int $perPage = 15)
+    {
+        return \App\Models\Sale::where('user_id', $userId)
+            ->with(['customer', 'items.product'])
+            ->latest('date')
+            ->paginate($perPage);
+    }
+
+    /**
+     * Get staff permissions for the current business.
+     */
+    public function getStaffPermissions(int $userId): array
+    {
+        $businessId = app('current_business_id');
+        $user = User::findOrFail($userId);
+
+        // Temporarily set the Spatie team id to fetch scoped permissions
+        setPermissionsTeamId($businessId);
+        
+        return $user->getAllPermissions()->pluck('name')->toArray();
+    }
+
+    /**
+     * Update staff permissions for the current business.
+     */
+    public function updateStaffPermissions(int $userId, array $permissions): void
+    {
+        $businessId = app('current_business_id');
+        $user = User::findOrFail($userId);
+
+        // Ensure we only grant permissions that exist
+        foreach ($permissions as $perm) {
+            \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']);
+        }
+
+        setPermissionsTeamId($businessId);
+        $user->syncPermissions($permissions);
+    }
+}

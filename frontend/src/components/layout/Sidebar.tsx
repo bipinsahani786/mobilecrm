@@ -18,7 +18,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAppStore } from "@/store/appStore";
-import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare } from "lucide-react";
+import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare, Calendar } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useFeature } from "@/hooks/useFeature";
 
@@ -51,6 +51,30 @@ const businessMenuGroups = [
       { name: "ITEMS", href: "/items", icon: Package },
       { name: "CATEGORIES", href: "/categories", icon: Building2 },
       { name: "BRANDS", href: "/brands", icon: FileStack },
+    ]
+  },
+  {
+    title: "STAFF & HR",
+    items: [
+      { name: "STAFF", href: "/staff", icon: Users },
+      { name: "ATTENDANCE", href: "/attendance", icon: ClipboardList },
+      { name: "PAYROLL", href: "/payroll", icon: Wallet },
+      { name: "SALARY COMPONENTS", href: "/payroll/components", icon: Settings },
+      { name: "LEAVE REQUESTS", href: "/hr/leave-requests", icon: Calendar },
+      { name: "SALARY ADVANCES", href: "/hr/advances", icon: Coins },
+    ]
+  }
+];
+
+const staffMenuGroups = [
+  {
+    title: "SELF SERVICE",
+    items: [
+      { name: "DASHBOARD", href: "/dashboard", icon: LayoutDashboard },
+      { name: "MY ATTENDANCE", href: "/attendance", icon: ClipboardList },
+      { name: "MY SALARY SLIPS", href: "/payroll", icon: Wallet },
+      { name: "REQUEST LEAVE", href: "/hr/leave-requests", icon: Calendar },
+      { name: "SALARY ADVANCE", href: "/hr/advances", icon: Wallet },
     ]
   }
 ];
@@ -177,10 +201,13 @@ export function Sidebar({ className }: { className?: string }) {
   // If superadmin, show superadmin menu. If partner AND NOT inside a business, show partner menu.
   // We check location.pathname to determine if we should show Partner menu (when Partner accesses /partner/*)
   const isPartnerRoute = location.pathname.startsWith('/partner');
+  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
   
   const activeMenuGroups = isSuperadmin 
     ? filteredSuperadminGroups 
-    : (isPartnerRoute || (!user?.businesses?.length && isPartner)) ? filteredPartnerGroups : filteredBusinessGroups;
+    : (isPartnerRoute || (!user?.businesses?.length && isPartner)) 
+      ? filteredPartnerGroups 
+      : isBusinessManager ? filteredBusinessGroups : staffMenuGroups;
 
   return (
     <>

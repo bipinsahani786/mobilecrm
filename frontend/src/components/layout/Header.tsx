@@ -378,8 +378,13 @@ export function Header({ className }: { className?: string }) {
                     <button
                       key={b.id}
                       onClick={() => {
-                        setActiveBusiness(b);
-                        setIsBranchDropdownOpen(false);
+                        if (activeBusiness?.id !== b.id) {
+                          setActiveBusiness(b);
+                          setIsBranchDropdownOpen(false);
+                          window.location.reload();
+                        } else {
+                          setIsBranchDropdownOpen(false);
+                        }
                       }}
                       className={cn(
                         "w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-3 transition-colors",
