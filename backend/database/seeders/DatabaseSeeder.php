@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             SuperadminSeeder::class,
             DummyDataSeeder::class,
             TestBusinessSeeder::class,
+            FullFledgedSeeder::class,
         ]);
     }
 }
