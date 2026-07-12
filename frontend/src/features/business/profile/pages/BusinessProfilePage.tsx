@@ -15,6 +15,7 @@ import { useCreateBusiness, useUpdateBusiness } from '../api/useBusinessMutation
 import { BrandingAssetsSection } from '../components/BrandingAssetsSection';
 import { ProfilePreviewPanel } from '../components/ProfilePreviewPanel';
 import { DynamicForm } from '@/components/ui/dynamic-form';
+import { BusinessLocationsSection } from '../components/BusinessLocationsSection';
 import { getBusinessProfileFormConfig } from '../constants/businessForm';
 
 export default function BusinessProfilePage() {
@@ -206,6 +207,9 @@ export default function BusinessProfilePage() {
                 />
               ))}
             />
+
+            {/* Geo-fence Location Settings */}
+            <BusinessLocationsSection />
 
             <div className="pt-5 border-t border-slate-200 dark:border-white/5 flex justify-end">
               <Button type="submit" form="business-form" disabled={isSubmitting} className="bg-primary-500 hover:bg-primary-600 text-white shadow-md px-8 h-10 rounded-lg text-sm font-semibold tracking-wide w-full md:w-auto">

@@ -41,8 +41,22 @@ class PermissionSeeder extends Seeder
             'manage_own_profile',
         ];
 
+        // Business/Tenant-specific permissions
+        $businessPermissions = [
+            'manage_sales',
+            'manage_inventory',
+            'manage_purchases',
+            'manage_expenses',
+            'manage_customers',
+            'manage_suppliers',
+            'manage_staff',
+            'manage_attendance',
+            'manage_payroll',
+            'manage_business_settings',
+        ];
+
         // Create all permissions
-        foreach (array_merge($permissions, $partnerPermissions) as $permission) {
+        foreach (array_merge($permissions, $partnerPermissions, $businessPermissions) as $permission) {
             Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 

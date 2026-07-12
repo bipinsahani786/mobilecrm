@@ -26,6 +26,16 @@ export const useExpenses = (filters: Record<string, any> = {}) => {
   });
 };
 
+export const useExpenseAnalytics = () => {
+  return useQuery({
+    queryKey: ['expense-analytics'],
+    queryFn: async () => {
+      const { data } = await api.get('/business/expenses/analytics');
+      return data.data;
+    },
+  });
+};
+
 // Create expense
 export const useCreateExpense = () => {
   const queryClient = useQueryClient();

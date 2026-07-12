@@ -29,6 +29,19 @@ const InvoicesPage = lazy(() => import('@/features/business/pos/pages/InvoicesPa
 const InvoiceDetailsPage = lazy(() => import('@/features/business/pos/pages/InvoiceDetailsPage'));
 const ExpensesPage = lazy(() => import('@/features/business/expenses/pages/ExpensesPage'));
 const FinanceLedgerPage = lazy(() => import('@/features/business/finance/pages/FinanceLedgerPage'));
+
+// Staff & HR
+const StaffPage = lazy(() => import('@/features/business/staff/pages/StaffPage'));
+const StaffDetailsPage = lazy(() => import('@/features/business/staff/pages/StaffDetailsPage'));
+const AttendancePage = lazy(() => import('@/features/business/attendance/pages/AttendancePage'));
+const PayrollPage = lazy(() => import('@/features/business/payroll/pages/PayrollPage'));
+const PayrollComponentsPage = lazy(() => import('@/features/business/payroll/pages/PayrollComponentsPage'));
+const PayrollDetailsPage = lazy(() => import('@/features/business/payroll/pages/PayrollDetailsPage'));
+const LeaveRequestsPage = lazy(() => import('@/features/business/hr/pages/LeaveRequestsPage'));
+const SalaryAdvancesPage = lazy(() => import('@/features/business/hr/pages/SalaryAdvancesPage'));
+const AuditLogsPage = lazy(() => import('@/features/business/reports/pages/AuditLogsPage'));
+const StaffPerformancePage = lazy(() => import('@/features/business/reports/pages/StaffPerformancePage'));
+
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
 const TenantsPage = lazy(() => import('@/features/superadmin/tenants/pages/TenantsPage'));
 const PlansPage = lazy(() => import('@/features/superadmin/plans/pages/PlansPage'));
@@ -188,6 +201,19 @@ function App() {
             <Route path="/invoices/:id" element={<BusinessRoute><InvoiceDetailsPage /></BusinessRoute>} />
             <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
             <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
+            
+            {/* Staff & HR Routes */}
+            <Route path="/staff" element={<BusinessRoute><StaffPage /></BusinessRoute>} />
+            <Route path="/staff/:id" element={<BusinessRoute><StaffDetailsPage /></BusinessRoute>} />
+            <Route path="/attendance" element={<BusinessRoute><AttendancePage /></BusinessRoute>} />
+            <Route path="/payroll" element={<BusinessRoute><PayrollPage /></BusinessRoute>} />
+            <Route path="/payroll/components" element={<BusinessRoute><PayrollComponentsPage /></BusinessRoute>} />
+            <Route path="/payroll/:id" element={<BusinessRoute><PayrollDetailsPage /></BusinessRoute>} />
+            <Route path="/hr/leave-requests" element={<BusinessRoute><LeaveRequestsPage /></BusinessRoute>} />
+            <Route path="/hr/advances" element={<BusinessRoute><SalaryAdvancesPage /></BusinessRoute>} />
+            
+            <Route path="/reports/audit-logs" element={<BusinessRoute><AuditLogsPage /></BusinessRoute>} />
+            <Route path="/reports/staff-performance" element={<BusinessRoute><StaffPerformancePage /></BusinessRoute>} />
             
             {/* Superadmin Routes */}
             <Route path="/superadmin/dashboard" element={<SuperadminRoute><PermissionGuard permission="view_dashboard"><SuperadminDashboard /></PermissionGuard></SuperadminRoute>} />

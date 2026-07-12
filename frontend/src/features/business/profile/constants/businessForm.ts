@@ -97,4 +97,19 @@ export const getBusinessProfileFormConfig = (
       },
     ],
   },
+  {
+    title: 'Business Configurations',
+    fields: [
+      {
+        name: 'settings.commission_calculation_base',
+        label: 'Commission Calculation Base',
+        type: 'select',
+        options: [
+          { label: 'Based on Total Sales (Revenue)', value: 'sales' },
+          { label: 'Based on Total Profit', value: 'profit' },
+        ],
+        tooltip: 'Select how staff commission should be calculated: from total sales value or from the profit generated.',
+      },
+    ]
+  },
 ];

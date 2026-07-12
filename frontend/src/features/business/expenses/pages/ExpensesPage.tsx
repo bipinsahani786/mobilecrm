@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Receipt } from 'lucide-react';
 import { ExpensesList } from '../components/ExpensesList';
 import { ExpenseModal } from '../components/ExpenseModal';
+import { ExpenseAnalytics } from '../components/ExpenseAnalytics';
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense } from '../api/useExpenses';
 import type { Expense } from '../schemas';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
@@ -63,6 +64,7 @@ const ExpensesPage = () => {
       />
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+        <ExpenseAnalytics />
         <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
           <ExpensesList 
             expenses={expensesData?.data || []}

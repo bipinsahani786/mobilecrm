@@ -1,24 +1,20 @@
-import { useState, useEffect } from "react";
-import { Calendar, LayoutDashboard, Building2, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt } from "lucide-react";
 import { DashboardSkeleton } from "./../components/DashboardSkeleton";
 import { useTenantStore } from "@/store/tenantStore";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { StatCard } from "@/components/ui/stat-card";
+import { useDashboardStats } from "../api/useDashboard";
+import { format } from "date-fns";
 
 export default function DashboardPage() {
   const { activeBusiness, isLoading: isTenantLoading } = useTenantStore();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
+  
+  const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
 
-  useEffect(() => {
-    // Simulate API fetch delay
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (isLoading || isTenantLoading) {
+  if (isTenantLoading || isStatsLoading) {
     return <DashboardSkeleton />;
   }
 
@@ -84,15 +80,71 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Empty State / Dynamic Content Area */}
-      <div className="flex flex-col items-center justify-center py-32 text-center bg-white dark:bg-[#09090b] rounded-sm shadow-sm border border-slate-200/60 dark:border-white/5 border-dashed transition-colors duration-300">
-        <div className="w-20 h-20 bg-slate-50 dark:bg-zinc-900 rounded-sm flex items-center justify-center text-slate-400 dark:text-slate-600 mb-6 shadow-inner">
-          <LayoutDashboard className="w-10 h-10" />
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <StatCard
+          title="Today's Sales"
+          value={`₹${stats?.today_sales?.toLocaleString() || 0}`}
+          icon={IndianRupee}
+          isActive={true}
+        />
+        <StatCard
+          title="Monthly Revenue"
+          value={`₹${stats?.monthly_revenue?.toLocaleString() || 0}`}
+          icon={TrendingUp}
+        />
+        <StatCard
+          title="Pending Payments"
+          value={`₹${stats?.pending_payments?.toLocaleString() || 0}`}
+          icon={Clock}
+          color="bg-rose-50 dark:bg-rose-500/10 text-rose-500"
+        />
+        <StatCard
+          title="Staff Overview"
+          value={stats?.staff?.present_today || 0}
+          icon={Users}
+          subtitle={`${stats?.staff?.active || 0} active total`}
+          trend={{ value: 'Present Today', isPositive: true }}
+        />
+      </div>
+
+      {/* Recent Activity */}
+      <div className="bg-white dark:bg-[#111115] border border-slate-200/60 dark:border-white/5 rounded-xl shadow-[0_2px_8px_-3px_rgba(0,0,0,0.05)] overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+          <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800 dark:text-white flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-primary-500" />
+            Recent Sales
+          </h2>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/sales')} className="text-xs h-8">
+            View All
+          </Button>
         </div>
-        <h3 className="text-2xl font-bold text-slate-800 dark:text-white font-display mb-3 tracking-tight">Dashboard Ready</h3>
-        <p className="text-slate-500 dark:text-slate-400 max-w-md text-sm font-medium leading-relaxed">
-          The dashboard structure is initialized and ready for dynamic content. Connect your business database to visualize real-time analytics.
-        </p>
+        <div className="divide-y divide-slate-100 dark:divide-white/5">
+          {stats?.recent_sales?.length ? (
+            stats.recent_sales.map((sale: any) => (
+              <div key={sale.id} className="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer" onClick={() => navigate(`/sales/${sale.id}`)}>
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-sm text-slate-900 dark:text-white">{sale.customer?.name || 'Walk-in Customer'}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400">{sale.invoice_number} • {format(new Date(sale.date), 'dd MMM yyyy')}</span>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <span className="font-bold text-slate-900 dark:text-white">₹{Number(sale.final_amount).toLocaleString()}</span>
+                  <span className={`text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded ${
+                    sale.status === 'paid' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10' :
+                    sale.status === 'pending' ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/10' :
+                    'bg-amber-50 text-amber-600 dark:bg-amber-500/10'
+                  }`}>
+                    {sale.status}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
+              No recent sales found.
+            </div>
+          )}
+        </div>
       </div>
 
     </div>

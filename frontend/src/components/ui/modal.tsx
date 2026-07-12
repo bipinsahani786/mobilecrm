@@ -5,6 +5,7 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: ReactNode;
+  description?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl';
@@ -21,7 +22,7 @@ const maxWidthClasses = {
   '5xl': 'max-w-5xl',
 };
 
-export function Modal({ isOpen, onClose, title, children, footer, maxWidth = '2xl' }: ModalProps) {
+export function Modal({ isOpen, onClose, title, description, children, footer, maxWidth = '2xl' }: ModalProps) {
   if (!isOpen) return null;
 
   const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -39,13 +40,20 @@ export function Modal({ isOpen, onClose, title, children, footer, maxWidth = '2x
         className={`bg-white dark:bg-[#09090b] w-full ${maxWidthClasses[maxWidth]} rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-center shrink-0 bg-slate-50/50 dark:bg-white/[0.02]">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-            {title}
-          </h2>
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-start shrink-0 bg-slate-50/50 dark:bg-white/[0.02]">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              {title}
+            </h2>
+            {description && (
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                {description}
+              </p>
+            )}
+          </div>
           <button 
             onClick={onClose} 
-            className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/10"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1 rounded-md hover:bg-slate-100 dark:hover:bg-white/10 mt-0.5"
           >
             <X className="w-5 h-5" />
           </button>

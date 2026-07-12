@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\BelongsToBusiness;
@@ -10,7 +11,7 @@ use App\Traits\LogsActivity;
 
 class Product extends Model
 {
-    use BelongsToBusiness, SoftDeletes, LogsActivity;
+    use HasFactory, BelongsToBusiness, SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'business_id', 'category_id', 'brand_id', 'model_name',

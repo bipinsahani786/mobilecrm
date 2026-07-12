@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { exportToCsv } from '@/utils/exportToCsv';
 
 export interface ColumnDef<T> {
   header: string;
@@ -39,6 +40,8 @@ interface DataTableProps<T> {
   onSearchChange?: (term: string) => void;
   onSortChange?: (key: keyof T, direction: 'asc' | 'desc') => void;
   renderSubComponent?: (item: T) => React.ReactNode;
+  exportable?: boolean;
+  exportFilename?: string;
 }
 
 export function DataTable<T>({
@@ -61,6 +64,8 @@ export function DataTable<T>({
   onSearchChange,
   onSortChange,
   renderSubComponent,
+  exportable = false,
+  exportFilename = 'export'
 }: DataTableProps<T>) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
@@ -74,13 +79,15 @@ export function DataTable<T>({
   const pageSize = serverSide ? itemsPerPage : internalPageSize;
   const currentPage = serverSide ? page : internalCurrentPage;
 
+  const safeData = Array.isArray(data) ? data : [];
+
   // Filter Data (Client side only)
   const filteredData = useMemo(() => {
-    if (serverSide) return data;
-    if (!searchTerm || searchKeys.length === 0) return data;
+    if (serverSide) return safeData;
+    if (!searchTerm || searchKeys.length === 0) return safeData;
     const lowercasedTerm = searchTerm.toLowerCase();
 
-    return data.filter((item) => {
+    return safeData.filter((item) => {
       return searchKeys.some((key) => {
         if (typeof key === 'function') {
           return key(item).toLowerCase().includes(lowercasedTerm);
@@ -89,11 +96,11 @@ export function DataTable<T>({
         return val ? String(val).toLowerCase().includes(lowercasedTerm) : false;
       });
     });
-  }, [data, searchTerm, searchKeys, serverSide]);
+  }, [safeData, searchTerm, searchKeys, serverSide]);
 
   // Sort Data (Client side only)
   const sortedData = useMemo(() => {
-    if (serverSide) return data;
+    if (serverSide) return safeData;
     if (!internalSortConfig.key || !internalSortConfig.direction) return filteredData;
 
     return [...filteredData].sort((a, b) => {
@@ -104,7 +111,7 @@ export function DataTable<T>({
       if (aVal > bVal) return internalSortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredData, internalSortConfig, serverSide, data]);
+  }, [filteredData, internalSortConfig, serverSide, safeData]);
 
   // Paginate Data
   const totalPages = serverSide
@@ -112,10 +119,10 @@ export function DataTable<T>({
     : Math.ceil(sortedData.length / pageSize);
 
   const paginatedData = useMemo(() => {
-    if (serverSide) return data;
+    if (serverSide) return safeData;
     const startIdx = (currentPage - 1) * pageSize;
     return sortedData.slice(startIdx, startIdx + pageSize);
-  }, [sortedData, currentPage, pageSize, serverSide, data]);
+  }, [sortedData, currentPage, pageSize, serverSide, safeData]);
 
   const handleSort = (key?: keyof T, sortable?: boolean) => {
     if (!key || !sortable) return;
@@ -162,6 +169,10 @@ export function DataTable<T>({
     }
   };
 
+  const handleExport = () => {
+    exportToCsv(filteredData, columns as any, exportFilename);
+  };
+
   // Reset page when search term changes or page size changes (Client side only)
   React.useEffect(() => {
     if (!serverSide) {
@@ -198,17 +209,24 @@ export function DataTable<T>({
     <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-lg shadow-sm overflow-hidden flex flex-col w-full">
 
       {/* Header Controls */}
-      {searchable && (
+      {(searchable || exportable) && (
         <div className="p-4 border-b border-slate-200 dark:border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="w-full sm:w-72 ml-auto">
-            <Input
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder={searchPlaceholder}
-              icon={<Search className="w-4 h-4" />}
-              className="h-9 text-sm"
-            />
+          <div className="w-full sm:w-72">
+            {searchable && (
+                <Input
+                value={searchTerm}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                placeholder={searchPlaceholder}
+                icon={<Search className="w-4 h-4" />}
+                className="h-9 text-sm"
+                />
+            )}
           </div>
+          {exportable && (
+            <Button variant="outline" size="sm" onClick={handleExport} className="h-9 text-sm">
+                <Download className="w-4 h-4 mr-2" /> Export
+            </Button>
+          )}
         </div>
       )}
 

@@ -25,6 +25,9 @@ class ProfileController extends BaseController
     )]
     public function show(Request $request)
     {
+        if ($tenantId = $request->header('X-Tenant-ID')) {
+            setPermissionsTeamId($tenantId);
+        }
         $profile = $this->profileService->getProfile($request->user());
         return $this->success($profile, 'Profile retrieved successfully');
     }

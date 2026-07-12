@@ -25,6 +25,11 @@ export const businessSchema = z.object({
     show_phone_2: true,
     show_gst: true,
     theme: 'primary'
+  }),
+  settings: z.object({
+    commission_calculation_base: z.enum(['sales', 'profit']).default('sales')
+  }).default({
+    commission_calculation_base: 'sales'
   })
 });
 
