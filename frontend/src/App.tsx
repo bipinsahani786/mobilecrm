@@ -86,18 +86,18 @@ function BusinessRoute({ children }: { children: React.ReactNode }) {
   const { activeBusiness, isLoading } = useTenantStore();
   const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin');
   const isPartner = user?.roles?.some(r => r.name === 'Partner');
-  
+
   if (isSuperadmin) return <Navigate to="/superadmin/dashboard" replace />;
   if (isPartner && !user?.businesses?.length) return <Navigate to="/partner/dashboard" replace />;
   if (!isLoading && !activeBusiness) return <Navigate to="/setup/profile" replace />;
-  
+
   return <>{children}</>;
 }
 
 function PartnerRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
   const isPartner = user?.roles?.some(r => r.name === 'Partner');
-  
+
   if (!isPartner) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
@@ -152,7 +152,7 @@ function App() {
     const root = window.document.documentElement;
     // Handle theme class
     root.classList.remove('light', 'dark', 'semi-dark');
-    
+
     // Check if it's an auth page
     const isAuthPage = location.pathname === '/login' || location.pathname === '/partner/register';
 
@@ -206,7 +206,7 @@ function App() {
             <Route path="/invoices/:id" element={<BusinessRoute><InvoiceDetailsPage /></BusinessRoute>} />
             <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
             <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
-            
+
             {/* Staff & HR Routes */}
             <Route path="/staff" element={<BusinessRoute><StaffPage /></BusinessRoute>} />
             <Route path="/staff/:id" element={<BusinessRoute><StaffDetailsPage /></BusinessRoute>} />
@@ -216,10 +216,10 @@ function App() {
             <Route path="/payroll/:id" element={<BusinessRoute><PayrollDetailsPage /></BusinessRoute>} />
             <Route path="/hr/leave-requests" element={<BusinessRoute><LeaveRequestsPage /></BusinessRoute>} />
             <Route path="/hr/advances" element={<BusinessRoute><SalaryAdvancesPage /></BusinessRoute>} />
-            
+
             <Route path="/reports/audit-logs" element={<BusinessRoute><AuditLogsPage /></BusinessRoute>} />
             <Route path="/reports/staff-performance" element={<BusinessRoute><StaffPerformancePage /></BusinessRoute>} />
-            
+
             {/* Superadmin Routes */}
             <Route path="/superadmin/dashboard" element={<SuperadminRoute><PermissionGuard permission="view_dashboard"><SuperadminDashboard /></PermissionGuard></SuperadminRoute>} />
             <Route path="/superadmin/profile" element={<SuperadminRoute><ProfilePage /></SuperadminRoute>} />
