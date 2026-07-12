@@ -281,7 +281,7 @@ class FullFledgedSeeder extends Seeder
                             'due_date' => $dueDate,
                             'amount' => $emiAmount,
                             'status' => $dueDate->isPast() ? 'paid' : 'pending',
-                            'paid_date' => $dueDate->isPast() ? $dueDate : null,
+                            'paid_on' => $dueDate->isPast() ? $dueDate : null,
                         ]);
                     }
                 } else {
