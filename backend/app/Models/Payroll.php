@@ -27,6 +27,7 @@ class Payroll extends Model
         'total_commission',
         'bonus',
         'advance_deduction',
+        'salary_components',
         'final_salary',
         'notes',
         'status',
@@ -41,6 +42,7 @@ class Payroll extends Model
         'bonus' => 'float',
         'advance_deduction' => 'float',
         'final_salary' => 'float',
+        'salary_components' => 'array',
         'paid_date' => 'date',
     ];
 
