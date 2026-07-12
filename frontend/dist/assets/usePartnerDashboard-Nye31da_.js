@@ -1,0 +1,1 @@
+import{n as e}from"./tenantStore-BL7mioJ4.js";import{nt as t}from"./index-BDGGDpJr.js";var n=()=>t({queryKey:[`partner`,`dashboard`],queryFn:async()=>{let{data:t}=await e.get(`/partner/dashboard`);return t.data}});export{n as t};
