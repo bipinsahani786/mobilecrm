@@ -98,7 +98,6 @@ class FullFledgedSeeder extends Seeder
                         'name' => 'Staff Member ' . $s . ' (' . $bData['name'] . ')',
                         'phone' => '980000' . rand(1000, 9999),
                         'password' => Hash::make('password123'),
-                        'base_salary' => 15000 + ($s * 2000), // adding base_salary if possible
                     ]
                 );
 
@@ -177,15 +176,11 @@ class FullFledgedSeeder extends Seeder
                 $totalAmount = rand(50000, 200000);
 
                 $purchase = SupplierPurchase::create([
-                    'business_id' => $business->id,
                     'supplier_id' => $supplier->id,
-                    'user_id' => $owner->id,
-                    'invoice_number' => 'PUR-FF-' . strtoupper(Str::random(6)),
-                    'purchase_date' => now()->subDays(rand(10, 60))->toDateString(),
-                    'total_amount' => $totalAmount,
+                    'bill_amount' => $totalAmount,
                     'paid_amount' => $totalAmount,
-                    'status' => 'completed',
-                    'payment_status' => 'paid',
+                    'purchase_date' => now()->subDays(rand(10, 60))->toDateString(),
+                    'due_date' => now()->addDays(rand(0, 30))->toDateString(),
                 ]);
 
                 // We don't add items extensively to save space, but let's add 1 dummy item
@@ -193,18 +188,17 @@ class FullFledgedSeeder extends Seeder
                     'supplier_purchase_id' => $purchase->id,
                     'product_id' => $products[array_rand($products)]->id,
                     'quantity' => 10,
-                    'unit_price' => $totalAmount / 10,
-                    'subtotal' => $totalAmount,
+                    'purchase_price' => $totalAmount / 10,
+                    'total_price' => $totalAmount,
                 ]);
 
                 // Payment for Purchase (Finance)
                 SupplierPayment::create([
                     'supplier_id' => $supplier->id,
                     'supplier_purchase_id' => $purchase->id,
-                    'business_id' => $business->id,
                     'payment_mode' => 'Bank Transfer',
                     'amount' => $totalAmount,
-                    'payment_date' => $purchase->purchase_date,
+                    'date' => $purchase->purchase_date,
                     'notes' => 'Full payment made for purchase',
                 ]);
             }
