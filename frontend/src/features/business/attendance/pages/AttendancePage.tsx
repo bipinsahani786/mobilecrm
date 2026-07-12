@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAttendance, useMarkAttendance } from '../api/useAttendance';
 import { useStaff } from '../../staff/api/useStaff';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Calendar, UserCheck, UserX, Clock, MapPin, CheckCircle } from 'lucide-react';
+import { Calendar, UserCheck, Clock, Download, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +11,9 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { AttendanceCheckInModal } from '../components/AttendanceCheckInModal';
 import { AttendanceMarkModal } from '../components/AttendanceMarkModal';
+import { AttendanceImportModal } from '../components/AttendanceImportModal';
 import { Modal } from '@/components/ui/modal';
+import { exportToCsv } from '@/utils/exportToCsv';
 import { useAuthStore } from '@/store/authStore';
 import { AttendanceMonthlyGrid } from '../components/AttendanceMonthlyGrid';
 
@@ -27,6 +29,7 @@ export default function AttendancePage() {
   const [selectedStaff, setSelectedStaff] = useState<string>('all');
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isMarkOpen, setIsMarkOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
@@ -38,8 +41,15 @@ export default function AttendancePage() {
 
   const isManager = (() => {
     if (!user || !staffList) return false;
+    
+    // If the logged in user is the owner or Business Admin
+    const hasAdminRole = user.roles?.some((r: any) => r.name === 'Business Admin' || r.name === 'Superadmin');
+    if (hasAdminRole) {
+        return true;
+    }
+
     const currentStaff = staffList.find((s: any) => s.id === user.id);
-    return currentStaff?.role === 'manager' || currentStaff?.role === 'admin';
+    return currentStaff?.role === 'manager' || currentStaff?.role === 'admin' || currentStaff?.role === 'Business Admin' || !currentStaff;
   })();
 
   const handleApprove = (id: number) => {
@@ -75,6 +85,68 @@ export default function AttendancePage() {
 
   const { data: attendanceData, isLoading } = useAttendance(viewMode === 'grid' ? gridFilters : filters);
 
+  // Filter out the owner (Business Admin) from the grid list
+  const staffToDisplay = staffList?.filter((s: any) => s.role !== 'Business Admin' && s.role !== 'Superadmin') || [];
+
+  const filteredStaffList = staffToDisplay.filter((s: any) => 
+    selectedStaff === 'all' ? true : s.id.toString() === selectedStaff
+  );
+
+  const handleExport = () => {
+    if (!attendanceData || !attendanceData.data) return;
+    
+    // Build Matrix Export Data
+    const [year, monthStr] = selectedMonth.split('-');
+    const daysInMonth = new Date(parseInt(year), parseInt(monthStr), 0).getDate();
+    
+    const exportData = filteredStaffList.map((staff: any) => {
+      const row: any = {
+        'Staff ID': staff.id,
+        'Staff Name': staff.name,
+      };
+      
+      let present = 0, absent = 0, halfDay = 0, leave = 0;
+      
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${selectedMonth}-${String(day).padStart(2, '0')}`;
+        // Find record in attendanceData.data
+        const record = attendanceData.data.find((r: any) => r.user_id === staff.id && r.date.startsWith(dateStr));
+        
+        let statusStr = '';
+        if (record) {
+          if (record.status === 'present') { statusStr = 'P'; present++; }
+          else if (record.status === 'absent') { statusStr = 'A'; absent++; }
+          else if (record.status === 'half_day') { statusStr = 'H'; halfDay++; }
+          else if (record.status === 'leave') { statusStr = 'L'; leave++; }
+          else if (record.status === 'holiday') { statusStr = 'O'; }
+          else if (record.status === 'week_off') { statusStr = 'W'; }
+        }
+        
+        row[String(day)] = statusStr;
+      }
+      
+      row['Total Present'] = present;
+      row['Total Absent'] = absent;
+      row['Total Leave/Half'] = leave + halfDay;
+      
+      return row;
+    });
+
+    const columns = [
+      { header: 'Staff ID', accessorKey: 'Staff ID' },
+      { header: 'Staff Name', accessorKey: 'Staff Name' },
+      ...Array.from({ length: daysInMonth }, (_, i) => ({
+        header: String(i + 1),
+        accessorKey: String(i + 1),
+      })),
+      { header: 'Total Present', accessorKey: 'Total Present' },
+      { header: 'Total Absent', accessorKey: 'Total Absent' },
+      { header: 'Total Leave/Half', accessorKey: 'Total Leave/Half' },
+    ];
+
+    exportToCsv(exportData, columns, `Attendance_Register_${selectedMonth}`);
+  };
+
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
       <PageHeader 
@@ -83,6 +155,12 @@ export default function AttendancePage() {
         subtitle="Manage daily attendance and time tracking"
         actions={
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download size={14} className="mr-2" /> Export
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsImportOpen(true)}>
+              <Upload size={14} className="mr-2" /> Import
+            </Button>
             <Button variant="outline" size="sm" onClick={() => setIsMarkOpen(true)}>
               <UserCheck size={14} className="mr-2" /> Mark Manual
             </Button>
@@ -168,7 +246,7 @@ export default function AttendancePage() {
         ) : (
           <AttendanceMonthlyGrid 
             month={selectedMonth}
-            staffList={staffList || []}
+            staffList={filteredStaffList}
             attendanceData={attendanceData?.data || []}
             isManager={isManager}
             loggedInUserId={user?.id || 0}
@@ -185,6 +263,13 @@ export default function AttendancePage() {
         isOpen={isMarkOpen}
         onClose={() => setIsMarkOpen(false)}
         staffList={staffList || []}
+      />
+
+      <AttendanceImportModal
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        staffList={staffToDisplay}
+        month={selectedMonth}
       />
 
       <Modal isOpen={!!photoUrl} onClose={() => setPhotoUrl(null)} title="Attendance Photo">

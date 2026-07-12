@@ -4,8 +4,7 @@ import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { useMarkAttendance } from '../api/useAttendance';
-import { AttendanceRecord } from '../api/useAttendance';
+import { useMarkAttendance, type AttendanceRecord } from '../api/useAttendance';
 
 interface AttendanceMonthlyGridProps {
   month: string; // format: 'yyyy-MM'
@@ -45,7 +44,8 @@ export function AttendanceMonthlyGrid({
     if (!attendanceMap[record.user_id]) {
       attendanceMap[record.user_id] = {};
     }
-    attendanceMap[record.user_id][record.date] = record;
+    const dateOnly = record.date.split('T')[0];
+    attendanceMap[record.user_id][dateOnly] = record;
   });
 
   const getStatusColor = (status: string) => {
@@ -126,6 +126,7 @@ export function AttendanceMonthlyGrid({
                   {day}
                 </th>
               ))}
+              <th className="px-4 py-3 font-semibold text-center min-w-[120px] border-l border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-[#1f1f22]">Total (P/A/L)</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-white/5">
@@ -151,6 +152,33 @@ export function AttendanceMonthlyGrid({
                     </td>
                   );
                 })}
+                
+                {/* Total Summary Columns */}
+                {(() => {
+                  let present = 0;
+                  let absent = 0;
+                  let halfDay = 0;
+                  let leave = 0;
+                  daysArray.forEach(day => {
+                    const dateStr = `${month}-${String(day).padStart(2, '0')}`;
+                    const record = attendanceMap[staff.id]?.[dateStr];
+                    if (record) {
+                      if (record.status === 'present') present++;
+                      if (record.status === 'absent') absent++;
+                      if (record.status === 'half_day') halfDay++;
+                      if (record.status === 'leave') leave++;
+                    }
+                  });
+                  return (
+                    <td className="px-4 py-2 border-l border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 text-center">
+                      <div className="flex gap-2 justify-center text-xs font-semibold">
+                        <span className="text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded shadow-sm" title="Present">{present} P</span>
+                        <span className="text-rose-500 bg-rose-500/10 px-1.5 py-0.5 rounded shadow-sm" title="Absent">{absent} A</span>
+                        <span className="text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded shadow-sm" title="Leave/Half-Day">{leave + halfDay} L</span>
+                      </div>
+                    </td>
+                  );
+                })()}
               </tr>
             ))}
             

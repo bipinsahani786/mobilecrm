@@ -112,3 +112,18 @@ export const useApproveAttendance = () => {
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to approve attendance'),
   });
 };
+
+export const useImportAttendance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (records: any[]) => {
+      const { data } = await api.post('/business/attendance/import', { records });
+      return data.data;
+    },
+    onSuccess: () => {
+      toast.success('Attendance imported successfully!');
+      qc.invalidateQueries({ queryKey: ['attendance'] });
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to import attendance'),
+  });
+};

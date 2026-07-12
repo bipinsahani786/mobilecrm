@@ -1,6 +1,6 @@
 import React from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useMarkAttendance } from '../api/useAttendance';
+import { useMarkAttendance, useImportAttendance } from '../api/useAttendance';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ interface AttendanceMarkModalProps {
 
 export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMarkModalProps) => {
   const markMutation = useMarkAttendance();
+  const importMutation = useImportAttendance();
 
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm({
     defaultValues: {
@@ -25,13 +26,28 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
   });
 
   const onSubmit = (data: any) => {
-    markMutation.mutate(
-      { ...data, user_id: Number(data.user_id) },
-      { onSuccess: () => {
-        onClose();
-        reset();
-      }}
-    );
+    if (data.user_id === 'all') {
+      const records = staffList.map(staff => ({
+        user_id: staff.id,
+        date: data.date,
+        status: data.status,
+        notes: data.notes
+      }));
+      importMutation.mutate(records, {
+        onSuccess: () => {
+          onClose();
+          reset();
+        }
+      });
+    } else {
+      markMutation.mutate(
+        { ...data, user_id: Number(data.user_id) },
+        { onSuccess: () => {
+          onClose();
+          reset();
+        }}
+      );
+    }
   };
 
   return (
@@ -50,6 +66,7 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
             render={({ field }) => (
               <Select onChange={field.onChange} value={field.value} className={errors.user_id ? 'border-red-500' : ''}>
                 <option value="" disabled>Select staff member</option>
+                <option value="all" className="font-semibold text-primary">All Staff (Bulk)</option>
                 {staffList?.map((staff) => (
                   <option key={staff.id} value={staff.id.toString()}>{staff.name}</option>
                 ))}
