@@ -12,11 +12,11 @@ export const getBrandColumns = ({ onEdit, onDelete }: BrandColumnsProps): Column
   {
     accessorKey: 'name',
     header: 'Brand Name',
-    cell: (brand) => <span className="font-medium text-slate-900 dark:text-slate-100">{brand.name}</span>,
+    cell: (brand) => <span className="font-bold text-xs text-slate-900 dark:text-slate-100">{brand.name}</span>,
   },
   {
     header: 'Created At',
-    cell: (brand) => <span className="text-sm text-slate-500">{new Date(brand.created_at).toLocaleDateString()}</span>,
+    cell: (brand) => <span className="text-xs font-bold text-slate-500">{new Date(brand.created_at).toLocaleDateString()}</span>,
   },
   {
     header: 'Actions',

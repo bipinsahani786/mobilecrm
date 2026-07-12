@@ -18,6 +18,7 @@ interface CustomSelectProps {
   className?: string;
   disabled?: boolean;
   id?: string;
+  menuPlacement?: 'top' | 'bottom';
 }
 
 export function CustomSelect({
@@ -29,6 +30,7 @@ export function CustomSelect({
   className,
   disabled = false,
   id,
+  menuPlacement = 'bottom',
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -82,12 +84,13 @@ export function CustomSelect({
       {/* Dropdown panel — no scrollbar, max-h with overflow hidden */}
       {open && (
         <div className={cn(
-          'absolute z-[9999] left-0 right-0 mt-1.5',
+          'absolute z-[9999] left-0 right-0',
+          menuPlacement === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'mt-1.5 origin-top',
           'bg-white dark:bg-[#111118]',
           'border border-slate-200 dark:border-white/10',
           'rounded-xl shadow-2xl shadow-black/20',
           'overflow-hidden',
-          'animate-in fade-in zoom-in-95 duration-150 origin-top',
+          'animate-in fade-in zoom-in-95 duration-150',
         )}>
           {options.length === 0 ? (
             <div className="px-4 py-6 text-center text-xs text-slate-400 dark:text-slate-600">

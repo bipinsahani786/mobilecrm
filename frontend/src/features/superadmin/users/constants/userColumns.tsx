@@ -49,9 +49,9 @@ export const getUserColumns = ({
           </span>
         </div>
         <div className="min-w-0">
-          <p className="font-bold text-sm text-slate-800 dark:text-white leading-tight truncate">{user.name}</p>
+          <p className="font-bold text-xs font-bold text-slate-800 dark:text-white leading-tight truncate">{user.name}</p>
           {user.email && (
-            <p className="text-[10px] text-slate-500 font-medium tracking-wider mt-0.5 truncate">{user.email}</p>
+            <p className="text-[10px] text-slate-500 font-bold text-xs tracking-wider mt-0.5 truncate">{user.email}</p>
           )}
         </div>
       </div>
@@ -61,7 +61,7 @@ export const getUserColumns = ({
     header: 'Phone',
     accessorKey: 'phone',
     sortable: true,
-    className: '!px-3 !py-1.5 text-xs font-medium text-slate-600 dark:text-slate-400',
+    className: '!px-3 !py-1.5 text-xs font-bold text-xs text-slate-600 dark:text-slate-400',
     cell: (user) => user.phone || '—',
   },
   {
@@ -93,7 +93,7 @@ export const getUserColumns = ({
       }
       return (
         <div className="min-w-0">
-          <p className="font-semibold text-slate-700 dark:text-slate-300 truncate text-xs leading-tight">
+          <p className="font-bold text-xs text-slate-700 dark:text-slate-300 truncate text-xs leading-tight">
             {user.businesses[0].name}
           </p>
           {user.businesses.length > 1 && (
@@ -144,7 +144,7 @@ export const getUserColumns = ({
     sortable: true,
     className: '!px-3 !py-1.5 text-xs',
     cell: (user) => (
-      <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
+      <p className="text-xs font-bold text-xs text-slate-600 dark:text-slate-400">
         {format(new Date(user.created_at), 'dd MMM yyyy')}
       </p>
     ),

@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useUpdateSale } from '../api/useSales';
 import { useCustomers } from '../../customers/api/useCustomers';
 import { toast } from 'sonner';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { OrderSummary } from './checkout/OrderSummary';
 import { PaymentForms } from './checkout/PaymentForms';
 import type { PaymentMode } from '../constants/index';
@@ -263,16 +263,20 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
                 Customer Details
               </label>
               <div className="flex gap-2">
-                <Select 
-                  value={selectedCustomerId} 
-                  onChange={(e) => setSelectedCustomerId(e.target.value)}
-                  className="flex-1 h-9 text-sm bg-slate-50 dark:bg-white/[0.02]"
-                >
-                  <option value="">Walk-in Customer</option>
-                  {customers.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
-                  ))}
-                </Select>
+                <div className="flex-1">
+                  <CustomSelect 
+                    value={selectedCustomerId} 
+                    onChange={setSelectedCustomerId}
+                    placeholder="Walk-in Customer"
+                    options={[
+                      { label: 'Walk-in Customer', value: '' },
+                      ...customers.map((c: any) => ({
+                        label: `${c.name} ${c.phone ? `(${c.phone})` : ''}`,
+                        value: String(c.id)
+                      }))
+                    ]}
+                  />
+                </div>
               </div>
             </div>
 

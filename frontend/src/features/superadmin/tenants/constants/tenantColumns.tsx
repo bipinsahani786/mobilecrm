@@ -43,7 +43,7 @@ export const getTenantColumns = ({
     sortable: true,
     className: '!px-3 !py-1.5 text-xs',
     cell: (business) => (
-      <p className="text-xs font-medium text-slate-700 dark:text-slate-300">
+      <p className="text-xs font-bold text-xs text-slate-700 dark:text-slate-300">
         {new Date(business.created_at).toLocaleDateString()}
       </p>
     )

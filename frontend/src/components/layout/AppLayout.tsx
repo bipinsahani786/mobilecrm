@@ -29,11 +29,15 @@ export function AppLayout() {
   }, [activeBusiness?.id, updateUser]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b] text-slate-800 dark:text-white font-sans selection:bg-primary-500 selection:text-white transition-colors duration-300">
-      <Sidebar className={isSemiDark ? "dark" : ""} />
-      <div className="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
-        <Header className={isSemiDark ? "dark" : ""} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full transition-all duration-300 bg-slate-50 dark:bg-[#0a0a0f]">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b] text-slate-800 dark:text-white font-sans selection:bg-primary-500 selection:text-white transition-colors duration-300 print:block print:h-auto print:overflow-visible print:bg-white">
+      <div className="print:hidden">
+        <Sidebar className={isSemiDark ? "dark" : ""} />
+      </div>
+      <div className="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0 print:block print:h-auto print:overflow-visible">
+        <div className="print:hidden">
+          <Header className={isSemiDark ? "dark" : ""} />
+        </div>
+        <main className="flex-1 overflow-y-auto overflow-x-hidden w-full transition-all duration-300 bg-slate-50 dark:bg-[#0a0a0f] print:block print:overflow-visible print:bg-white">
           <PageWrapper>
             <Outlet />
           </PageWrapper>

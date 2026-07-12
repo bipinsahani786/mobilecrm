@@ -32,7 +32,7 @@ export const getInventoryColumns = ({ onEdit, onDelete, onAddStock }: InventoryC
     header: 'Brand',
     className: '!px-3 !py-1.5 text-xs',
     cell: (item) => (
-      <span className="font-medium text-slate-700 dark:text-slate-300">
+      <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
         {item.brand?.name || '-'}
       </span>
     ),
@@ -60,7 +60,7 @@ export const getInventoryColumns = ({ onEdit, onDelete, onAddStock }: InventoryC
     cell: (item: any) => {
       return (
         <div className="flex flex-col gap-1.5 items-start">
-          <span className="font-medium text-slate-700 dark:text-slate-300">
+          <span className="font-bold text-xs text-slate-700 dark:text-slate-300">
             ₹{Number(item.purchase_price).toLocaleString()}
           </span>
         </div>

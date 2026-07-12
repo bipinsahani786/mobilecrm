@@ -13,8 +13,8 @@ export const getFinanceColumns = ({ onMarkReceived }: FinanceColumnsProps): Colu
     header: 'Date & Invoice',
     cell: (emi) => (
       <div>
-        <p className="font-semibold text-slate-900 dark:text-white">{emi.sale?.invoice_number}</p>
-        <p className="text-xs text-slate-500">{new Date(emi.sale?.date || '').toLocaleDateString()}</p>
+        <p className="font-bold text-xs text-slate-900 dark:text-white">{emi.sale?.invoice_number}</p>
+        <p className="text-[10px] font-bold text-slate-400 mt-0.5">{new Date(emi.sale?.date || '').toLocaleDateString()}</p>
       </div>
     )
   },
@@ -22,8 +22,8 @@ export const getFinanceColumns = ({ onMarkReceived }: FinanceColumnsProps): Colu
     header: 'Customer',
     cell: (emi) => (
       <div>
-        <p className="font-medium text-slate-900 dark:text-white">{emi.sale?.customer?.name || 'Walk-in'}</p>
-        <p className="text-xs text-slate-500">{emi.sale?.customer?.phone}</p>
+        <p className="font-bold text-xs text-slate-900 dark:text-white">{emi.sale?.customer?.name || 'Walk-in'}</p>
+        <p className="text-[10px] font-bold text-slate-400 mt-0.5">{emi.sale?.customer?.phone}</p>
       </div>
     )
   },
@@ -63,10 +63,10 @@ export const getFinanceColumns = ({ onMarkReceived }: FinanceColumnsProps): Colu
       if (emi.is_payout_received) {
         return (
           <div className="text-right flex flex-col items-end">
-            <span className="inline-flex items-center text-xs font-medium text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center text-xs font-bold text-xs text-emerald-600 dark:text-emerald-400">
               <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Received
             </span>
-            {emi.payout_date && <p className="text-xs text-slate-500 mt-1">{new Date(emi.payout_date).toLocaleDateString()}</p>}
+            {emi.payout_date && <p className="text-[10px] font-bold text-slate-400 mt-0.5 mt-1">{new Date(emi.payout_date).toLocaleDateString()}</p>}
           </div>
         );
       }
