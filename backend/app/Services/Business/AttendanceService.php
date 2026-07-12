@@ -36,7 +36,13 @@ class AttendanceService
             if ($location) {
                 $isWithinFence = $location->isWithinFence($data['latitude'], $data['longitude']);
                 $locationId = $location->id;
+            } else {
+                throw new \Exception('Business location is not configured. Please ask the administrator to configure shop location first.');
             }
+        }
+
+        if (!$isWithinFence) {
+            throw new \Exception('You are outside the shop\'s allowed geofence radius. Please mark attendance from the shop.');
         }
 
         // Handle photo upload
@@ -91,6 +97,21 @@ class AttendanceService
 
         if ($attendance->check_out_time) {
             throw new \Exception('You have already checked out today.');
+        }
+
+        // Validate geo-fence
+        $isWithinFence = false;
+        if (isset($data['latitude']) && isset($data['longitude'])) {
+            $location = BusinessLocation::where('is_default', true)->first();
+            if ($location) {
+                $isWithinFence = $location->isWithinFence($data['latitude'], $data['longitude']);
+            } else {
+                throw new \Exception('Business location is not configured. Please ask the administrator to configure shop location first.');
+            }
+        }
+
+        if (!$isWithinFence) {
+            throw new \Exception('You are outside the shop\'s allowed geofence radius. Please mark attendance from the shop.');
         }
 
         // Handle photo upload

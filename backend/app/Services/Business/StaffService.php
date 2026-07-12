@@ -260,4 +260,89 @@ class StaffService
         setPermissionsTeamId($businessId);
         $user->syncPermissions($permissions);
     }
+
+    /**
+     * Get staff performance report (sales, profit, commission)
+     */
+    public function getPerformanceReport(string $fromDate, string $toDate): array
+    {
+        $businessId = app('current_business_id');
+        $business = \App\Models\Business::find($businessId);
+        $commissionBase = $business->settings['commission_calculation_base'] ?? 'sales';
+
+        $staff = DB::table('business_user')
+            ->join('users', 'business_user.user_id', '=', 'users.id')
+            ->where('business_user.business_id', $businessId)
+            ->where('business_user.status', 'active')
+            ->whereNull('users.deleted_at')
+            ->select(
+                'users.id',
+                'users.name',
+                'business_user.commission_rate'
+            )
+            ->get();
+
+        $report = [];
+
+        foreach ($staff as $member) {
+            // Get all sales for this staff member in the date range
+            $sales = \App\Models\Sale::where('user_id', $member->id)
+                ->where('business_id', $businessId)
+                ->whereBetween('date', [$fromDate, $toDate])
+                ->where('status', 'completed')
+                ->with('items.productBatch')
+                ->get();
+
+            $totalSalesAmount = 0;
+            $totalProfit = 0;
+            $productsSold = [];
+
+            foreach ($sales as $sale) {
+                $totalSalesAmount += $sale->final_amount;
+
+                foreach ($sale->items as $item) {
+                    $purchasePrice = $item->productBatch ? $item->productBatch->purchase_price : 0;
+                    $itemProfit = ($item->unit_price - $purchasePrice) * $item->quantity;
+                    $totalProfit += $itemProfit;
+
+                    // Collect products sold info
+                    $productId = $item->product_id;
+                    if (!isset($productsSold[$productId])) {
+                        $productsSold[$productId] = [
+                            'name' => $item->product->model_name ?? 'Unknown Product',
+                            'quantity' => 0,
+                            'total_sale' => 0,
+                            'total_profit' => 0,
+                        ];
+                    }
+                    $productsSold[$productId]['quantity'] += $item->quantity;
+                    $productsSold[$productId]['total_sale'] += ($item->unit_price * $item->quantity);
+                    $productsSold[$productId]['total_profit'] += $itemProfit;
+                }
+            }
+
+            $commissionRate = (float) $member->commission_rate;
+            $commissionAmount = 0;
+
+            if ($commissionBase === 'profit') {
+                $commissionAmount = $totalProfit * ($commissionRate / 100);
+            } else {
+                $commissionAmount = $totalSalesAmount * ($commissionRate / 100);
+            }
+
+            $report[] = [
+                'user_id' => $member->id,
+                'name' => $member->name,
+                'total_sales' => $sales->count(),
+                'total_sales_amount' => $totalSalesAmount,
+                'total_profit' => $totalProfit,
+                'commission_rate' => $commissionRate,
+                'commission_base' => $commissionBase,
+                'calculated_commission' => $commissionAmount,
+                'products_sold' => array_values($productsSold)
+            ];
+        }
+
+        return $report;
+    }
 }

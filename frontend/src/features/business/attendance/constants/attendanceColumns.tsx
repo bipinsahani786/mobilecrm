@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { CheckCircle, Camera, Check } from 'lucide-react';
+import { CheckCircle, Camera, Check, MapPin } from 'lucide-react';
 import React from 'react';
 import type { AttendanceRecord } from '../api/useAttendance';
 
@@ -53,18 +53,34 @@ export const getAttendanceColumns = ({ handleApprove, handleViewPhoto, isManager
     cell: (row: AttendanceRecord) => row.check_out_time || '-'
   },
   {
-    header: 'Location Valid',
+    header: 'Location',
     accessorKey: 'is_within_geofence',
     cell: (row: AttendanceRecord) => {
       const isValid = row.is_within_geofence;
-      return isValid ? (
-        <span className="flex items-center text-emerald-600 dark:text-emerald-400 text-sm">
-          <CheckCircle size={14} className="mr-1" /> Yes
-        </span>
-      ) : (
-        <span className="flex items-center text-slate-500 text-sm">
-          -
-        </span>
+      const hasLocation = row.check_in_latitude && row.check_in_longitude;
+      
+      return (
+        <div className="flex flex-col gap-1">
+          {isValid ? (
+            <span className="flex items-center text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+              <CheckCircle size={12} className="mr-1" /> Valid Geofence
+            </span>
+          ) : (
+            <span className="flex items-center text-rose-500 text-xs font-bold">
+              Outside Geofence
+            </span>
+          )}
+          {hasLocation && (
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${row.check_in_latitude},${row.check_in_longitude}`}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] text-primary-500 hover:underline flex items-center"
+            >
+              <MapPin size={10} className="mr-1" /> View Map
+            </a>
+          )}
+        </div>
       );
     }
   },

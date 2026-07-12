@@ -20,6 +20,8 @@ export default function SalaryAdvancesPage() {
 
   const columns = getAdvanceColumns();
 
+  const isManager = user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
+
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
       <PageHeader 
@@ -27,9 +29,11 @@ export default function SalaryAdvancesPage() {
         title="Salary Advances"
         subtitle="Manage salary advance requests and deductions"
         actions={
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus size={16} className="mr-2" /> Request Advance
-          </Button>
+          !isManager && (
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus size={16} className="mr-2" /> Request Advance
+            </Button>
+          )
         }
       />
 

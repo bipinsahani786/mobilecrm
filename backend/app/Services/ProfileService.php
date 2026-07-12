@@ -17,6 +17,7 @@ class ProfileService
      */
     public function getProfile(User $user): array
     {
+        $user->unsetRelation('roles')->unsetRelation('permissions');
         $user->load('roles');
 
         return [

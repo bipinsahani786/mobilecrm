@@ -23,9 +23,9 @@ class AttendanceController extends BaseController
     public function checkIn(Request $request)
     {
         $request->validate([
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'photo' => 'nullable|image|max:5120', // 5MB max
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'photo' => 'required|image|max:5120', // 5MB max
         ]);
 
         try {
@@ -39,9 +39,9 @@ class AttendanceController extends BaseController
     public function checkOut(Request $request)
     {
         $request->validate([
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'photo' => 'nullable|image|max:5120',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'photo' => 'required|image|max:5120',
         ]);
 
         try {
@@ -54,6 +54,11 @@ class AttendanceController extends BaseController
 
     public function markManual(Request $request)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['Business Admin', 'admin', 'manager'])) {
+            return $this->error('Unauthorized to manually mark attendance', 403);
+        }
+
         $request->validate([
             'user_id' => 'required|integer|exists:users,id',
             'date' => 'required|date',

@@ -1,0 +1,184 @@
+import React, { useState } from 'react';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { Activity, Eye, FileText, Calendar, IndianRupee } from 'lucide-react';
+import { DataTable } from '@/components/ui/data-table';
+import { useStaffPerformance } from '../api/useStaffPerformance';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { Modal } from '@/components/ui/modal';
+import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+
+export default function StaffPerformancePage() {
+  const [dateRange, setDateRange] = useState('this_month');
+  const [selectedStaff, setSelectedStaff] = useState<any>(null);
+
+  const getDates = () => {
+    const today = new Date();
+    if (dateRange === 'last_month') {
+      const lastMonth = subMonths(today, 1);
+      return {
+        from_date: format(startOfMonth(lastMonth), 'yyyy-MM-dd'),
+        to_date: format(endOfMonth(lastMonth), 'yyyy-MM-dd')
+      };
+    }
+    // this_month
+    return {
+      from_date: format(startOfMonth(today), 'yyyy-MM-dd'),
+      to_date: format(endOfMonth(today), 'yyyy-MM-dd')
+    };
+  };
+
+  const { from_date, to_date } = getDates();
+  const { data, isLoading } = useStaffPerformance({ from_date, to_date });
+
+  const columns = [
+    {
+      header: 'Staff Name',
+      accessor: 'name',
+    },
+    {
+      header: 'Total Sales (Qty)',
+      accessor: (row: any) => row.total_sales.toString(),
+    },
+    {
+      header: 'Sales Amount (Revenue)',
+      accessor: (row: any) => `₹${row.total_sales_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+    },
+    {
+      header: 'Total Profit',
+      accessor: (row: any) => `₹${row.total_profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+    },
+    {
+      header: 'Commission Base',
+      accessor: (row: any) => <span className="capitalize px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs">{row.commission_base}</span>,
+    },
+    {
+      header: 'Commission Rate',
+      accessor: (row: any) => `${row.commission_rate}%`,
+    },
+    {
+      header: 'Calculated Commission',
+      accessor: (row: any) => (
+        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+          ₹{row.calculated_commission.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </span>
+      ),
+    },
+    {
+      header: 'Details',
+      accessor: (row: any) => (
+        <Button variant="ghost" size="sm" onClick={() => setSelectedStaff(row)}>
+          <Eye className="w-4 h-4 mr-2" /> View Products
+        </Button>
+      ),
+    }
+  ];
+
+  return (
+    <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
+      <PageHeader 
+        icon={Activity}
+        title="Staff Performance & Commission"
+        subtitle="Track sales, profit, and commissions for all your staff members"
+        actions={
+          <div className="flex items-center gap-2">
+            <Select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value)}
+              className="w-40 h-10"
+            >
+              <option value="this_month">This Month</option>
+              <option value="last_month">Last Month</option>
+            </Select>
+          </div>
+        }
+      />
+
+      <div className="flex-1 p-4 sm:p-6 overflow-auto">
+        
+        {/* KPI Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-3 text-slate-500 mb-2">
+                    <FileText className="w-5 h-5" />
+                    <span className="font-medium text-sm uppercase tracking-wider">Total Sales Invoices</span>
+                </div>
+                <div className="text-2xl font-bold">{data?.reduce((acc: number, cur: any) => acc + cur.total_sales, 0) || 0}</div>
+            </div>
+            
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-3 text-slate-500 mb-2">
+                    <IndianRupee className="w-5 h-5 text-primary-500" />
+                    <span className="font-medium text-sm uppercase tracking-wider text-primary-600 dark:text-primary-400">Total Revenue</span>
+                </div>
+                <div className="text-2xl font-bold">₹{data?.reduce((acc: number, cur: any) => acc + cur.total_sales_amount, 0).toLocaleString('en-IN', {minimumFractionDigits: 2}) || '0.00'}</div>
+            </div>
+            
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-3 text-slate-500 mb-2">
+                    <Activity className="w-5 h-5 text-emerald-500" />
+                    <span className="font-medium text-sm uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Profit</span>
+                </div>
+                <div className="text-2xl font-bold">₹{data?.reduce((acc: number, cur: any) => acc + cur.total_profit, 0).toLocaleString('en-IN', {minimumFractionDigits: 2}) || '0.00'}</div>
+            </div>
+
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-3 text-slate-500 mb-2">
+                    <IndianRupee className="w-5 h-5 text-rose-500" />
+                    <span className="font-medium text-sm uppercase tracking-wider text-rose-600 dark:text-rose-400">Total Commission Paid</span>
+                </div>
+                <div className="text-2xl font-bold">₹{data?.reduce((acc: number, cur: any) => acc + cur.calculated_commission, 0).toLocaleString('en-IN', {minimumFractionDigits: 2}) || '0.00'}</div>
+            </div>
+        </div>
+
+        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
+          <DataTable 
+            columns={columns} 
+            data={data || []} 
+            isLoading={isLoading}
+          />
+        </div>
+      </div>
+
+      <Modal 
+        isOpen={!!selectedStaff} 
+        onClose={() => setSelectedStaff(null)} 
+        title={`Products Sold by ${selectedStaff?.name}`}
+        maxWidth="lg"
+      >
+        {selectedStaff && (
+          <div className="p-4">
+             {selectedStaff.products_sold?.length > 0 ? (
+                <div className="border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-slate-50 dark:bg-white/5 text-slate-500">
+                            <tr>
+                                <th className="px-4 py-3 font-medium">Product Name</th>
+                                <th className="px-4 py-3 font-medium">Qty Sold</th>
+                                <th className="px-4 py-3 font-medium">Total Sale</th>
+                                <th className="px-4 py-3 font-medium">Total Profit</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                            {selectedStaff.products_sold.map((product: any, idx: number) => (
+                                <tr key={idx}>
+                                    <td className="px-4 py-3">{product.name}</td>
+                                    <td className="px-4 py-3">{product.quantity}</td>
+                                    <td className="px-4 py-3">₹{product.total_sale.toLocaleString('en-IN')}</td>
+                                    <td className="px-4 py-3">₹{product.total_profit.toLocaleString('en-IN')}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+             ) : (
+                <div className="text-center py-8 text-slate-500">
+                    No products sold by this staff member in the selected period.
+                </div>
+             )}
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+}

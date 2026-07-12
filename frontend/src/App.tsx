@@ -39,6 +39,8 @@ const PayrollComponentsPage = lazy(() => import('@/features/business/payroll/pag
 const PayrollDetailsPage = lazy(() => import('@/features/business/payroll/pages/PayrollDetailsPage'));
 const LeaveRequestsPage = lazy(() => import('@/features/business/hr/pages/LeaveRequestsPage'));
 const SalaryAdvancesPage = lazy(() => import('@/features/business/hr/pages/SalaryAdvancesPage'));
+const AuditLogsPage = lazy(() => import('@/features/business/reports/pages/AuditLogsPage'));
+const StaffPerformancePage = lazy(() => import('@/features/business/reports/pages/StaffPerformancePage'));
 
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
 const TenantsPage = lazy(() => import('@/features/superadmin/tenants/pages/TenantsPage'));
@@ -209,6 +211,9 @@ function App() {
             <Route path="/payroll/:id" element={<BusinessRoute><PayrollDetailsPage /></BusinessRoute>} />
             <Route path="/hr/leave-requests" element={<BusinessRoute><LeaveRequestsPage /></BusinessRoute>} />
             <Route path="/hr/advances" element={<BusinessRoute><SalaryAdvancesPage /></BusinessRoute>} />
+            
+            <Route path="/reports/audit-logs" element={<BusinessRoute><AuditLogsPage /></BusinessRoute>} />
+            <Route path="/reports/staff-performance" element={<BusinessRoute><StaffPerformancePage /></BusinessRoute>} />
             
             {/* Superadmin Routes */}
             <Route path="/superadmin/dashboard" element={<SuperadminRoute><PermissionGuard permission="view_dashboard"><SuperadminDashboard /></PermissionGuard></SuperadminRoute>} />

@@ -65,6 +65,15 @@ class TestBusinessSeeder extends Seeder
             'business_id' => $business->id,
             'guard_name' => 'web'
         ]);
+        
+        $businessPermissions = [
+            'manage_sales', 'manage_inventory', 'manage_purchases',
+            'manage_expenses', 'manage_customers', 'manage_suppliers',
+            'manage_staff', 'manage_attendance', 'manage_payroll',
+            'manage_business_settings',
+        ];
+        $businessAdminRole->syncPermissions($businessPermissions);
+        
         $user->assignRole($businessAdminRole);
 
         // ─── 3. Seed Categories ─────────────────────────────────────────

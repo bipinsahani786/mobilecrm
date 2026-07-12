@@ -13,6 +13,7 @@ import { AttendanceCheckInModal } from '../components/AttendanceCheckInModal';
 import { AttendanceMarkModal } from '../components/AttendanceMarkModal';
 import { Modal } from '@/components/ui/modal';
 import { useAuthStore } from '@/store/authStore';
+import { AttendanceMonthlyGrid } from '../components/AttendanceMonthlyGrid';
 
 import { getAttendanceColumns } from '../constants/attendanceColumns';
 import { useApproveAttendance } from '../api/useAttendance';
@@ -27,6 +28,9 @@ export default function AttendancePage() {
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isMarkOpen, setIsMarkOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
 
   const { data: staffList } = useStaff();
   const approveMutation = useApproveAttendance();
@@ -61,7 +65,15 @@ export default function AttendancePage() {
     filters.user_id = selectedStaff;
   }
 
-  const { data: attendanceData, isLoading } = useAttendance(filters);
+  const gridFilters: any = {
+    month: selectedMonth,
+    per_page: 1000,
+  };
+  if (selectedStaff !== 'all') {
+    gridFilters.user_id = selectedStaff;
+  }
+
+  const { data: attendanceData, isLoading } = useAttendance(viewMode === 'grid' ? gridFilters : filters);
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
@@ -84,41 +96,84 @@ export default function AttendancePage() {
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
         
         {/* Filters */}
-        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-end">
-          <div className="flex-1 min-w-[200px]">
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Staff Member</label>
-            <Select value={selectedStaff} onChange={(e: any) => setSelectedStaff(e.target.value)}>
-              <option value="all">All Staff</option>
-              {staffList?.map((s: any) => (
-                <option key={s.id} value={s.id.toString()}>{s.name}</option>
-              ))}
-            </Select>
+        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-end justify-between">
+          <div className="flex gap-4 flex-1">
+            <div className="flex-1 min-w-[200px] max-w-[250px]">
+              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Staff Member</label>
+              <Select value={selectedStaff} onChange={(e: any) => setSelectedStaff(e.target.value)}>
+                <option value="all">All Staff</option>
+                {staffList?.map((s: any) => (
+                  <option key={s.id} value={s.id.toString()}>{s.name}</option>
+                ))}
+              </Select>
+            </div>
+            
+            {viewMode === 'list' ? (
+              <>
+                <div className="flex-1 min-w-[150px] max-w-[200px]">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">From Date</label>
+                  <Input 
+                    type="date" 
+                    value={dateRange.from} 
+                    onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))} 
+                  />
+                </div>
+                <div className="flex-1 min-w-[150px] max-w-[200px]">
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">To Date</label>
+                  <Input 
+                    type="date" 
+                    value={dateRange.to} 
+                    onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))} 
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 min-w-[150px] max-w-[200px]">
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Month</label>
+                <Input 
+                  type="month" 
+                  value={selectedMonth} 
+                  onChange={(e) => setSelectedMonth(e.target.value)} 
+                />
+              </div>
+            )}
           </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">From Date</label>
-            <Input 
-              type="date" 
-              value={dateRange.from} 
-              onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))} 
-            />
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">To Date</label>
-            <Input 
-              type="date" 
-              value={dateRange.to} 
-              onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))} 
-            />
+          
+          <div className="flex gap-1 bg-slate-100 dark:bg-white/5 p-1 rounded-lg">
+            <Button 
+              variant={viewMode === 'grid' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => setViewMode('grid')}
+            >
+              Grid View
+            </Button>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'ghost'} 
+              size="sm" 
+              onClick={() => setViewMode('list')}
+            >
+              List View
+            </Button>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
-          <DataTable 
-            columns={columns} 
-            data={attendanceData?.data || []} 
-            isLoading={isLoading}
+        {viewMode === 'list' ? (
+          <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
+            <DataTable 
+              columns={columns} 
+              data={attendanceData?.data || []} 
+              isLoading={isLoading}
+            />
+          </div>
+        ) : (
+          <AttendanceMonthlyGrid 
+            month={selectedMonth}
+            staffList={staffList || []}
+            attendanceData={attendanceData?.data || []}
+            isManager={isManager}
+            loggedInUserId={user?.id || 0}
           />
-        </div>
+        )}
       </div>
 
       <AttendanceCheckInModal 

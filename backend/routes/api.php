@@ -65,6 +65,7 @@ Route::prefix('v1')->group(function () {
             Route::post('finance/{id}/mark-received', [\App\Http\Controllers\Api\FinanceController::class, 'markReceived']);
 
             // Staff Management Routes
+            Route::get('staff/performance', [\App\Http\Controllers\Api\Business\StaffPerformanceController::class, 'index']);
             Route::get('staff/{id}/sales', [\App\Http\Controllers\Api\Business\StaffController::class, 'salesReport']);
             Route::get('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'getPermissions']);
             Route::put('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'updatePermissions']);
@@ -104,6 +105,9 @@ Route::prefix('v1')->group(function () {
             // Leave Requests
             Route::apiResource('leave-requests', \App\Http\Controllers\Api\Business\LeaveRequestController::class);
             Route::patch('leave-requests/{leave_request}/status', [\App\Http\Controllers\Api\Business\LeaveRequestController::class, 'updateStatus']);
+
+            // System Audit Logs
+            Route::get('activity-logs', [\App\Http\Controllers\Api\Business\ActivityLogController::class, 'index']);
         });
 
 

@@ -11,6 +11,8 @@ export interface AttendanceRecord {
   check_out_time: string | null;
   check_in_photo: string | null;
   check_out_photo: string | null;
+  check_in_latitude: number | null;
+  check_in_longitude: number | null;
   is_within_geofence: boolean;
   notes: string | null;
   user?: { id: number; name: string };

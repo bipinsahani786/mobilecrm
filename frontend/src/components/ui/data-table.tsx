@@ -79,13 +79,15 @@ export function DataTable<T>({
   const pageSize = serverSide ? itemsPerPage : internalPageSize;
   const currentPage = serverSide ? page : internalCurrentPage;
 
+  const safeData = Array.isArray(data) ? data : [];
+
   // Filter Data (Client side only)
   const filteredData = useMemo(() => {
-    if (serverSide) return data;
-    if (!searchTerm || searchKeys.length === 0) return data;
+    if (serverSide) return safeData;
+    if (!searchTerm || searchKeys.length === 0) return safeData;
     const lowercasedTerm = searchTerm.toLowerCase();
 
-    return data.filter((item) => {
+    return safeData.filter((item) => {
       return searchKeys.some((key) => {
         if (typeof key === 'function') {
           return key(item).toLowerCase().includes(lowercasedTerm);
@@ -94,11 +96,11 @@ export function DataTable<T>({
         return val ? String(val).toLowerCase().includes(lowercasedTerm) : false;
       });
     });
-  }, [data, searchTerm, searchKeys, serverSide]);
+  }, [safeData, searchTerm, searchKeys, serverSide]);
 
   // Sort Data (Client side only)
   const sortedData = useMemo(() => {
-    if (serverSide) return data;
+    if (serverSide) return safeData;
     if (!internalSortConfig.key || !internalSortConfig.direction) return filteredData;
 
     return [...filteredData].sort((a, b) => {
@@ -109,7 +111,7 @@ export function DataTable<T>({
       if (aVal > bVal) return internalSortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [filteredData, internalSortConfig, serverSide, data]);
+  }, [filteredData, internalSortConfig, serverSide, safeData]);
 
   // Paginate Data
   const totalPages = serverSide
@@ -117,10 +119,10 @@ export function DataTable<T>({
     : Math.ceil(sortedData.length / pageSize);
 
   const paginatedData = useMemo(() => {
-    if (serverSide) return data;
+    if (serverSide) return safeData;
     const startIdx = (currentPage - 1) * pageSize;
     return sortedData.slice(startIdx, startIdx + pageSize);
-  }, [sortedData, currentPage, pageSize, serverSide, data]);
+  }, [sortedData, currentPage, pageSize, serverSide, safeData]);
 
   const handleSort = (key?: keyof T, sortable?: boolean) => {
     if (!key || !sortable) return;

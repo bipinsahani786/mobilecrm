@@ -18,7 +18,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAppStore } from "@/store/appStore";
-import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare, Calendar } from "lucide-react";
+import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare, Calendar, Calculator } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useFeature } from "@/hooks/useFeature";
 
@@ -63,21 +63,16 @@ const businessMenuGroups = [
       { name: "LEAVE REQUESTS", href: "/hr/leave-requests", icon: Calendar },
       { name: "SALARY ADVANCES", href: "/hr/advances", icon: Coins },
     ]
-  }
-];
-
-const staffMenuGroups = [
+  },
   {
-    title: "SELF SERVICE",
+    title: "REPORTS & AUDIT",
     items: [
-      { name: "DASHBOARD", href: "/dashboard", icon: LayoutDashboard },
-      { name: "MY ATTENDANCE", href: "/attendance", icon: ClipboardList },
-      { name: "MY SALARY SLIPS", href: "/payroll", icon: Wallet },
-      { name: "REQUEST LEAVE", href: "/hr/leave-requests", icon: Calendar },
-      { name: "SALARY ADVANCE", href: "/hr/advances", icon: Wallet },
+      { name: "STAFF PERFORMANCE", href: "/reports/staff-performance", icon: Activity },
+      { name: "SYSTEM LOGS", href: "/reports/audit-logs", icon: Database },
     ]
   }
 ];
+
 
 const superadminMenuGroups = [
   {
@@ -203,11 +198,39 @@ export function Sidebar({ className }: { className?: string }) {
   const isPartnerRoute = location.pathname.startsWith('/partner');
   const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
   
+  const filteredStaffGroups = [];
+  
+  if (hasPermission('manage_sales') || hasPermission('manage_inventory')) {
+    const operationsItems = [];
+    if (hasPermission('manage_sales')) {
+      operationsItems.push({ name: "POS & BILLING", href: "/pos", icon: Calculator });
+      operationsItems.push({ name: "INVOICES", href: "/invoices", icon: FileText });
+    }
+    if (hasPermission('manage_inventory')) {
+      operationsItems.push({ name: "INVENTORY", href: "/items", icon: Package });
+    }
+    filteredStaffGroups.push({
+      title: "OPERATIONS",
+      items: operationsItems
+    });
+  }
+
+  filteredStaffGroups.push({
+    title: "SELF SERVICE",
+    items: [
+      { name: "DASHBOARD", href: "/dashboard", icon: LayoutDashboard },
+      { name: "MY ATTENDANCE", href: "/attendance", icon: ClipboardList },
+      { name: "MY SALARY SLIPS", href: "/payroll", icon: Wallet },
+      { name: "REQUEST LEAVE", href: "/hr/leave-requests", icon: Calendar },
+      { name: "SALARY ADVANCE", href: "/hr/advances", icon: Wallet },
+    ]
+  });
+
   const activeMenuGroups = isSuperadmin 
     ? filteredSuperadminGroups 
     : (isPartnerRoute || (!user?.businesses?.length && isPartner)) 
       ? filteredPartnerGroups 
-      : isBusinessManager ? filteredBusinessGroups : staffMenuGroups;
+      : isBusinessManager ? filteredBusinessGroups : filteredStaffGroups;
 
   return (
     <>

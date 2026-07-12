@@ -27,9 +27,11 @@ export default function LeaveRequestsPage() {
         title="Leave Requests"
         subtitle="Manage employee time off and leave requests"
         actions={
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus size={16} className="mr-2" /> Request Leave
-          </Button>
+          !isManager && (
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus size={16} className="mr-2" /> Request Leave
+            </Button>
+          )
         }
       />
 
