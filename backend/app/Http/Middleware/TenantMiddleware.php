@@ -55,6 +55,9 @@ class TenantMiddleware
         // Store tenant in Laravel's service container for easy access globally
         app()->instance('tenant', $business);
         app()->instance('current_business_id', $business->id);
+        
+        // Let Spatie permissions know which business context we are in
+        setPermissionsTeamId($business->id);
 
         return $next($request);
     }
