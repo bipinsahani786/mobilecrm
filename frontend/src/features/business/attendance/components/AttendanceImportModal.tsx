@@ -71,7 +71,8 @@ export function AttendanceImportModal({ isOpen, onClose, staffList = [], month =
       'h': 'half_day',
       'l': 'leave',
       'w': 'week_off',
-      'o': 'holiday'
+      'o': 'holiday',
+      'x': 'clear'
     };
 
     for (let i = 1; i < lines.length; i++) {
@@ -95,7 +96,7 @@ export function AttendanceImportModal({ isOpen, onClose, staffList = [], month =
     }
 
     if (records.length === 0) {
-      throw new Error('No valid records found to import. Make sure you entered P, A, H, L, W, or O in the day columns.');
+      throw new Error('No valid records found to import. Make sure you entered P, A, H, L, W, O, or X in the day columns.');
     }
     return records;
   };
@@ -146,7 +147,7 @@ export function AttendanceImportModal({ isOpen, onClose, staffList = [], month =
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Import Attendance (Matrix Format)" size="md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Import Attendance (Matrix Format)" maxWidth="md">
       <div className="p-6 space-y-6">
         <div className="bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm leading-relaxed border border-blue-100 dark:border-blue-800/50">
           <p className="font-medium mb-2 flex items-center">
@@ -163,11 +164,12 @@ export function AttendanceImportModal({ isOpen, onClose, staffList = [], month =
               <span>L = Leave</span>
               <span>W = Week Off</span>
               <span>O = Holiday</span>
+              <span className="text-red-500">X = Clear Record</span>
             </div>
             <li>Do not modify the <strong>Staff ID</strong> column.</li>
           </ul>
           <Button 
-            variant="link" 
+            variant="ghost" 
             className="p-0 h-auto text-blue-600 dark:text-blue-400 mt-3 font-semibold"
             onClick={handleDownloadTemplate}
           >

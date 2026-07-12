@@ -160,20 +160,28 @@ class AttendanceService
         $approvedBy = auth()->id();
 
         foreach ($records as $record) {
-            Attendance::updateOrCreate(
-                [
+            if ($record['status'] === 'clear') {
+                Attendance::where([
                     'business_id' => $businessId,
                     'user_id' => $record['user_id'],
                     'date' => $record['date'],
-                ],
-                [
-                    'status' => $record['status'],
-                    'check_in_time' => $record['check_in_time'] ?? null,
-                    'check_out_time' => $record['check_out_time'] ?? null,
-                    'notes' => $record['notes'] ?? null,
-                    'approved_by' => $approvedBy,
-                ]
-            );
+                ])->delete();
+            } else {
+                Attendance::updateOrCreate(
+                    [
+                        'business_id' => $businessId,
+                        'user_id' => $record['user_id'],
+                        'date' => $record['date'],
+                    ],
+                    [
+                        'status' => $record['status'],
+                        'check_in_time' => $record['check_in_time'] ?? null,
+                        'check_out_time' => $record['check_out_time'] ?? null,
+                        'notes' => $record['notes'] ?? null,
+                        'approved_by' => $approvedBy,
+                    ]
+                );
+            }
         }
     }
 

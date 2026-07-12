@@ -69,7 +69,18 @@ class PayrollService
         // Parse month to get date range
         $startOfMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
-        $totalDaysInMonth = $endOfMonth->day;
+        
+        // Mid-month joining logic
+        $user = \App\Models\User::find($userId);
+        
+        $joiningDateStr = $staffData->join_date ?? $staffData->created_at ?? $user?->created_at;
+        $joiningDate = $joiningDateStr ? Carbon::parse($joiningDateStr)->startOfDay() : clone $startOfMonth;
+        
+        if ($joiningDate->format('Y-m') === $month && $joiningDate->greaterThan($startOfMonth)) {
+            $totalDaysInMonth = $endOfMonth->diffInDays($joiningDate) + 1;
+        } else {
+            $totalDaysInMonth = $endOfMonth->day;
+        }
 
         // Get attendance records for the month
         $attendances = Attendance::where('user_id', $userId)
