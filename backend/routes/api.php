@@ -75,6 +75,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('locations', \App\Http\Controllers\Api\Business\LocationController::class);
 
             // Attendance Routes
+            Route::post('attendance/import', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'import']);
             Route::get('attendance/today', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'todayStatus']);
             Route::post('attendance/check-in', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'checkIn']);
             Route::post('attendance/check-out', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'checkOut']);

@@ -16,7 +16,7 @@ class EmiController extends BaseController
      */
     public function getCustomerEmis($customerId)
     {
-        $businessId = auth()->user()->business_id;
+        $businessId = app('current_business_id');
 
         // Fetch EMI details for sales belonging to this customer and business
         $emis = EmiDetail::whereHas('sale', function ($q) use ($customerId, $businessId) {
@@ -47,7 +47,7 @@ class EmiController extends BaseController
         $installment = EmiInstallment::with('emiDetail.sale')->findOrFail($installmentId);
 
         // Security check
-        if ($installment->emiDetail->sale->business_id !== auth()->user()->business_id) {
+        if ($installment->emiDetail->sale->business_id !== app('current_business_id')) {
             return $this->error('Unauthorized', 403);
         }
 
@@ -92,7 +92,7 @@ class EmiController extends BaseController
         ]);
 
         $emiDetail = EmiDetail::whereHas('sale', function ($q) {
-            $q->where('business_id', auth()->user()->business_id);
+            $q->where('business_id', app('current_business_id'));
         })->findOrFail($emiDetailId);
 
         if ($emiDetail->is_payout_received) {

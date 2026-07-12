@@ -20,6 +20,31 @@ class AttendanceController extends BaseController
         }
     }
 
+    public function import(Request $request)
+    {
+        $user = $request->user();
+        if (!$user->hasRole(['Business Admin', 'admin', 'manager'])) {
+            return $this->error('Unauthorized to import attendance', 403);
+        }
+
+        $request->validate([
+            'records' => 'required|array',
+            'records.*.user_id' => 'required|integer|exists:users,id',
+            'records.*.date' => 'required|date',
+            'records.*.status' => 'required|in:present,absent,half_day,leave,week_off,holiday',
+            'records.*.check_in_time' => 'nullable|date_format:H:i:s,H:i',
+            'records.*.check_out_time' => 'nullable|date_format:H:i:s,H:i',
+            'records.*.notes' => 'nullable|string',
+        ]);
+
+        try {
+            $this->attendanceService->importAttendance($request->input('records'));
+            return $this->success(null, 'Attendance imported successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+    }
+
     public function checkIn(Request $request)
     {
         $request->validate([

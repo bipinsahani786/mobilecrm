@@ -10,7 +10,7 @@ class FinanceService
     public function getPendingPayouts($perPage = 15)
     {
         return EmiDetail::whereHas('sale', function ($query) {
-                $query->where('business_id', auth()->user()->business_id);
+                $query->where('business_id', app('current_business_id'));
             })
             ->with(['sale.customer', 'sale.items.product'])
             ->where('is_payout_received', false)
@@ -21,7 +21,7 @@ class FinanceService
     public function getCompletedPayouts($perPage = 15)
     {
         return EmiDetail::whereHas('sale', function ($query) {
-                $query->where('business_id', auth()->user()->business_id);
+                $query->where('business_id', app('current_business_id'));
             })
             ->with(['sale.customer', 'sale.items.product'])
             ->where('is_payout_received', true)
@@ -32,7 +32,7 @@ class FinanceService
     public function markPayoutReceived(EmiDetail $emiDetail, $date = null)
     {
         // Must check if sale belongs to current business
-        if ($emiDetail->sale->business_id !== auth()->user()->business_id) {
+        if ($emiDetail->sale->business_id !== app('current_business_id')) {
             throw new \Exception("Unauthorized access to EMI detail");
         }
 

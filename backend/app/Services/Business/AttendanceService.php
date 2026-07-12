@@ -152,6 +152,32 @@ class AttendanceService
     }
 
     /**
+     * Import attendance records in bulk.
+     */
+    public function importAttendance(array $records): void
+    {
+        $businessId = app('current_business_id');
+        $approvedBy = auth()->id();
+
+        foreach ($records as $record) {
+            Attendance::updateOrCreate(
+                [
+                    'business_id' => $businessId,
+                    'user_id' => $record['user_id'],
+                    'date' => $record['date'],
+                ],
+                [
+                    'status' => $record['status'],
+                    'check_in_time' => $record['check_in_time'] ?? null,
+                    'check_out_time' => $record['check_out_time'] ?? null,
+                    'notes' => $record['notes'] ?? null,
+                    'approved_by' => $approvedBy,
+                ]
+            );
+        }
+    }
+
+    /**
      * Get attendance list with filters.
      */
     public function getAttendance(array $filters = [])

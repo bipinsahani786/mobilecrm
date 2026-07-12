@@ -16,7 +16,12 @@ export default function LeaveRequestsPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const isManager = user?.roles?.some(r => r.name === 'admin' || r.name === 'manager');
+  const isManager = user?.roles?.some(r => 
+    r.name === 'admin' || 
+    r.name === 'manager' || 
+    r.name === 'Business Admin' || 
+    r.name === 'Superadmin'
+  );
 
   const columns = getLeaveColumns({ isManager, updateStatusMutation });
 
