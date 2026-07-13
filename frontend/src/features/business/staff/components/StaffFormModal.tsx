@@ -8,6 +8,8 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
+import { formatCurrency } from '@/lib/formatters';
 
 import { staffSchema, type StaffFormData } from '../schemas/staffSchema';
 
@@ -155,30 +157,45 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Full Name</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Full Name</label>
+                <InfoTooltip text="Enter the full name of the staff member." />
+              </div>
               <Input {...register('name')} placeholder="John Doe" error={errors.name?.message} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Phone Number</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Phone Number</label>
+                <InfoTooltip text="10-digit mobile number, used for login credentials." />
+              </div>
               <Input {...register('phone')} placeholder="10 digit number" error={errors.phone?.message} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Email (Optional)</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Email (Optional)</label>
+                <InfoTooltip text="Optional email address for employee communications." />
+              </div>
               <Input {...register('email')} type="email" placeholder="john@example.com" error={errors.email?.message} />
             </div>
 
             {!isEditing && (
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
+                <div className="flex items-center mb-1">
+                  <label className="block text-sm font-medium">Password</label>
+                  <InfoTooltip text="Custom login password. Defaults to phone number if left empty." />
+                </div>
                 <Input {...register('password')} type="password" placeholder="Defaults to phone number" />
                 <p className="text-xs text-slate-500 mt-1">Leave blank to use phone number as password</p>
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium mb-1">Role</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Role</label>
+                <InfoTooltip text="Choose Manager for full administrative rights, or Staff for POS/Sales only." />
+              </div>
               <Controller
                 name="role"
                 control={control}
@@ -192,18 +209,27 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Sales Commission (%)</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Sales Commission (%)</label>
+                <InfoTooltip text="Commission rate percentage earned on successful billing transactions." />
+              </div>
               <Input {...register('commission_rate', { valueAsNumber: true })} type="number" step="0.01" error={errors.commission_rate?.message} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Join Date</label>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Join Date</label>
+                <InfoTooltip text="Official date the employee started working at this business." />
+              </div>
               <Input {...register('join_date')} type="date" error={errors.join_date?.message} />
             </div>
 
             {isEditing && (
               <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
+                <div className="flex items-center mb-1">
+                  <label className="block text-sm font-medium">Status</label>
+                  <InfoTooltip text="Toggle employee status. Inactive staff members cannot log in." />
+                </div>
                 <Controller
                   name="status"
                   control={control}
@@ -218,59 +244,87 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
             )}
           </div>
 
-          <div className="border-t border-slate-200 dark:border-white/10 pt-4">
-            <h3 className="text-sm font-semibold mb-4 text-slate-800 dark:text-white">Salary Components</h3>
+          <div className="border-t border-slate-200 dark:border-white/10 pt-5">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Salary Breakdown</h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Earnings Column */}
-              <div className="space-y-3 bg-green-50/50 dark:bg-green-900/10 p-4 rounded-lg border border-green-100 dark:border-green-900/20">
-                <h4 className="text-xs font-semibold text-green-700 dark:text-green-400 uppercase tracking-wider mb-2">Earnings</h4>
+              <div className="space-y-3 bg-emerald-50/50 dark:bg-emerald-950/10 p-4 rounded-2xl border border-emerald-100/80 dark:border-emerald-900/30">
+                <h4 className="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest mb-2">Earnings</h4>
                 {earnings.length > 0 ? earnings.map((field) => (
-                  <div key={field.id}>
-                    <label className="block text-sm font-medium mb-1">{field.name} (₹)</label>
+                  <div key={field.id} className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">{field.name} (₹)</label>
                     <Input 
                       {...register(`salary_components.${field.index}.amount`, { valueAsNumber: true })} 
                       type="number" 
                       step="0.01" 
-                      className="border-green-200 focus:border-green-400 focus:ring-green-400/20"
+                      className="border-slate-200/80 dark:border-white/10 focus:border-emerald-500 focus:ring-emerald-500/20 text-sm font-semibold bg-white dark:bg-[#0c0c0f]"
                     />
                   </div>
-                )) : <p className="text-xs text-slate-500">No earnings components defined.</p>}
+                )) : (
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 italic py-2">
+                    No earnings components defined.
+                  </p>
+                )}
               </div>
 
               {/* Deductions Column */}
-              <div className="space-y-3 bg-red-50/50 dark:bg-red-900/10 p-4 rounded-lg border border-red-100 dark:border-red-900/20">
-                <h4 className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wider mb-2">Deductions</h4>
+              <div className="space-y-3 bg-rose-50/50 dark:bg-rose-950/10 p-4 rounded-2xl border border-rose-100/80 dark:border-rose-900/30">
+                <h4 className="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest mb-2">Deductions</h4>
                 {deductions.length > 0 ? deductions.map((field) => (
-                  <div key={field.id}>
-                    <label className="block text-sm font-medium mb-1">{field.name} (₹)</label>
+                  <div key={field.id} className="space-y-1">
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">{field.name} (₹)</label>
                     <Input 
                       {...register(`salary_components.${field.index}.amount`, { valueAsNumber: true })} 
                       type="number" 
                       step="0.01" 
-                      className="border-red-200 focus:border-red-400 focus:ring-red-400/20"
+                      className="border-slate-200/80 dark:border-white/10 focus:border-rose-500 focus:ring-rose-500/20 text-sm font-semibold bg-white dark:bg-[#0c0c0f]"
                     />
                   </div>
-                )) : <p className="text-xs text-slate-500">No deductions components defined.</p>}
+                )) : (
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500 italic py-2">
+                    No deductions components defined.
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg flex items-center justify-between border border-slate-200 dark:border-slate-700">
-              <label className="text-sm font-medium flex items-center gap-2">
-                Total Monthly Salary (₹)
-                <span className="text-[10px] text-primary-600 font-bold bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400 px-1.5 py-0.5 rounded">AUTO</span>
-              </label>
-              <div className="w-48">
-                <Input value={calculatedSalary} type="number" readOnly className="font-bold text-lg bg-transparent border-dashed" />
+            {/* Premium Salary Total Card */}
+            <div className="mt-5 p-4 bg-slate-50 dark:bg-white/[0.01] rounded-2xl flex items-center justify-between border border-slate-200/80 dark:border-white/10 shadow-sm transition-all">
+              <div className="flex flex-col">
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                  Calculated Payroll
+                </span>
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 mt-1 flex items-center gap-1.5">
+                  Total Monthly Salary
+                  <span className="text-[9px] font-black text-primary-500 bg-primary-500/10 dark:bg-primary-500/20 px-1.5 py-0.5 rounded-md uppercase tracking-wider">
+                    AUTO
+                  </span>
+                </span>
+              </div>
+              <div className="text-right">
+                <span className="text-xl font-black text-slate-900 dark:text-white font-display">
+                  {formatCurrency(calculatedSalary || 0)}
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-white/5">
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" isLoading={isLoading}>
-              {isEditing ? 'Save Changes' : 'Add Staff'}
-            </Button>
+          <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-10 px-5 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-350 rounded-xl transition-all duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="h-10 px-5 text-xs font-black uppercase tracking-widest bg-primary-500 hover:bg-primary-600 active:bg-primary-700 text-white rounded-xl shadow-md shadow-primary-500/20 hover:shadow-primary-500/35 transition-all duration-200 disabled:opacity-50"
+            >
+              {isLoading ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Staff'}
+            </button>
           </div>
         </form>
       )}

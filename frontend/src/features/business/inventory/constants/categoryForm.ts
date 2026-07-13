@@ -11,6 +11,7 @@ export const getCategoryFormConfig = (): FormSectionConfig[] => [
         type: 'text',
         required: true,
         placeholder: 'e.g. Smartphones, Accessories, Audio...',
+        tooltip: 'Enter the descriptive name of the category (e.g. Smartphones, Accessories).',
         colSpan: 2,
       }
     ],

@@ -46,18 +46,18 @@ export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): Co
     )
   },
   {
-    header: 'Outstanding (Udhar)',
+    header: 'Outstanding Balance',
     className: 'text-right',
     cell: (customer) => {
       const billed = customer.sales_sum_final_amount || 0;
       const paid = customer.sales_sum_paid_amount || 0;
-      const udhar = billed - paid;
+      const outstanding = billed - paid;
       return (
         <span className={cn(
           "font-bold text-xs font-display",
-          udhar > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
+          outstanding > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
         )}>
-          {formatCurrency(udhar)}
+          {formatCurrency(outstanding)}
         </span>
       );
     }

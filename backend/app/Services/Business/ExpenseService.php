@@ -11,12 +11,32 @@ class ExpenseService
     /**
      * Get paginated expenses for the current business.
      */
-    public function getExpenses(int $perPage = 15): LengthAwarePaginator
+    public function getExpenses(int $perPage = 15, $search = null, $category = null, $startDate = null, $endDate = null): LengthAwarePaginator
     {
-        return Expense::with('addedBy')
+        $query = Expense::with('addedBy')
             ->latest('expense_date')
-            ->latest('id')
-            ->paginate($perPage);
+            ->latest('id');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('description', 'like', "%{$search}%")
+                  ->orWhere('category', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category) {
+            $query->where('category', $category);
+        }
+
+        if ($startDate) {
+            $query->whereDate('expense_date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('expense_date', '<=', $endDate);
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**

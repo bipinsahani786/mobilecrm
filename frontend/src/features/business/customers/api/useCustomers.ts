@@ -2,11 +2,23 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import type { Customer } from '../schemas/customerSchema';
 
-export const useCustomers = (page = 1, perPage = 15) => {
+export interface CustomerFilters {
+  search?: string;
+  has_udhar?: string;
+}
+
+export const useCustomers = (page = 1, perPage = 15, filters: CustomerFilters = {}) => {
+  const { search, has_udhar } = filters;
   return useQuery({
-    queryKey: ['customers', page, perPage],
+    queryKey: ['customers', page, perPage, search, has_udhar],
     queryFn: async () => {
-      const { data } = await api.get(`/business/customers?page=${page}&per_page=${perPage}`);
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('per_page', String(perPage));
+      if (search) params.append('search', search);
+      if (has_udhar) params.append('has_udhar', has_udhar);
+
+      const { data } = await api.get(`/business/customers?${params.toString()}`);
       return data;
     },
   });

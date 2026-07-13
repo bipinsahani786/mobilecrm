@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, Plus, DollarSign, AlertTriangle, Search } from 'lucide-react';
+import { Package, Plus, DollarSign, AlertTriangle, Search, RotateCcw, Layers } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useInventory, useDeleteProduct } from '../api/useInventory';
@@ -14,8 +16,8 @@ import { DirectAddModal } from '../components/DirectAddModal';
 import { DataTable } from '@/components/ui/data-table';
 import { TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { getInventoryColumns } from '../constants/inventoryColumns';
-import { StatCard } from '@/components/ui/stat-card';
-import { FilterContainer, FilterSearch, FilterReset } from '@/components/ui/filter-controls';
+import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
+import { FilterContainer, FilterSearch, FilterSelect, FilterReset } from '@/components/ui/filter-controls';
 
 export default function InventoryPage() {
   const [page, setPage] = useState(1);
@@ -94,81 +96,98 @@ export default function InventoryPage() {
         icon={Package}
         title="Inventory"
         subtitle="Manage your products, stock, and pricing"
-        actions={
-          <Button onClick={handleCreate} size="sm" className="bg-primary-500 hover:bg-primary-600 text-white shadow-sm font-semibold rounded-md">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
-        }
       />
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
         
-        {/* Analytics Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            title="TOTAL PRODUCTS"
-            value={totalItems}
-            icon={Package}
-            subtitle="Items in inventory"
-          />
-          <StatCard
-            title="LOW STOCK"
-            value={lowStockCount}
-            icon={AlertTriangle}
-            subtitle="Products with qty <= 10"
-            color="bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-500"
-          />
-          <StatCard
-            title="EST. INVENTORY VALUE"
-            value={`₹${totalValue.toLocaleString()}`}
-            icon={DollarSign}
-            subtitle="Based on purchase price"
-            color="bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500"
-          />
+        {/* Premium Control Panel */}
+        <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
+            <div className="flex flex-col md:flex-row gap-4 flex-1">
+              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+                <CustomKpiCard
+                  title="Total Products"
+                  value={totalItems}
+                  icon={<Package />}
+                  glowColor="primary"
+                  subtitle="Items in inventory"
+                />
+              </div>
+              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+                <CustomKpiCard
+                  title="Low Stock"
+                  value={lowStockCount}
+                  icon={<AlertTriangle />}
+                  glowColor="primary"
+                  subtitle="Products with qty <= 10"
+                />
+              </div>
+              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+                <CustomKpiCard
+                  title="Est. Inventory Value"
+                  value={`₹${totalValue.toLocaleString()}`}
+                  icon={<DollarSign />}
+                  glowColor="primary"
+                  subtitle="Based on purchase price"
+                />
+              </div>
+            </div>
+            
+            <div className="flex-shrink-0 flex items-center justify-end px-2 sm:px-4">
+              <button 
+                onClick={handleCreate}
+                className="group relative flex items-center gap-3 h-12 px-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 overflow-hidden w-full sm:w-auto justify-center"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <Plus className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">Add Product</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Filters & Data Table */}
-        <FilterContainer>
-          <FilterSearch
-            value={search}
-            onChange={(val) => setSearch(val)}
-            placeholder="SEARCH PRODUCTS BY BRAND, MODEL..."
-            wrapperClassName="flex-1 min-w-[200px]"
-          />
-          <div className="flex-1 min-w-[150px]">
-            <select
-              value={categoryId || ''}
-              onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium appearance-none"
-            >
-              <option value="">All Categories</option>
-              {categoriesData?.data?.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1 min-w-[150px]">
-            <select
-              value={brandId || ''}
-              onChange={(e) => setBrandId(e.target.value ? Number(e.target.value) : undefined)}
-              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium appearance-none"
-            >
-              <option value="">All Brands</option>
-              {brandsData?.map((brand: any) => (
-                <option key={brand.id} value={brand.id}>{brand.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1 min-w-[150px] relative">
-            <input
-              type="number"
-              placeholder="Low Stock (Qty)"
-              value={lowStockDays}
-              onChange={(e) => setLowStockDays(e.target.value)}
-              className="w-full h-10 px-3 bg-white dark:bg-[#111113] border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500/50 transition-all font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500"
+        <FilterContainer className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <FilterSearch
+              value={search}
+              onChange={(val) => setSearch(val)}
+              placeholder="SEARCH PRODUCTS BY BRAND, MODEL..."
+              wrapperClassName="flex-1 min-w-[200px] h-10 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02]"
             />
+            
+            <FilterSelect
+              value={categoryId ? String(categoryId) : ''}
+              onChange={(val) => setCategoryId(val ? Number(val) : undefined)}
+              placeholder="All Categories"
+              options={categoriesData?.data?.map(cat => ({ value: String(cat.id), label: cat.name })) || []}
+              searchable={true}
+              wrapperClassName="w-full sm:w-44 shrink-0"
+            />
+
+            <FilterSelect
+              value={brandId ? String(brandId) : ''}
+              onChange={(val) => setBrandId(val ? Number(val) : undefined)}
+              placeholder="All Brands"
+              options={brandsData?.map((brand: any) => ({ value: String(brand.id), label: brand.name })) || []}
+              searchable={true}
+              wrapperClassName="w-full sm:w-44 shrink-0"
+            />
+
+            <div className="flex items-center bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden h-10 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50 w-full sm:w-56 shrink-0">
+              <span className="h-full px-3 flex items-center bg-slate-100 dark:bg-white/5 border-r border-slate-200 dark:border-white/5 text-[9px] font-black tracking-wider text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400 whitespace-nowrap">
+                Low Stock Qty
+              </span>
+              <input
+                type="number"
+                placeholder="10"
+                value={lowStockDays}
+                onChange={(e) => setLowStockDays(e.target.value)}
+                className="flex-1 bg-transparent border-0 pl-2.5 pr-1 py-1 focus:outline-none focus:ring-0 text-xs text-slate-700 dark:text-slate-200 font-bold"
+              />
+            </div>
           </div>
+
           {(search || categoryId || brandId || lowStockDays) && (
             <FilterReset
               onClick={() => {
@@ -187,40 +206,68 @@ export default function InventoryPage() {
           renderSubComponent={(product) => {
             const activeBatches = (product.batches || []).filter((b: any) => b.remaining_quantity > 0);
             if (activeBatches.length === 0) return (
-              <div className="p-4 bg-slate-50/50 dark:bg-white/[0.01] text-sm text-slate-500 text-center">
+              <div className="p-4 bg-slate-50/50 dark:bg-white/[0.01] text-xs text-slate-500 text-center font-medium italic">
                 No active batches found for this product.
               </div>
             );
             return (
-              <div className="p-4 bg-slate-50/50 dark:bg-[#09090b] border-t border-slate-100 dark:border-white/5">
-                <div className="max-w-3xl">
-                  <h4 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider">Batch Details</h4>
-                  <table className="w-full text-left border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b border-slate-200 dark:border-white/10">
-                        <th className="pb-2 font-medium text-slate-600 dark:text-slate-300">Batch #</th>
-                        <th className="pb-2 font-medium text-slate-600 dark:text-slate-300">Remaining Stock</th>
-                        <th className="pb-2 font-medium text-slate-600 dark:text-slate-300">Purchase Price</th>
-                        <th className="pb-2 font-medium text-slate-600 dark:text-slate-300">MRP</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                      {activeBatches.map((batch: any) => (
-                        <tr key={batch.id}>
-                          <td className="py-2">
-                            {batch.batch_number ? (
-                              <span className="font-medium text-slate-700 dark:text-slate-200">{batch.batch_number}</span>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500 italic">Standard</span>
-                            )}
-                          </td>
-                          <td className="py-2 font-bold text-amber-600 dark:text-amber-500">{batch.remaining_quantity}</td>
-                          <td className="py-2 text-emerald-600 dark:text-emerald-500">₹{Number(batch.purchase_price).toLocaleString()}</td>
-                          <td className="py-2 font-medium">₹{Number(batch.mrp || product.mrp).toLocaleString()}</td>
+              <div className="p-3 sm:p-5 bg-slate-50/50 dark:bg-white/[0.01] border-t border-slate-100 dark:border-white/5 w-full">
+                <div className="bg-white dark:bg-[#0c0c0f] border border-slate-200/60 dark:border-white/5 rounded-2xl p-4 shadow-sm w-full overflow-hidden">
+                  {/* Card Title */}
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center text-primary-500">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <h4 className="text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest">
+                      Active Inventory Batches
+                    </h4>
+                  </div>
+
+                  <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-white/5">
+                    <table className="w-full text-left border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/5">
+                          <th className="px-4 py-2.5 font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Batch #</th>
+                          <th className="px-4 py-2.5 font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Remaining Stock</th>
+                          <th className="px-4 py-2.5 font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Purchase Price</th>
+                          <th className="px-4 py-2.5 font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">MRP</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                        {activeBatches.map((batch: any) => (
+                          <tr key={batch.id} className="hover:bg-slate-50/40 dark:hover:bg-white/[0.01] transition-colors">
+                            <td className="px-4 py-3">
+                              {batch.batch_number ? (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/50 dark:border-white/5">
+                                  {batch.batch_number}
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-md bg-slate-50 dark:bg-white/[0.02] text-slate-400 dark:text-slate-500 italic text-[11px] font-medium border border-dashed border-slate-200 dark:border-white/5">
+                                  Default Batch
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={cn(
+                                "px-2 py-0.5 rounded-full text-[10px] font-extrabold border uppercase tracking-wider",
+                                batch.remaining_quantity <= 10
+                                  ? "bg-rose-50 text-rose-600 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
+                                  : "bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
+                              )}>
+                                {batch.remaining_quantity} Units
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 font-semibold text-emerald-600 dark:text-emerald-400">
+                              {formatCurrency(batch.purchase_price)}
+                            </td>
+                            <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">
+                              {formatCurrency(batch.mrp || product.mrp)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             );

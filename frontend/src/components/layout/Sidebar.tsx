@@ -278,7 +278,7 @@ export function Sidebar({ className }: { className?: string }) {
               {/* Group Header */}
               {!isSidebarCollapsed ? (
                 <div className="flex items-center gap-2 mb-2 px-2">
-                  <span className="text-[9px] font-extrabold text-slate-400 dark:text-slate-600 tracking-[0.2em] uppercase whitespace-nowrap">
+                  <span className="text-[9px] font-black text-slate-600 dark:text-slate-400 tracking-[0.2em] uppercase whitespace-nowrap">
                     {group.title}
                   </span>
                   <div className="flex-1 h-px bg-slate-200 dark:bg-white/5" />
@@ -305,7 +305,7 @@ export function Sidebar({ className }: { className?: string }) {
                             ? isSidebarCollapsed
                               ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
                               : "bg-primary-500 text-white shadow-md shadow-primary-500/25"
-                            : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
+                            : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
                         )}
                       >
                         {/* Active left bar — only in expanded mode */}
@@ -325,7 +325,7 @@ export function Sidebar({ className }: { className?: string }) {
                             isSidebarCollapsed ? "mx-auto" : "mr-2.5",
                             isActive
                               ? "text-white drop-shadow-sm"
-                              : "text-slate-400 dark:text-slate-500 group-hover:text-primary-500 group-hover:scale-110"
+                              : "text-slate-600 dark:text-slate-400 group-hover:text-primary-500 group-hover:scale-110"
                           )}
                         />
                         {!isSidebarCollapsed && (

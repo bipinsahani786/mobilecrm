@@ -77,7 +77,7 @@ class PayrollService
         $joiningDate = $joiningDateStr ? Carbon::parse($joiningDateStr)->startOfDay() : clone $startOfMonth;
         
         if ($joiningDate->format('Y-m') === $month && $joiningDate->greaterThan($startOfMonth)) {
-            $totalDaysInMonth = $endOfMonth->diffInDays($joiningDate) + 1;
+            $totalDaysInMonth = (int) (abs($joiningDate->diffInDays($endOfMonth)) + 1);
         } else {
             $totalDaysInMonth = $endOfMonth->day;
         }

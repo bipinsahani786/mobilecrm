@@ -5,9 +5,17 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
   value: string | number;
   subtitle?: string;
   icon: React.ReactNode;
-  glowColor: 'blue' | 'emerald' | 'indigo' | 'purple' | 'amber' | 'rose' | 'cyan';
+  glowColor: 'blue' | 'emerald' | 'indigo' | 'purple' | 'amber' | 'rose' | 'cyan' | 'primary';
 }) {
   const colorMap: Record<string, { bg: string; ring: string; iconBg: string; shape1: string; shape2: string; glow: string }> = {
+    primary: {
+      bg: "bg-gradient-to-br from-primary-500 via-primary-600 to-primary-700",
+      ring: "ring-primary-400/30",
+      iconBg: "bg-white/25",
+      shape1: "bg-white/12",
+      shape2: "bg-white/6",
+      glow: "shadow-primary-500/40",
+    },
     blue: {
       bg: "bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700",
       ring: "ring-blue-400/30",
@@ -99,7 +107,7 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
       <div className="relative z-10 flex flex-col gap-2 min-w-0">
         {/* Top row: label + icon */}
         <div className="flex items-center justify-between gap-2">
-          <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.18em] text-white/80 select-none truncate drop-shadow-sm">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.18em] text-white select-none truncate drop-shadow-sm">
             {title}
           </span>
           <div
@@ -127,7 +135,7 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
 
         {/* Subtitle */}
         {subtitle && (
-          <span className="text-[9px] font-bold uppercase tracking-wider text-white/60 truncate border-t border-white/15 pt-1.5 mt-0.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 truncate border-t border-white/20 pt-1.5 mt-0.5">
             {subtitle}
           </span>
         )}

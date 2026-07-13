@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSales } from '../api/useSales';
 import { Button } from '@/components/ui/button';
-import { FileText, Plus, TrendingUp, DollarSign, ArrowRight } from 'lucide-react';
+import { FileText, Plus, TrendingUp, DollarSign, ArrowRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/ui/data-table';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -12,7 +12,34 @@ import { formatCurrency } from '@/lib/formatters';
 
 export default function InvoicesPage() {
   const [page, setPage] = useState(1);
-  const { data: response, isLoading } = useSales(page);
+  const [search, setSearch] = useState('');
+  const [paymentMode, setPaymentMode] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Debounced search to prevent duplicate network calls
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Reset pagination when filter selections change
+  useEffect(() => {
+    setPage(1);
+  }, [paymentMode, startDate, endDate]);
+
+  const filters = useMemo(() => ({
+    search: debouncedSearch,
+    payment_mode: paymentMode || undefined,
+    start_date: startDate || undefined,
+    end_date: endDate || undefined,
+  }), [debouncedSearch, paymentMode, startDate, endDate]);
+
+  const { data: response, isLoading } = useSales(page, 15, filters);
   const navigate = useNavigate();
 
   const sales = response?.data || [];
@@ -25,6 +52,13 @@ export default function InvoicesPage() {
     onView: (sale) => navigate(`/invoices/${sale.id}`),
     onCustomerView: (customerId) => navigate(`/customers/${customerId}`)
   }), [navigate]);
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setPaymentMode('');
+    setStartDate('');
+    setEndDate('');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f] text-slate-900 dark:text-slate-200">
@@ -46,7 +80,7 @@ export default function InvoicesPage() {
                   title="Total Invoices"
                   value={totalInvoices}
                   icon={<FileText />}
-                  glowColor="blue"
+                  glowColor="primary"
                   subtitle="All time sales"
                 />
               </div>
@@ -55,7 +89,7 @@ export default function InvoicesPage() {
                   title="Revenue (This Page)"
                   value={formatCurrency(totalRevenue)}
                   icon={<TrendingUp />}
-                  glowColor="emerald"
+                  glowColor="primary"
                   subtitle="Total from current view"
                 />
               </div>
@@ -74,6 +108,69 @@ export default function InvoicesPage() {
           </div>
         </div>
 
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search invoice number or customer name/phone..."
+                className="w-full h-10 pl-9 pr-4 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Payment Mode */}
+            <div className="w-full sm:w-44">
+              <select
+                value={paymentMode}
+                onChange={(e) => setPaymentMode(e.target.value)}
+                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+              >
+                <option value="">All Payment Modes</option>
+                <option value="Cash">Cash</option>
+                <option value="Split">Split</option>
+                <option value="EMI">EMI / Finance</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Date Range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+                title="Start Date"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+                title="End Date"
+              />
+            </div>
+
+            {/* Clear Filters */}
+            {(search || paymentMode || startDate || endDate) && (
+              <button
+                onClick={handleClearFilters}
+                className="h-10 px-4 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-all border border-rose-100 dark:border-rose-900/30 flex items-center justify-center gap-2"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Data Table */}
         <div className="bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/40 overflow-hidden">
           {(!isLoading && sales.length === 0) ? (
@@ -81,15 +178,21 @@ export default function InvoicesPage() {
               <EmptyState
                 icon={<FileText className="w-8 h-8 opacity-50" />}
                 title="No invoices found"
-                description="You haven't made any sales yet. Go to POS to create your first bill."
+                description={
+                  (search || paymentMode || startDate || endDate)
+                    ? "No invoices match your active filters. Try refining your criteria."
+                    : "You haven't made any sales yet. Go to POS to create your first bill."
+                }
                 action={
-                  <button 
-                    onClick={() => navigate('/pos')}
-                    className="mt-4 flex items-center justify-center gap-2 h-10 px-6 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-bold text-sm shadow-md shadow-primary-500/30 transition-all"
-                  >
-                    Go to POS
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  !(search || paymentMode || startDate || endDate) && (
+                    <button 
+                      onClick={() => navigate('/pos')}
+                      className="mt-4 flex items-center justify-center gap-2 h-10 px-6 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-bold text-sm shadow-md shadow-primary-500/30 transition-all"
+                    >
+                      Go to POS
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )
                 }
               />
             </div>

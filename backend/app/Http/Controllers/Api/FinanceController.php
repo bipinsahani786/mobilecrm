@@ -33,7 +33,12 @@ class FinanceController extends BaseController
     {
         try {
             $perPage = $request->input('per_page', 15);
-            $paginator = $this->financeService->getPendingPayouts($perPage);
+            $search = $request->input('search');
+            $financier = $request->input('financier');
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            $paginator = $this->financeService->getPendingPayouts($perPage, $search, $financier, $startDate, $endDate);
             return $this->paginated($paginator, 'Pending payouts retrieved');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -57,7 +62,12 @@ class FinanceController extends BaseController
     {
         try {
             $perPage = $request->input('per_page', 15);
-            $paginator = $this->financeService->getCompletedPayouts($perPage);
+            $search = $request->input('search');
+            $financier = $request->input('financier');
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            $paginator = $this->financeService->getCompletedPayouts($perPage, $search, $financier, $startDate, $endDate);
             return $this->paginated($paginator, 'Completed payouts retrieved');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

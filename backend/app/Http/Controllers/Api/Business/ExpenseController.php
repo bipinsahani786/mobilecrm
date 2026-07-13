@@ -34,7 +34,12 @@ class ExpenseController extends BaseController
     {
         try {
             $perPage = $request->input('per_page', 15);
-            $paginator = $this->expenseService->getExpenses($perPage);
+            $search = $request->input('search');
+            $category = $request->input('category');
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            $paginator = $this->expenseService->getExpenses($perPage, $search, $category, $startDate, $endDate);
             
             // Format with resource collection manually to use our standard paginated response
             $resourceCollection = ExpenseResource::collection($paginator);

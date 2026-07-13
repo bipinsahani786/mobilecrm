@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { usePendingPayouts, useCompletedPayouts, useMarkPayoutReceived } from '../api/useFinance';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { Wallet, CheckCircle2, Clock } from 'lucide-react';
+import { Wallet, CheckCircle2, Clock, Search, X } from 'lucide-react';
 import { DataTable } from '@/components/ui/data-table';
 import { TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { toast } from 'sonner';
 import { getFinanceColumns } from '../constants/financeColumns';
 import { MarkReceivedModal } from '../components/MarkReceivedModal';
+import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
+import { formatCurrency } from '@/lib/formatters';
 import type { EmiDetail } from '../schemas/financeSchema';
 
 export default function FinanceLedgerPage() {
@@ -15,8 +17,36 @@ export default function FinanceLedgerPage() {
   const [selectedPayout, setSelectedPayout] = useState<EmiDetail | null>(null);
   const [payoutDate, setPayoutDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const { data: pendingResponse, isLoading: isLoadingPending } = usePendingPayouts(page);
-  const { data: completedResponse, isLoading: isLoadingCompleted } = useCompletedPayouts(page);
+  // Filters state
+  const [search, setSearch] = useState('');
+  const [financier, setFinancier] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Debounced search to prevent duplicate requests
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Reset pagination when other filters change
+  useEffect(() => {
+    setPage(1);
+  }, [financier, startDate, endDate]);
+
+  const filters = useMemo(() => ({
+    search: debouncedSearch,
+    financier: financier || undefined,
+    start_date: startDate || undefined,
+    end_date: endDate || undefined,
+  }), [debouncedSearch, financier, startDate, endDate]);
+
+  const { data: pendingResponse, isLoading: isLoadingPending } = usePendingPayouts(page, 15, filters);
+  const { data: completedResponse, isLoading: isLoadingCompleted } = useCompletedPayouts(page, 15, filters);
   
   const markReceived = useMarkPayoutReceived();
 
@@ -39,6 +69,13 @@ export default function FinanceLedgerPage() {
   const currentMeta = activeTab === 'pending' ? pendingResponse?.meta : completedResponse?.meta;
   const isLoading = activeTab === 'pending' ? isLoadingPending : isLoadingCompleted;
 
+  const handleClearFilters = () => {
+    setSearch('');
+    setFinancier('');
+    setStartDate('');
+    setEndDate('');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
       <PageHeader
@@ -48,21 +85,133 @@ export default function FinanceLedgerPage() {
       />
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+        
+        {/* KPI Analytics Cards */}
+        <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Pending Payouts"
+                value={pendingResponse?.meta?.total || 0}
+                icon={<Clock />}
+                glowColor="primary"
+                subtitle="Awaiting financier clearance"
+              />
+            </div>
+            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Expected Payout (This Page)"
+                value={formatCurrency(
+                  (pendingResponse?.data || []).reduce(
+                    (sum: number, emi: any) => sum + (Number(emi.loan_amount || 0) - Number(emi.processing_fee || 0)),
+                    0
+                  )
+                )}
+                icon={<Wallet />}
+                glowColor="primary"
+                subtitle="Clearance value pending"
+              />
+            </div>
+            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Completed Payouts"
+                value={completedResponse?.meta?.total || 0}
+                icon={<CheckCircle2 />}
+                glowColor="primary"
+                subtitle="Cleared financier funds"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Filter Bar */}
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search invoice number, customer name, phone, or financier..."
+                className="w-full h-10 pl-9 pr-4 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
+
+            {/* Financier Filter */}
+            <div className="w-full sm:w-48">
+              <select
+                value={financier}
+                onChange={(e) => setFinancier(e.target.value)}
+                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+              >
+                <option value="">All Financiers</option>
+                <option value="Bajaj Finserv">Bajaj Finserv</option>
+                <option value="TVS Credit">TVS Credit</option>
+                <option value="HDB Financial">HDB Financial</option>
+                <option value="Home Credit">Home Credit</option>
+                <option value="IDFC First Bank">IDFC First Bank</option>
+                <option value="Pine Labs">Pine Labs</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+            {/* Date Range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+                title="Start Date"
+              />
+              <span className="text-slate-400 text-xs">to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
+                title="End Date"
+              />
+            </div>
+
+            {/* Clear Filters */}
+            {(search || financier || startDate || endDate) && (
+              <button
+                onClick={handleClearFilters}
+                className="h-10 px-4 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-all border border-rose-100 dark:border-rose-900/30 flex items-center justify-center gap-2"
+              >
+                <X className="w-3.5 h-3.5" />
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Data Table */}
         <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden shadow-sm">
-          <div className="flex border-b border-slate-200 dark:border-white/5">
+          <div className="flex border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
             <button
               onClick={() => { setActiveTab('pending'); setPage(1); }}
-              className={`px-6 py-4 flex items-center text-sm font-semibold tracking-wide uppercase transition-colors ${activeTab === 'pending' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-6 py-4 flex items-center text-sm font-semibold tracking-wide uppercase transition-colors relative ${activeTab === 'pending' ? 'text-primary-600 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Clock className="w-4 h-4 mr-2" />
               Pending Payouts
+              {activeTab === 'pending' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
+              )}
             </button>
             <button
               onClick={() => { setActiveTab('completed'); setPage(1); }}
-              className={`px-6 py-4 flex items-center text-sm font-semibold tracking-wide uppercase transition-colors ${activeTab === 'completed' ? 'text-primary-600 border-b-2 border-primary-600' : 'text-slate-500 hover:text-slate-700'}`}
+              className={`px-6 py-4 flex items-center text-sm font-semibold tracking-wide uppercase transition-colors relative ${activeTab === 'completed' ? 'text-primary-600 font-bold' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Completed
+              {activeTab === 'completed' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
+              )}
             </button>
           </div>
 

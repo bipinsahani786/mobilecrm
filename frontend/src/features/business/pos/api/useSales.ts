@@ -3,11 +3,27 @@ import api from '../../../../lib/api';
 import type { ApiResponse, PaginatedResponse } from '../../../../types/api';
 import type { Sale } from '../schemas/saleSchema';
 
-export const useSales = (page = 1, perPage = 15) => {
+export interface SalesFilters {
+  search?: string;
+  payment_mode?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export const useSales = (page = 1, perPage = 15, filters: SalesFilters = {}) => {
+  const { search, payment_mode, start_date, end_date } = filters;
   return useQuery({
-    queryKey: ['sales', page, perPage],
+    queryKey: ['sales', page, perPage, search, payment_mode, start_date, end_date],
     queryFn: async () => {
-      const { data } = await api.get(`/business/sales?page=${page}&per_page=${perPage}`);
+      const params = new URLSearchParams();
+      params.append('page', String(page));
+      params.append('per_page', String(perPage));
+      if (search) params.append('search', search);
+      if (payment_mode) params.append('payment_mode', payment_mode);
+      if (start_date) params.append('start_date', start_date);
+      if (end_date) params.append('end_date', end_date);
+
+      const { data } = await api.get(`/business/sales?${params.toString()}`);
       return data;
     },
   });

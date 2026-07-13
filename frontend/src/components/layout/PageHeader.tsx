@@ -16,7 +16,7 @@ export interface PageHeaderProps {
 
 export function PageHeader({ breadcrumbs, actions }: PageHeaderProps) {
   return (
-    <div className="w-full bg-transparent pt-0 pb-2 px-3 sm:px-4">
+    <div className="w-full bg-transparent pt-4 pb-2 px-3 sm:px-4">
       <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
         <div className="flex flex-col md:flex-row md:items-center gap-2 sm:gap-5 flex-1">
           {/* Title and Icon removed as per request — handled by Header badge */}

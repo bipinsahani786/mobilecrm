@@ -13,10 +13,10 @@ export const leaveFormConfig = [
     { label: 'Casual Leave', value: 'casual' },
     { label: 'Earned Leave', value: 'earned' },
     { label: 'Unpaid Leave', value: 'unpaid' }
-  ], required: true },
-  { name: 'from_date', label: 'From Date', type: 'date', required: true },
-  { name: 'to_date', label: 'To Date', type: 'date', required: true },
-  { name: 'reason', label: 'Reason for Leave', type: 'textarea', required: true }
+  ], required: true, tooltip: 'Select the category of leave you are requesting.' },
+  { name: 'from_date', label: 'From Date', type: 'date', required: true, tooltip: 'The starting date of your leave period.' },
+  { name: 'to_date', label: 'To Date', type: 'date', required: true, tooltip: 'The end date of your leave period (inclusive).' },
+  { name: 'reason', label: 'Reason for Leave', type: 'textarea', required: true, tooltip: 'Provide a brief explanation for requesting this leave.' }
 ];
 
 export const advanceSchema = z.object({
@@ -26,7 +26,7 @@ export const advanceSchema = z.object({
 });
 
 export const advanceFormConfig = [
-  { name: 'amount', label: 'Amount (₹)', type: 'number', required: true },
-  { name: 'date', label: 'Needed By Date', type: 'date', required: true },
-  { name: 'reason', label: 'Reason for Advance', type: 'textarea', required: true }
+  { name: 'amount', label: 'Amount (₹)', type: 'number', required: true, tooltip: 'The total amount of salary advance you are requesting.' },
+  { name: 'date', label: 'Needed By Date', type: 'date', required: true, tooltip: 'The target date when you need the advance amount in hand.' },
+  { name: 'reason', label: 'Reason for Advance', type: 'textarea', required: true, tooltip: 'Explain why you need this salary advance.' }
 ];

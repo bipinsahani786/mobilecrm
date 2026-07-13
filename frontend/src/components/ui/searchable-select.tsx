@@ -35,7 +35,7 @@ export function SearchableSelect({
   const [isCreating, setIsCreating] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options.find((opt) => String(opt.value) === String(value));
+  const selectedOption = options.find((opt) => String(opt.value).toLowerCase() === String(value).toLowerCase());
 
   const filteredOptions = options.filter((opt) =>
     opt.label.toLowerCase().includes(search.toLowerCase())
@@ -90,8 +90,8 @@ export function SearchableSelect({
           className
         )}
       >
-        <span className={cn("truncate", !selectedOption && "text-slate-400 dark:text-zinc-500")}>
-          {selectedOption ? selectedOption.label : placeholder}
+        <span className={cn("truncate", !selectedOption && !value && "text-slate-400 dark:text-zinc-500")}>
+          {selectedOption ? selectedOption.label : (value ? String(value) : placeholder)}
         </span>
         <ChevronDown className={cn("h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200", isOpen && "rotate-180")} />
       </button>
