@@ -1,6 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { FileText } from 'lucide-react';
+import { FileText, CheckSquare, CheckCircle2 } from 'lucide-react';
 import React from 'react';
 import type { PayrollRecord } from '../api/usePayroll';
 
@@ -68,13 +67,35 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
     accessorKey: 'status',
     cell: (row: PayrollRecord) => {
       const status = row.status;
+      
+      const config: Record<string, { bg: string; text: string; border: string }> = {
+        paid: {
+          bg: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+          text: 'text-emerald-600 dark:text-emerald-400',
+          border: 'border-emerald-200 dark:border-emerald-500/30'
+        },
+        confirmed: {
+          bg: 'bg-blue-500/10 dark:bg-blue-500/20',
+          text: 'text-blue-600 dark:text-blue-400',
+          border: 'border-blue-200 dark:border-blue-500/30'
+        },
+        draft: {
+          bg: 'bg-amber-500/10 dark:bg-amber-500/20',
+          text: 'text-amber-600 dark:text-amber-400',
+          border: 'border-amber-200 dark:border-amber-500/30'
+        }
+      };
+
+      const style = config[status] || {
+        bg: 'bg-slate-500/10',
+        text: 'text-slate-650 dark:text-slate-400',
+        border: 'border-slate-200 dark:border-slate-500/30'
+      };
+
       return (
-        <Badge 
-          variant={status === 'paid' ? 'success' : status === 'confirmed' ? 'default' : 'outline'}
-          className="capitalize"
-        >
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider border ${style.bg} ${style.text} ${style.border}`}>
           {status}
-        </Badge>
+        </span>
       );
     }
   },
@@ -85,41 +106,41 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
       return (
         <div className="flex items-center gap-2 justify-end">
           {row.status === 'draft' && (
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 confirmMutation.mutate(row.id);
               }}
-              isLoading={confirmMutation.isPending}
+              disabled={confirmMutation.isPending}
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 rounded-xl transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
             >
-              Confirm
-            </Button>
+              <CheckSquare className="h-3.5 w-3.5" />
+              <span>Confirm</span>
+            </button>
           )}
           {row.status === 'confirmed' && (
-            <Button
-              variant="default"
-              size="sm"
+            <button
               onClick={(e) => {
                 e.stopPropagation();
                 markPaidMutation.mutate({ id: row.id });
               }}
-              isLoading={markPaidMutation.isPending}
+              disabled={markPaidMutation.isPending}
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-600 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-95"
             >
-              Mark Paid
-            </Button>
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              <span>Mark Paid</span>
+            </button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/payroll/${row.id}`);
             }}
+            className="inline-flex items-center justify-center h-8 w-8 text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200/60 dark:border-white/5 rounded-xl transition-all duration-200 cursor-pointer active:scale-95"
+            title="View Details"
           >
             <FileText className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
       );
     }

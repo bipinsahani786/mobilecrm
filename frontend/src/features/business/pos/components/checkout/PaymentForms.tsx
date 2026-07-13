@@ -42,6 +42,7 @@ function AmountInput({ prefix = '₹', ...props }: any) {
 export function PaymentForms({ paymentType, setPaymentType, register, splitCash, splitUpi, splitCard, finalAmount }: PaymentFormsProps) {
   const splitTotal = Number(splitCash) + Number(splitUpi) + Number(splitCard);
   const splitOver  = splitTotal > finalAmount;
+  const remaining  = finalAmount - splitTotal;
 
   return (
     <div className="space-y-4">
@@ -107,12 +108,20 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
               </div>
             </div>
 
-            <div className={`flex justify-between items-center pt-3 border-t ${splitOver ? 'border-rose-200 dark:border-rose-500/30' : 'border-slate-200 dark:border-white/10'}`}>
-              <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Total split:</span>
-              <span className={`text-base font-black font-display ${splitOver ? 'text-rose-500' : 'text-primary-600 dark:text-primary-400'}`}>
-                {formatCurrency(splitTotal)}
-                {splitOver && <span className="text-[10px] ml-1 text-rose-400">(over!)</span>}
-              </span>
+            <div className={`pt-3 border-t space-y-2.5 ${splitOver ? 'border-rose-200 dark:border-rose-500/30' : 'border-slate-200 dark:border-white/10'}`}>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Total split:</span>
+                <span className={`text-base font-black font-display ${splitOver ? 'text-rose-500' : 'text-primary-600 dark:text-primary-400'}`}>
+                  {formatCurrency(splitTotal)}
+                  {splitOver && <span className="text-[10px] ml-1 text-rose-400">(over!)</span>}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Remaining to split:</span>
+                <span className={`text-sm font-extrabold font-display ${remaining > 0 ? 'text-amber-500' : remaining < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                  {remaining < 0 ? `Overpaid by ${formatCurrency(Math.abs(remaining))}` : formatCurrency(remaining)}
+                </span>
+              </div>
             </div>
           </div>
         )}

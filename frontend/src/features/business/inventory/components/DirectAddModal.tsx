@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useDirectAdd } from '../api/useDirectAdd';
 import type { Product } from '../schemas/productSchema';
 import { PackagePlus } from 'lucide-react';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 const directAddSchema = z.object({
   quantity: z.number().min(1, 'Quantity must be at least 1'),
@@ -74,9 +75,12 @@ export function DirectAddModal({ isOpen, onClose, product }: DirectAddModalProps
         )}
         
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Quantity to Add
-          </label>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Quantity to Add
+            </label>
+            <InfoTooltip text="Number of product units to add to the inventory." />
+          </div>
           <div className="relative">
             <PackagePlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input
@@ -89,9 +93,12 @@ export function DirectAddModal({ isOpen, onClose, product }: DirectAddModalProps
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Batch Number / Identifier (Optional)
-          </label>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Batch Number / Identifier (Optional)
+            </label>
+            <InfoTooltip text="Optional unique identifier or batch number tracker (e.g. BATCH-001)." />
+          </div>
           <Input
             type="text"
             placeholder="e.g. BATCH-001, IMEI list, etc."
@@ -102,9 +109,12 @@ export function DirectAddModal({ isOpen, onClose, product }: DirectAddModalProps
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Update Purchase Price (Optional)
-          </label>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Update Purchase Price (Optional)
+            </label>
+            <InfoTooltip text="Specify a new purchase cost price if the cost for this batch has changed." />
+          </div>
           <Input
             type="number"
             {...register('purchase_price', { valueAsNumber: true })}
@@ -115,9 +125,12 @@ export function DirectAddModal({ isOpen, onClose, product }: DirectAddModalProps
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-            Update MRP (Optional)
-          </label>
+          <div className="flex items-center mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Update MRP (Optional)
+            </label>
+            <InfoTooltip text="Specify a new Maximum Retail Price (selling price) if the MRP has changed." />
+          </div>
           <Input
             type="number"
             {...register('mrp', { valueAsNumber: true })}

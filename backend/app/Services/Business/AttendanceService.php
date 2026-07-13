@@ -207,7 +207,11 @@ class AttendanceService
 
         if (!empty($filters['month'])) {
             // "2026-07" format
-            $query->whereRaw("TO_CHAR(date, 'YYYY-MM') = ?", [$filters['month']]);
+            $parts = explode('-', $filters['month']);
+            if (count($parts) === 2) {
+                $query->whereYear('date', $parts[0])
+                      ->whereMonth('date', $parts[1]);
+            }
         }
 
         if (!empty($filters['status'])) {
@@ -236,9 +240,13 @@ class AttendanceService
         $report = [];
 
         foreach ($staff as $member) {
-            $attendances = Attendance::where('user_id', $member->id)
-                ->whereRaw("TO_CHAR(date, 'YYYY-MM') = ?", [$month])
-                ->get();
+            $parts = explode('-', $month);
+            $attendanceQuery = Attendance::where('user_id', $member->id);
+            if (count($parts) === 2) {
+                $attendanceQuery->whereYear('date', $parts[0])
+                                 ->whereMonth('date', $parts[1]);
+            }
+            $attendances = $attendanceQuery->get();
 
             $report[] = [
                 'user_id' => $member->id,

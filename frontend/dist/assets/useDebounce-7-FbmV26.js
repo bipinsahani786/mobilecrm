@@ -1,1 +1,0 @@
-import{c as e,d as t}from"./tenantStore-B025pC61.js";var n=t(e(),1);function r(e,t=300){let[r,i]=(0,n.useState)(e);return(0,n.useEffect)(()=>{let n=setTimeout(()=>{i(e)},t);return()=>{clearTimeout(n)}},[e,t]),r}export{r as t};

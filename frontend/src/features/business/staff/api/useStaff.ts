@@ -58,11 +58,51 @@ export const useUpdateStaff = () => {
       const { data } = await api.put(`/business/staff/${id}`, payload);
       return data.data;
     },
+    onMutate: async ({ id, ...payload }) => {
+      // Cancel outgoing refetches
+      await qc.cancelQueries({ queryKey: ['staff'] });
+      await qc.cancelQueries({ queryKey: ['staff', id] });
+
+      // Snapshot the previous values
+      const previousStaffList = qc.getQueryData<StaffMember[]>(['staff']);
+      const previousStaffDetail = qc.getQueryData(['staff', id]);
+
+      // Optimistically update the list cache
+      if (previousStaffList) {
+        qc.setQueryData<StaffMember[]>(
+          ['staff'],
+          previousStaffList.map((member) =>
+            member.id === id ? { ...member, ...payload } : member
+          )
+        );
+      }
+
+      // Optimistically update the detail cache
+      if (previousStaffDetail) {
+        qc.setQueryData(['staff', id], (prev: any) => ({ ...prev, ...payload }));
+      }
+
+      return { previousStaffList, previousStaffDetail, id };
+    },
+    onError: (err: any, variables, context) => {
+      // Roll back to snapshotted state
+      if (context?.previousStaffList) {
+        qc.setQueryData(['staff'], context.previousStaffList);
+      }
+      if (context?.previousStaffDetail && context?.id) {
+        qc.setQueryData(['staff', context.id], context.previousStaffDetail);
+      }
+      toast.error(err.response?.data?.message || 'Failed to update');
+    },
     onSuccess: () => {
       toast.success('Staff updated');
-      qc.invalidateQueries({ queryKey: ['staff'] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update'),
+    onSettled: (data, error, variables) => {
+      qc.invalidateQueries({ queryKey: ['staff'] });
+      if (variables?.id) {
+        qc.invalidateQueries({ queryKey: ['staff', variables.id] });
+      }
+    },
   });
 };
 

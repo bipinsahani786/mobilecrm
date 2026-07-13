@@ -16,6 +16,7 @@ export interface AttendanceRecord {
   is_within_geofence: boolean;
   notes: string | null;
   user?: { id: number; name: string };
+  approved_by?: number | null;
 }
 
 export const useAttendance = (filters: Record<string, any> = {}) => {

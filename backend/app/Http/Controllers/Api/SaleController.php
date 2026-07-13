@@ -33,7 +33,12 @@ class SaleController extends BaseController
     {
         try {
             $perPage = $request->input('per_page', 15);
-            $paginator = $this->saleService->getSales($perPage);
+            $search = $request->input('search');
+            $paymentMode = $request->input('payment_mode');
+            $startDate = $request->input('start_date');
+            $endDate = $request->input('end_date');
+
+            $paginator = $this->saleService->getSales($perPage, $search, $paymentMode, $startDate, $endDate);
             return $this->paginated($paginator, 'Sales retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

@@ -7,26 +7,86 @@ use App\Models\SalePayment;
 
 class FinanceService
 {
-    public function getPendingPayouts($perPage = 15)
+    public function getPendingPayouts($perPage = 15, $search = null, $financier = null, $startDate = null, $endDate = null)
     {
-        return EmiDetail::whereHas('sale', function ($query) {
+        $query = EmiDetail::whereHas('sale', function ($query) {
                 $query->where('business_id', app('current_business_id'));
             })
             ->with(['sale.customer', 'sale.items.product'])
             ->where('is_payout_received', false)
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+            ->orderByDesc('created_at');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('financier_name', 'like', "%{$search}%")
+                  ->orWhereHas('sale', function ($sq) use ($search) {
+                      $sq->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($cq) use ($search) {
+                            $cq->where('name', 'like', "%{$search}%")
+                               ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                  });
+            });
+        }
+
+        if ($financier) {
+            $query->where('financier_name', $financier);
+        }
+
+        if ($startDate) {
+            $query->whereHas('sale', function ($sq) use ($startDate) {
+                $sq->whereDate('date', '>=', $startDate);
+            });
+        }
+
+        if ($endDate) {
+            $query->whereHas('sale', function ($sq) use ($endDate) {
+                $sq->whereDate('date', '<=', $endDate);
+            });
+        }
+
+        return $query->paginate($perPage);
     }
 
-    public function getCompletedPayouts($perPage = 15)
+    public function getCompletedPayouts($perPage = 15, $search = null, $financier = null, $startDate = null, $endDate = null)
     {
-        return EmiDetail::whereHas('sale', function ($query) {
+        $query = EmiDetail::whereHas('sale', function ($query) {
                 $query->where('business_id', app('current_business_id'));
             })
             ->with(['sale.customer', 'sale.items.product'])
             ->where('is_payout_received', true)
-            ->orderByDesc('payout_date')
-            ->paginate($perPage);
+            ->orderByDesc('payout_date');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('financier_name', 'like', "%{$search}%")
+                  ->orWhereHas('sale', function ($sq) use ($search) {
+                      $sq->where('invoice_number', 'like', "%{$search}%")
+                        ->orWhereHas('customer', function ($cq) use ($search) {
+                            $cq->where('name', 'like', "%{$search}%")
+                               ->orWhere('phone', 'like', "%{$search}%");
+                        });
+                  });
+            });
+        }
+
+        if ($financier) {
+            $query->where('financier_name', $financier);
+        }
+
+        if ($startDate) {
+            $query->whereHas('sale', function ($sq) use ($startDate) {
+                $sq->whereDate('date', '>=', $startDate);
+            });
+        }
+
+        if ($endDate) {
+            $query->whereHas('sale', function ($sq) use ($endDate) {
+                $sq->whereDate('date', '<=', $endDate);
+            });
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function markPayoutReceived(EmiDetail $emiDetail, $date = null)

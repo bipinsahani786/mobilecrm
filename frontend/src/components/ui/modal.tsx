@@ -38,7 +38,7 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
       onClick={handleOverlayClick}
     >
       <div 
-        className={`relative bg-white dark:bg-[#09090b] w-full ${maxWidthClasses[maxWidth]} rounded-xl shadow-2xl border border-slate-200 dark:border-white/10 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+        className={`relative bg-white dark:bg-[#09090b] w-full ${maxWidthClasses[maxWidth]} rounded-2xl shadow-2xl border border-slate-200/80 dark:border-white/10 max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
       >
         {/* Floating Close Button when no header */}
         {title === "" && (
@@ -52,13 +52,13 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
         
         {/* Header */}
         {title !== "" && (
-          <div className="px-5 py-4 border-b border-slate-200 dark:border-white/10 flex justify-between items-start shrink-0 bg-slate-50/50 dark:bg-white/[0.02]">
+          <div className="px-4 py-3 border-b border-slate-200/80 dark:border-white/10 flex justify-between items-start shrink-0 bg-slate-50/80 dark:bg-white/[0.01]">
             <div>
-              <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-base font-extrabold text-slate-900 dark:text-white tracking-tight">
                 {title}
               </h2>
               {description && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   {description}
                 </p>
               )}
@@ -73,13 +73,13 @@ export function Modal({ isOpen, onClose, title, description, children, footer, m
         )}
 
         {/* Body */}
-        <div className="p-5 overflow-y-auto min-h-0 custom-scrollbar">
+        <div className="p-4 overflow-y-auto min-h-0 custom-scrollbar">
           {children}
         </div>
 
         {/* Footer */}
         {footer && (
-          <div className="px-5 py-4 border-t border-slate-200 dark:border-white/10 shrink-0 flex justify-end gap-3 bg-slate-50 dark:bg-white/[0.02]">
+          <div className="px-4 py-3 border-t border-slate-200/80 dark:border-white/10 shrink-0 flex justify-end gap-3 bg-slate-50 dark:bg-white/[0.01]">
             {footer}
           </div>
         )}

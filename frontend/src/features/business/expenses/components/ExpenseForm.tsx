@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useExpenseCategories } from '../api/useExpenses';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { InfoTooltip } from '@/components/ui/info-tooltip';
 
 interface ExpenseFormProps {
   initialData?: Expense;
@@ -65,7 +66,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5 mt-2">
       
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Date</label>
+        <div className="flex items-center gap-1 mb-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Date</label>
+          <InfoTooltip text="Select the exact date when this expense was incurred." />
+        </div>
         <Input 
           type="date" 
           {...register('expense_date')} 
@@ -75,7 +79,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Category</label>
+        <div className="flex items-center gap-1 mb-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Category</label>
+          <InfoTooltip text="Select an existing category or type a new one to create it." />
+        </div>
         <Controller
           name="category"
           control={control}
@@ -93,7 +100,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Amount</label>
+        <div className="flex items-center gap-1 mb-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Amount</label>
+          <InfoTooltip text="Enter the exact amount paid for this expense." />
+        </div>
         <Input 
           type="number" 
           step="0.01" 
@@ -104,7 +114,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Description</label>
+        <div className="flex items-center gap-1 mb-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Description</label>
+          <InfoTooltip text="Add optional notes or descriptions to explain the spend." />
+        </div>
         <Textarea 
           {...register('description')} 
           rows={3} 
@@ -114,7 +127,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       </div>
 
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">Receipt Image</label>
+        <div className="flex items-center gap-1 mb-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Receipt Image</label>
+          <InfoTooltip text="Upload a photo or scanned copy of the payment receipt." />
+        </div>
         <Input 
           id="receipt" 
           type="file" 

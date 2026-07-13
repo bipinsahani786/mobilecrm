@@ -33,7 +33,10 @@ class CustomerController extends BaseController
     {
         try {
             $perPage = $request->input('per_page', 15);
-            $paginator = $this->customerService->getCustomers($perPage);
+            $search = $request->input('search');
+            $hasUdhar = $request->input('has_udhar');
+
+            $paginator = $this->customerService->getCustomers($perPage, $search, $hasUdhar);
             return $this->paginated($paginator, 'Customers retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

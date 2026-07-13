@@ -11,6 +11,7 @@ export const brandFormConfig: FormSectionConfig[] = [
         type: 'text',
         required: true,
         placeholder: 'e.g. Samsung, Apple, Motorola',
+        tooltip: 'Enter the official brand or manufacturer name.',
         colSpan: 2,
       }
     ],

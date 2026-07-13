@@ -10,11 +10,34 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    public function getSales($perPage = 15)
+    public function getSales($perPage = 15, $search = null, $paymentMode = null, $startDate = null, $endDate = null)
     {
-        return Sale::with(['customer', 'user', 'items.product', 'payments', 'emiDetail'])
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+        $query = Sale::with(['customer', 'user', 'items.product', 'payments', 'emiDetail'])
+            ->orderByDesc('created_at');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', function ($cq) use ($search) {
+                      $cq->where('name', 'like', "%{$search}%")
+                         ->orWhere('phone', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($paymentMode) {
+            $query->where('payment_mode', $paymentMode);
+        }
+
+        if ($startDate) {
+            $query->whereDate('date', '>=', $startDate);
+        }
+
+        if ($endDate) {
+            $query->whereDate('date', '<=', $endDate);
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function createSale(array $data)

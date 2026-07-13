@@ -1,1 +1,0 @@
-import{n as e}from"./tenantStore-B025pC61.js";import{nt as t}from"./index-Dvp6KxA-.js";var n=()=>t({queryKey:[`partner`,`dashboard`],queryFn:async()=>{let{data:t}=await e.get(`/partner/dashboard`);return t.data}});export{n as t};

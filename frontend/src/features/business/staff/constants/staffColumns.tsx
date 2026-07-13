@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Pencil, Power } from 'lucide-react';
+import { Pencil, Power, Eye } from 'lucide-react';
 import React from 'react';
 
 
@@ -12,10 +12,11 @@ interface StaffColumnActions {
   handleEdit: (e: React.MouseEvent, staffMember: StaffMember) => void;
   handleToggleStatus: (staffMember: StaffMember) => void;
   handlePermissions: (e: React.MouseEvent, staffMember: StaffMember) => void;
+  handleViewDetails: (e: React.MouseEvent, staffMember: StaffMember) => void;
   currentUser?: any;
 }
 
-export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissions, currentUser }: StaffColumnActions): ColumnDef<StaffMember>[] => [
+export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissions, handleViewDetails, currentUser }: StaffColumnActions): ColumnDef<StaffMember>[] => [
   {
     header: 'Name',
     accessorKey: 'name',
@@ -89,12 +90,26 @@ export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissi
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            onClick={(e) => handleEdit(e, item)}
+            onClick={(e) => handleViewDetails(e, item)}
+            title="View Details"
           >
-            <Pencil className="h-4 w-4 text-slate-500" />
+            <Eye className="h-4 w-4 text-slate-500 hover:text-slate-700" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => handleEdit(e, item)}
+            title="Edit Staff"
+          >
+            <Pencil className="h-4 w-4 text-slate-500 hover:text-slate-700" />
           </Button>
 
-          <div className="flex flex-col items-center justify-center" title={disableToggle ? "Cannot deactivate yourself or an admin" : "Toggle Active/Inactive"}>
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="flex flex-col items-center justify-center" 
+            title={disableToggle ? "Cannot deactivate yourself or an admin" : "Toggle Active/Inactive"}
+          >
             <Toggle
               label=""
               checked={item.status === 'active'}
