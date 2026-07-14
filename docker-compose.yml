@@ -5,7 +5,7 @@ services:
   db:
     image: postgres:16-alpine
     container_name: mobilecrm_db
-    restart: unless-stopped
+    restart: "no"
     environment:
       POSTGRES_DB: mobilecrm
       POSTGRES_USER: mobilecrm_user
@@ -21,7 +21,7 @@ services:
   redis:
     image: redis:alpine
     container_name: mobilecrm_redis
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "6379:6379"
     volumes:
@@ -33,7 +33,7 @@ services:
   adminer:
     image: adminer
     container_name: mobilecrm_adminer
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "8080:8080"
     networks:
@@ -45,7 +45,7 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: mobilecrm_backend_app
-    restart: unless-stopped
+    restart: "no"
     working_dir: /var/www/html
     volumes:
       - ./backend:/var/www/html
@@ -59,7 +59,7 @@ services:
   backend_web:
     image: nginx:alpine
     container_name: mobilecrm_backend_web
-    restart: unless-stopped
+    restart: "no"
     ports:
       - "8000:80"
     volumes:
@@ -76,7 +76,7 @@ services:
       context: .
       dockerfile: docker/php/Dockerfile
     container_name: mobilecrm_backend_queue
-    restart: unless-stopped
+    restart: "no"
     working_dir: /var/www/html
     volumes:
       - ./backend:/var/www/html

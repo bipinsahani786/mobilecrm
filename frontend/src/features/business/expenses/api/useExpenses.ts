@@ -26,11 +26,13 @@ export const useExpenses = (filters: Record<string, any> = {}) => {
   });
 };
 
-export const useExpenseAnalytics = () => {
+export const useExpenseAnalytics = (dateFilter: string = 'monthly') => {
   return useQuery({
-    queryKey: ['expense-analytics'],
+    queryKey: ['expense-analytics', dateFilter],
     queryFn: async () => {
-      const { data } = await api.get('/business/expenses/analytics');
+      const { data } = await api.get('/business/expenses/analytics', {
+        params: { date_filter: dateFilter }
+      });
       return data.data;
     },
   });

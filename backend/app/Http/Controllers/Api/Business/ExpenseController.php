@@ -201,10 +201,11 @@ class ExpenseController extends BaseController
             new OA\Response(response: 200, description: 'Successful operation')
         ]
     )]
-    public function analytics()
+    public function analytics(Request $request)
     {
         try {
-            $data = $this->expenseService->getAnalytics();
+            $dateFilter = $request->input('date_filter', 'monthly'); // daily, weekly, monthly, yearly
+            $data = $this->expenseService->getAnalytics($dateFilter);
             return $this->success($data, 'Analytics retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);

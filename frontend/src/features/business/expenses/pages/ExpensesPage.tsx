@@ -8,7 +8,7 @@ import { ExpenseAnalytics } from '../components/ExpenseAnalytics';
 import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useExpenseCategories } from '../api/useExpenses';
 import type { Expense } from '../schemas';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
-
+import { CustomSelect } from '@/components/ui/CustomSelect';
 const ExpensesPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -18,8 +18,50 @@ const ExpensesPage = () => {
   // Filters state
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const [dateFilter, setDateFilter] = useState('all'); // all, daily, weekly, monthly, yearly
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Calculate start and end dates based on dateFilter for the list query
+  const { listStartDate, listEndDate } = useMemo(() => {
+    const now = new Date();
+    const formatDate = (d: Date) => {
+      const offset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - offset).toISOString().split('T')[0];
+    };
+    
+    let start = '';
+    let end = '';
+    
+    switch (dateFilter) {
+      case 'daily':
+        start = formatDate(now);
+        end = start;
+        break;
+      case 'weekly':
+        const wStart = new Date(now);
+        wStart.setDate(wStart.getDate() - wStart.getDay());
+        start = formatDate(wStart);
+        end = formatDate(now);
+        break;
+      case 'yearly':
+        start = formatDate(new Date(now.getFullYear(), 0, 1));
+        end = formatDate(new Date(now.getFullYear(), 11, 31));
+        break;
+      case 'monthly':
+        start = formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+        end = formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
+        break;
+      case 'all':
+      default:
+        // Use manual dates if provided, else empty
+        start = startDate;
+        end = endDate;
+        break;
+    }
+    
+    return { listStartDate: start, listEndDate: end };
+  }, [dateFilter, startDate, endDate]);
 
   // Debounced search to prevent duplicate network calls
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -34,19 +76,19 @@ const ExpensesPage = () => {
   // Reset pagination on filter selections
   useEffect(() => {
     setPage(1);
-  }, [category, startDate, endDate]);
+  }, [category, dateFilter, startDate, endDate]);
 
   const filters = useMemo(() => ({
     page,
     search: debouncedSearch || undefined,
     category: category || undefined,
-    start_date: startDate || undefined,
-    end_date: endDate || undefined,
-  }), [page, debouncedSearch, category, startDate, endDate]);
+    start_date: listStartDate || undefined,
+    end_date: listEndDate || undefined,
+  }), [page, debouncedSearch, category, listStartDate, listEndDate]);
 
   const { data: expensesData, isLoading } = useExpenses(filters);
   const { data: categories = [] } = useExpenseCategories();
-  
+
   const createMutation = useCreateExpense();
   const updateMutation = useUpdateExpense();
   const deleteMutation = useDeleteExpense();
@@ -83,13 +125,14 @@ const ExpensesPage = () => {
   const handleClearFilters = () => {
     setSearch('');
     setCategory('');
+    setDateFilter('all');
     setStartDate('');
     setEndDate('');
   };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200 relative overflow-hidden">
-      
+
       {/* Massive Fintech Mesh Background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
@@ -97,15 +140,15 @@ const ExpensesPage = () => {
         <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] bg-emerald-500/10 dark:bg-emerald-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '9s', animationDelay: '1s' }} />
       </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6 relative z-10">
-        
-        <ExpenseAnalytics onRecordExpense={() => handleOpenModal()} />
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6 relative z-10">
+
+        <ExpenseAnalytics onRecordExpense={() => handleOpenModal()} dateFilter={dateFilter} />
 
         {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            {/* Search */}
-            <div className="relative flex-1">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1 items-center">
+            {/* Search - Small Width */}
+            <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
                 type="text"
@@ -118,28 +161,25 @@ const ExpensesPage = () => {
 
             {/* Category Filter */}
             <div className="w-full sm:w-48">
-              <select
+              <CustomSelect
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-              >
-                <option value="">All Categories</option>
-                {categories.map((c: any) => (
-                  <option key={c.id} value={c.name}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCategory(val)}
+                placeholder="All Categories"
+                options={[
+                  { value: '', label: 'All Categories' },
+                  ...categories.map((c: any) => ({ value: c.name, label: c.name }))
+                ]}
+              />
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-            {/* Date Range */}
+            {/* Manual Date Range */}
             <div className="flex items-center gap-2">
               <input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={(e) => { setStartDate(e.target.value); setDateFilter('all'); }}
                 className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
                 title="Start Date"
               />
@@ -147,14 +187,36 @@ const ExpensesPage = () => {
               <input
                 type="date"
                 value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                onChange={(e) => { setEndDate(e.target.value); setDateFilter('all'); }}
                 className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
                 title="End Date"
               />
             </div>
 
+            {/* Date Filter Dropdown */}
+            <div className="w-full sm:w-40 z-10">
+              <CustomSelect
+                value={dateFilter}
+                onChange={(val) => {
+                  setDateFilter(val);
+                  if (val !== 'all') {
+                    setStartDate('');
+                    setEndDate('');
+                  }
+                }}
+                placeholder="Time Filter"
+                options={[
+                  { value: 'all', label: 'All Time' },
+                  { value: 'daily', label: 'Daily' },
+                  { value: 'weekly', label: 'Weekly' },
+                  { value: 'monthly', label: 'Monthly' },
+                  { value: 'yearly', label: 'Yearly' },
+                ]}
+              />
+            </div>
+
             {/* Clear Filters */}
-            {(search || category || startDate || endDate) && (
+            {(search || category || dateFilter !== 'all' || startDate || endDate) && (
               <button
                 onClick={handleClearFilters}
                 className="h-10 px-4 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-all border border-rose-100 dark:border-rose-900/30 flex items-center justify-center gap-2"
@@ -167,8 +229,8 @@ const ExpensesPage = () => {
         </div>
 
         {/* Expenses List Table */}
-        <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden overflow-x-auto">
-          <ExpensesList 
+        <div className="bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/40 overflow-hidden overflow-x-auto">
+          <ExpensesList
             expenses={expensesData?.data || []}
             isLoading={isLoading}
             onEdit={handleOpenModal}
@@ -182,7 +244,7 @@ const ExpensesPage = () => {
         </div>
       </div>
 
-      <ExpenseModal 
+      <ExpenseModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         expense={editingExpense}

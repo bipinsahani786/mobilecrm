@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 export interface SearchableSelectOption {
   value: string | number;
   label: string;
+  description?: string;
+  searchString?: string;
 }
 
 export interface SearchableSelectProps {
@@ -37,9 +39,17 @@ export function SearchableSelect({
 
   const selectedOption = options.find((opt) => String(opt.value).toLowerCase() === String(value).toLowerCase());
 
-  const filteredOptions = options.filter((opt) =>
-    opt.label.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredOptions = options.filter((opt) => {
+    const term = search.toLowerCase();
+    const labelStr = opt.label ? String(opt.label).toLowerCase() : '';
+    const descStr = opt.description ? String(opt.description).toLowerCase() : '';
+    const searchStr = opt.searchString ? String(opt.searchString).toLowerCase() : '';
+    return (
+      labelStr.includes(term) ||
+      descStr.includes(term) ||
+      searchStr.includes(term)
+    );
+  });
 
   // Close when clicking outside
   useEffect(() => {
@@ -85,7 +95,7 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-[#fe7d02]/20 focus:border-[#fe7d02] disabled:cursor-not-allowed disabled:opacity-50 transition-all text-left shadow-sm font-medium",
+          "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all text-left shadow-sm font-medium",
           error && "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500",
           className
         )}
@@ -145,12 +155,15 @@ export function SearchableSelect({
                     className={cn(
                       "flex w-full items-center justify-between px-3 py-2 text-sm text-left rounded-lg font-medium transition-colors",
                       isSelected
-                        ? "bg-[#fe7d02]/10 text-[#fe7d02]"
+                        ? "bg-primary-500/10 text-primary-600 dark:text-primary-500"
                         : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5"
                     )}
                   >
-                    <span className="truncate">{opt.label}</span>
-                    {isSelected && <Check className="h-4 w-4 text-[#fe7d02] shrink-0" />}
+                    <div className="flex flex-col text-left max-w-[90%]">
+                      <span className="truncate">{opt.label}</span>
+                      {opt.description && <span className="text-[10px] text-slate-500 dark:text-slate-400 truncate mt-0.5">{opt.description}</span>}
+                    </div>
+                    {isSelected && <Check className="h-4 w-4 text-primary-500 shrink-0" />}
                   </button>
                 );
               })

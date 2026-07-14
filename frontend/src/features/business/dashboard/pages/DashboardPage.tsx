@@ -120,12 +120,14 @@ export default function DashboardPage() {
             value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
             icon={<IndianRupee />}
             glowColor="indigo"
+            onClick={() => navigate('/invoices')}
           />
           <CustomKpiCard
             title="Monthly Revenue"
             value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
             icon={<TrendingUp />}
             glowColor="emerald"
+            onClick={() => navigate('/invoices')}
           />
           <CustomKpiCard
             title="Pending Payments"

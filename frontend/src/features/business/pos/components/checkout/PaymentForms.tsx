@@ -3,6 +3,7 @@ import { Banknote, Smartphone, CreditCard, GitMerge, BarChart2, IndianRupee } fr
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/formatters';
 import { PAYMENT_MODES, COMMON_FINANCIERS, type PaymentMode } from '../../constants/index';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 interface PaymentFormsProps {
   paymentType: PaymentMode;
@@ -12,6 +13,8 @@ interface PaymentFormsProps {
   splitUpi: number;
   splitCard: number;
   finalAmount: number;
+  emiDownPaymentMode?: string;
+  setEmiDownPaymentMode?: (val: string) => void;
 }
 
 const paymentIcons: Record<string, React.ReactNode> = {
@@ -39,7 +42,7 @@ function AmountInput({ prefix = '₹', ...props }: any) {
   );
 }
 
-export function PaymentForms({ paymentType, setPaymentType, register, splitCash, splitUpi, splitCard, finalAmount }: PaymentFormsProps) {
+export function PaymentForms({ paymentType, setPaymentType, register, splitCash, splitUpi, splitCard, finalAmount, emiDownPaymentMode, setEmiDownPaymentMode }: PaymentFormsProps) {
   const splitTotal = Number(splitCash) + Number(splitUpi) + Number(splitCard);
   const splitOver  = splitTotal > finalAmount;
   const remaining  = finalAmount - splitTotal;
@@ -143,21 +146,56 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
             </div>
 
             <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <FieldLabel>Down Payment</FieldLabel>
-                <AmountInput type="number" {...register('emi_down_payment')} placeholder="0.00" />
+              <div className="col-span-2 space-y-2.5 border border-slate-200 dark:border-white/10 rounded-xl p-3 bg-white dark:bg-white/[0.02]">
+                <div className="flex gap-2.5">
+                  <div className="flex-1 min-w-[140px]">
+                    <FieldLabel>Down Pmt Mode</FieldLabel>
+                    <div className="mt-1">
+                      <SearchableSelect
+                        options={[
+                          { value: 'Cash', label: 'Cash' },
+                          { value: 'UPI', label: 'UPI' },
+                          { value: 'Split', label: 'Split (Cash + UPI)' }
+                        ]}
+                        value={emiDownPaymentMode || 'Cash'}
+                        onChange={(val) => setEmiDownPaymentMode && setEmiDownPaymentMode(String(val))}
+                        placeholder="Mode"
+                      />
+                    </div>
+                  </div>
+                  {emiDownPaymentMode !== 'Split' && (
+                    <div className="flex-1">
+                      <FieldLabel>Down Payment Amount</FieldLabel>
+                      <AmountInput type="number" {...register('emi_down_payment')} placeholder="0.00" />
+                    </div>
+                  )}
+                </div>
+
+                {emiDownPaymentMode === 'Split' && (
+                  <div className="flex gap-2.5 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <div className="flex-1">
+                      <FieldLabel>Cash Amount</FieldLabel>
+                      <AmountInput type="number" {...register('emi_cash_down')} placeholder="0.00" />
+                    </div>
+                    <div className="flex-1">
+                      <FieldLabel>UPI Amount</FieldLabel>
+                      <AmountInput type="number" {...register('emi_upi_down')} placeholder="0.00" />
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div>
                 <FieldLabel>Loan Amount</FieldLabel>
                 <AmountInput type="number" {...register('emi_loan_amount')} readOnly className="bg-primary-50 dark:bg-primary-500/10 font-bold text-primary-700 dark:text-primary-300 border-primary-200 dark:border-primary-500/30" />
               </div>
               <div>
-                <FieldLabel>Processing Fee</FieldLabel>
-                <AmountInput type="number" {...register('emi_processing_fee')} placeholder="0.00" />
-              </div>
-              <div>
                 <FieldLabel>Tenure (Months)</FieldLabel>
                 <Input type="number" {...register('emi_tenure')} placeholder="e.g. 6" className="h-9 text-sm" />
+              </div>
+              <div className="col-span-2">
+                <FieldLabel>Processing Fee</FieldLabel>
+                <AmountInput type="number" {...register('emi_processing_fee')} placeholder="0.00" />
               </div>
             </div>
 

@@ -92,13 +92,13 @@ export default function InventoryPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
-      <PageHeader 
-        icon={Package}
-        title="Inventory"
-        subtitle="Manage your products, stock, and pricing"
-      />
+      {/* Massive Fintech Mesh Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="relative w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6 z-10">
         
         {/* Premium Control Panel */}
         <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
@@ -147,7 +147,7 @@ export default function InventoryPage() {
         </div>
 
         {/* Filters & Data Table */}
-        <FilterContainer className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+        <FilterContainer className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
             <FilterSearch
               value={search}
@@ -201,7 +201,8 @@ export default function InventoryPage() {
           )}
         </FilterContainer>
 
-        <DataTable
+        <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/40 overflow-hidden relative z-20">
+          <DataTable
           data={products}
           renderSubComponent={(product) => {
             const activeBatches = (product.batches || []).filter((b: any) => b.remaining_quantity > 0);
@@ -285,6 +286,7 @@ export default function InventoryPage() {
           onPageChange={setPage}
           onPageSizeChange={(size) => { setPerPage(size); setPage(1); }}
         />
+        </div>
       </div>
 
       <InventoryFormModal 

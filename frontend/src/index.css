@@ -152,36 +152,100 @@
 
 /* Dashboard Floating Shapes */
 @keyframes floatY {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50%       { transform: translateY(-18px) rotate(6deg); }
-}
-@keyframes floatY2 {
-  0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
-  50%       { transform: translateY(14px) rotate(-8deg) scale(1.05); }
-}
-@keyframes floatY3 {
-  0%, 100% { transform: translateY(0px) rotate(45deg); }
-  50%       { transform: translateY(-10px) rotate(55deg); }
-}
-@keyframes spinSlow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-@keyframes pulseSlow {
-  0%, 100% { opacity: 0.35; transform: scale(1); }
-  50%       { opacity: 0.6;  transform: scale(1.08); }
-}
-@keyframes driftX {
-  0%, 100% { transform: translateX(0px); }
-  50%       { transform: translateX(20px); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-18px) rotate(6deg);
+  }
 }
 
-.animate-float   { animation: floatY    7s ease-in-out infinite; }
-.animate-float2  { animation: floatY2   9s ease-in-out infinite; }
-.animate-float3  { animation: floatY3   5s ease-in-out infinite; }
-.animate-spin-slow   { animation: spinSlow  20s linear   infinite; }
-.animate-pulse-slow  { animation: pulseSlow  4s ease-in-out infinite; }
-.animate-drift   { animation: driftX    8s ease-in-out infinite; }
+@keyframes floatY2 {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translateY(14px) rotate(-8deg) scale(1.05);
+  }
+}
+
+@keyframes floatY3 {
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(45deg);
+  }
+
+  50% {
+    transform: translateY(-10px) rotate(55deg);
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseSlow {
+
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes driftX {
+
+  0%,
+  100% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(20px);
+  }
+}
+
+.animate-float {
+  animation: floatY 7s ease-in-out infinite;
+}
+
+.animate-float2 {
+  animation: floatY2 9s ease-in-out infinite;
+}
+
+.animate-float3 {
+  animation: floatY3 5s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 20s linear infinite;
+}
+
+.animate-pulse-slow {
+  animation: pulseSlow 4s ease-in-out infinite;
+}
+
+.animate-drift {
+  animation: driftX 8s ease-in-out infinite;
+}
 
 /* Hide arrows/spin buttons from number inputs */
 input[type="number"]::-webkit-inner-spin-button,
@@ -192,4 +256,4 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"] {
   -moz-appearance: textfield;
-}
+}

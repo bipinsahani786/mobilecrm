@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { Plus, UserPlus, Users, Search, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 export default function CustomersPage() {
   const [page, setPage] = useState(1);
@@ -68,19 +69,19 @@ export default function CustomersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
-      <PageHeader
-        title="Customers"
-        subtitle="Manage your customers and their outstanding balances."
-        icon={Users}
-      />
+      {/* Massive Fintech Mesh Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute -top-[20%] -left-[10%] w-[60%] h-[60%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute top-[20%] -right-[10%] w-[50%] h-[50%] bg-primary-500/10 dark:bg-primary-500/20 blur-[120px] rounded-full mix-blend-multiply dark:mix-blend-screen animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="relative w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6 z-10">
         
         {/* Premium Control Panel */}
         <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1 max-w-3xl">
-              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+            <div className="grid grid-cols-2 gap-4 flex-1 max-w-2xl">
+              <div className="transition-transform hover:-translate-y-1 duration-300">
                 <CustomKpiCard
                   title="Total Customers"
                   value={totalCustomers}
@@ -89,7 +90,7 @@ export default function CustomersPage() {
                   subtitle="Total registered users"
                 />
               </div>
-              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+              <div className="transition-transform hover:-translate-y-1 duration-300">
                 <CustomKpiCard
                   title="Total Outstanding"
                   value={formatCurrency(totalUdhar)}
@@ -103,18 +104,17 @@ export default function CustomersPage() {
             <div className="flex-shrink-0 flex items-center justify-end px-2 sm:px-4">
               <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="group relative flex items-center gap-3 h-12 px-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 overflow-hidden"
+                className="group relative flex items-center justify-center gap-2 px-5 h-10 bg-primary-600 hover:bg-primary-700 text-white rounded-lg shadow-sm hover:shadow active:scale-95 transition-all duration-200"
               >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <Plus className="w-4 h-4 relative z-10" />
-                <span className="relative z-10">Add Customer</span>
+                <Plus className="w-4 h-4" />
+                <span className="font-semibold text-sm">Add Customer</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
             {/* Search */}
             <div className="relative flex-1">
@@ -130,15 +130,16 @@ export default function CustomersPage() {
 
             {/* Outstanding Balance Filter */}
             <div className="w-full sm:w-48">
-              <select
+              <CustomSelect
                 value={hasUdhar}
-                onChange={(e) => setHasUdhar(e.target.value)}
-                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-              >
-                <option value="">All Balances</option>
-                <option value="yes">Has Outstanding Dues</option>
-                <option value="no">No Outstanding Balance</option>
-              </select>
+                onChange={(val) => setHasUdhar(val)}
+                placeholder="All Balances"
+                options={[
+                  { value: '', label: 'All Balances' },
+                  { value: 'yes', label: 'Has Outstanding Dues' },
+                  { value: 'no', label: 'No Outstanding Balance' },
+                ]}
+              />
             </div>
           </div>
 
@@ -156,7 +157,7 @@ export default function CustomersPage() {
         </div>
 
         {/* Customers List Table */}
-        <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/40 overflow-hidden">
           {(!isLoading && customers.length === 0) ? (
             <EmptyState
               icon={<Users className="w-6 h-6" />}
