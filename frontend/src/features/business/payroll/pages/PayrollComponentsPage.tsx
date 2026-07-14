@@ -12,7 +12,7 @@ export default function PayrollComponentsPage() {
         subtitle="Manage dynamic salary earnings and deductions."
       />
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-white dark:bg-slate-900/50 p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+        <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-xl p-6 rounded-2xl border border-slate-200/60 dark:border-white/10 shadow-sm">
            <PayrollComponentsSettings />
         </div>
       </div>

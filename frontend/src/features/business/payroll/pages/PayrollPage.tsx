@@ -221,7 +221,7 @@ export default function PayrollPage() {
         </div>
 
         {/* Payroll Table */}
-        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm">
           <DataTable 
             columns={columns} 
             data={payrollsData?.data || []} 

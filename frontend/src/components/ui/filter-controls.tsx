@@ -155,7 +155,7 @@ export function FilterSelect({
           )}
 
           {/* Options List */}
-          <div className="overflow-y-auto max-h-48 py-1">
+          <div className="overflow-y-auto max-h-48 py-1 hide-scrollbar">
             {/* Default Placeholder Option (e.g. "ALL STATUSES") */}
             <div
               onClick={() => {

@@ -128,15 +128,15 @@ export function AttendanceMonthlyGrid({
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left">
-          <thead className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 text-xs uppercase text-slate-500 dark:text-slate-400">
+          <thead className="bg-slate-50 dark:bg-[#111118] border-b border-slate-200 dark:border-white/5 text-[10px] uppercase text-slate-500 dark:text-slate-400 tracking-widest">
             <tr>
-              <th className="px-4 py-3 font-semibold sticky left-0 bg-slate-50 dark:bg-[#18181b] z-10 min-w-[150px]">Staff Member</th>
+              <th className="px-4 py-3 font-black sticky left-0 bg-slate-50 dark:bg-[#111118] z-10 min-w-[150px]">Staff Member</th>
               {daysArray.map(day => (
                 <th key={day} className="px-2 py-3 text-center min-w-[40px] font-semibold">
                   {day}
                 </th>
               ))}
-              <th className="px-4 py-3 font-semibold text-center min-w-[120px] border-l border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-[#1f1f22]">Total (P/A/L)</th>
+              <th className="px-4 py-3 font-black text-center min-w-[120px] border-l border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-[#18181c]">Total (P/A/L)</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-white/5">

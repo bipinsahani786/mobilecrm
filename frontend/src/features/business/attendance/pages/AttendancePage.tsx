@@ -179,46 +179,62 @@ export default function AttendancePage() {
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
         
-        {/* KPI Cards (Full Width Row) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Present Days"
-              value={stats.presentCount}
-              icon={<UserCheck size={18} />}
-              glowColor="primary"
-              subtitle="Present records marked"
-            />
-          </div>
-          
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Pending Approval"
-              value={stats.pendingCount}
-              icon={<Clock size={18} />}
-              glowColor="primary"
-              subtitle="Awaiting authorization"
-            />
+        {/* KPI Cards (Theme Based) */}
+        <div className="flex gap-3 overflow-x-auto w-full pb-2 hide-scrollbar">
+          {/* Card 1 - Present Days */}
+          <div className="relative overflow-hidden flex items-center gap-3.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl px-6 py-3.5 min-w-[220px] shadow-lg shadow-primary-500/20 shrink-0 flex-1">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/20 rounded-full -mr-6 -mt-6 mix-blend-overlay" />
+            <div className="absolute bottom-0 right-10 w-10 h-10 bg-black/10 rounded-full -mb-3 mix-blend-overlay" />
+            
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white relative z-10 border border-white/20 shrink-0">
+              <UserCheck className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <p className="text-[11px] font-bold text-primary-100 uppercase tracking-widest drop-shadow-sm">Present Days</p>
+              <p className="text-base font-black text-white leading-tight drop-shadow-sm">{stats.presentCount}</p>
+            </div>
           </div>
 
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Outside Geofence"
-              value={stats.geofenceOutCount}
-              icon={<ShieldAlert size={18} />}
-              glowColor="primary"
-              subtitle="Flagged coordinates"
-            />
+          {/* Card 2 - Pending Approval */}
+          <div className="relative overflow-hidden flex items-center gap-3.5 bg-gradient-to-br from-primary-600 to-primary-700 rounded-2xl px-6 py-3.5 min-w-[220px] shadow-lg shadow-primary-600/20 shrink-0 flex-1">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-white/10 rotate-45 mix-blend-overlay" />
+            <div className="absolute -bottom-5 -left-5 w-16 h-16 bg-white/20 rounded-full mix-blend-overlay" />
+
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white relative z-10 border border-white/20 shrink-0">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <p className="text-[11px] font-bold text-primary-100 uppercase tracking-widest drop-shadow-sm">Pending Approval</p>
+              <p className="text-base font-black text-white leading-tight drop-shadow-sm">{stats.pendingCount}</p>
+            </div>
           </div>
 
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Absent/Leave"
-              value={stats.absentLeaveCount}
-              icon={<Calendar size={18} />}
-              glowColor="primary"
-              subtitle="Non-working entries"
-            />
+          {/* Card 3 - Outside Geofence */}
+          <div className="relative overflow-hidden flex items-center gap-3.5 bg-gradient-to-br from-primary-400 to-primary-500 rounded-2xl px-6 py-3.5 min-w-[220px] shadow-lg shadow-primary-400/20 shrink-0 flex-1">
+            <div className="absolute top-0 right-0 w-0 h-0 border-l-[80px] border-l-transparent border-t-[80px] border-white/20 mix-blend-overlay" />
+            <div className="absolute bottom-0 right-1/4 w-12 h-12 bg-black/10 rounded-full -mb-5 mix-blend-overlay" />
+
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white relative z-10 border border-white/20 shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <p className="text-[11px] font-bold text-primary-100 uppercase tracking-widest drop-shadow-sm">Outside Geofence</p>
+              <p className="text-base font-black text-white leading-tight drop-shadow-sm">{stats.geofenceOutCount}</p>
+            </div>
+          </div>
+
+          {/* Card 4 - Absent/Leave */}
+          <div className="relative overflow-hidden flex items-center gap-3.5 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl px-6 py-3.5 min-w-[220px] shadow-lg shadow-primary-500/20 shrink-0 flex-1">
+            <div className="absolute -top-6 -right-6 w-24 h-24 border-4 border-white/10 rounded-full mix-blend-overlay" />
+            <div className="absolute -bottom-4 -left-4 w-16 h-16 border-4 border-white/10 rounded-full mix-blend-overlay" />
+
+            <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white relative z-10 border border-white/20 shrink-0">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <p className="text-[11px] font-bold text-primary-100 uppercase tracking-widest drop-shadow-sm">Absent/Leave</p>
+              <p className="text-base font-black text-white leading-tight drop-shadow-sm">{stats.absentLeaveCount}</p>
+            </div>
           </div>
         </div>
 
@@ -255,18 +271,18 @@ export default function AttendancePage() {
                     type="date" 
                     value={dateRange.from} 
                     onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm"
+                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
                   />
                 </div>
                 <div className="w-full sm:w-48 shrink-0">
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-450 dark:text-slate-500 mb-1.5">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
                     To Date
                   </label>
                   <input 
                     type="date" 
                     value={dateRange.to} 
                     onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm"
+                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
                   />
                 </div>
               </div>
@@ -279,7 +295,7 @@ export default function AttendancePage() {
                   type="month" 
                   value={selectedMonth} 
                   onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm"
+                  className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
                 />
               </div>
             )}
@@ -294,7 +310,7 @@ export default function AttendancePage() {
             <div className="flex flex-wrap items-center gap-2">
               <button 
                 onClick={handleExport}
-                className="inline-flex items-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-primary-500" />
                 <span>Export</span>
@@ -302,7 +318,7 @@ export default function AttendancePage() {
 
               <button 
                 onClick={() => setIsImportOpen(true)}
-                className="inline-flex items-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-primary-500" />
                 <span>Import</span>
@@ -311,7 +327,7 @@ export default function AttendancePage() {
               {isManager && (
                 <button 
                   onClick={() => setIsMarkOpen(true)}
-                  className="inline-flex items-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                  className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
                 >
                   <UserCheck className="w-3.5 h-3.5 text-primary-500" />
                   <span>Mark Manual</span>
@@ -320,7 +336,7 @@ export default function AttendancePage() {
 
               <button 
                 onClick={() => setIsCheckInOpen(true)}
-                className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer"
+                className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer"
               >
                 <Clock className="w-3.5 h-3.5 text-white" />
                 <span>Self Check In</span>

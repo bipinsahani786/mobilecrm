@@ -97,7 +97,7 @@ export function CustomSelect({
               No options available
             </div>
           ) : (
-            <div className="py-1">
+            <div className="py-1 max-h-60 overflow-y-auto hide-scrollbar">
               {options.map(opt => {
                 const isSelected = opt.value === value;
                 return (
