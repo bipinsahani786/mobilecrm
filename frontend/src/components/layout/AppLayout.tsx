@@ -12,6 +12,7 @@ export function AppLayout() {
   const isSemiDark = theme === 'semi-dark';
   const { fetchBusinesses, activeBusiness } = useTenantStore();
   const updateUser = useAuthStore(state => state.updateUser);
+  const setProfileLoading = useAuthStore(state => state.setProfileLoading);
 
   useEffect(() => {
     fetchBusinesses();
@@ -20,13 +21,18 @@ export function AppLayout() {
   // When active business changes, re-fetch profile to get tenant-specific roles
   useEffect(() => {
     if (activeBusiness) {
+      setProfileLoading(true);
       import('@/lib/api').then(({ default: api }) => {
         api.get('/profile').then(res => {
           updateUser(res.data.data);
-        }).catch(err => console.error("Failed to fetch profile", err));
+          setProfileLoading(false);
+        }).catch(err => {
+          console.error("Failed to fetch profile", err);
+          setProfileLoading(false);
+        });
       });
     }
-  }, [activeBusiness?.id, updateUser]);
+  }, [activeBusiness?.id, updateUser, setProfileLoading]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#09090b] text-slate-800 dark:text-white font-sans selection:bg-primary-500 selection:text-white transition-colors duration-300 print:block print:h-auto print:overflow-visible print:bg-white">

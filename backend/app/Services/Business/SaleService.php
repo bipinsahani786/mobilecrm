@@ -10,9 +10,10 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    public function getSales($perPage = 15, $search = null, $paymentMode = null, $startDate = null, $endDate = null)
+    public function getSales($perPage = 15, $search = null, $paymentMode = null, $startDate = null, $endDate = null, $hasUdhar = null)
     {
         $query = Sale::with(['customer', 'user', 'items.product', 'payments', 'emiDetail'])
+            ->where('invoice_number', 'not like', 'UDH-%')
             ->orderByDesc('created_at');
 
         if ($search) {
@@ -35,6 +36,16 @@ class SaleService
 
         if ($endDate) {
             $query->whereDate('date', '<=', $endDate);
+        }
+
+        if ($hasUdhar === 'yes') {
+            $query->whereHas('payments', function ($pq) {
+                $pq->where('payment_mode', 'Udhar');
+            });
+        } elseif ($hasUdhar === 'no') {
+            $query->whereDoesntHave('payments', function ($pq) {
+                $pq->where('payment_mode', 'Udhar');
+            });
         }
 
         return $query->paginate($perPage);
@@ -131,10 +142,36 @@ class SaleService
             // Create Split Payments
             if (!empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
+                    $notes = $payment['notes'] ?? null;
+                    
+                    if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
+                        $linkCustomerId = $payment['link_customer_id'];
+                        $linkCust = \App\Models\Customer::find($linkCustomerId);
+                        $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+                        
+                        $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
+                        
+                        Sale::create([
+                            'business_id' => $sale->business_id,
+                            'customer_id' => $linkCustomerId,
+                            'user_id' => $sale->user_id,
+                            'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
+                            'total_amount' => $payment['amount'],
+                            'discount' => 0,
+                            'round_off' => 0,
+                            'final_amount' => $payment['amount'],
+                            'paid_amount' => 0,
+                            'payment_mode' => 'Udhar',
+                            'date' => $sale->date,
+                            'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
+                            'status' => 'completed',
+                        ]);
+                    }
+
                     $sale->payments()->create([
                         'payment_mode' => $payment['payment_mode'],
                         'amount' => $payment['amount'],
-                        'notes' => $payment['notes'] ?? null,
+                        'notes' => $notes,
                     ]);
                 }
             }
@@ -230,6 +267,7 @@ class SaleService
             // Delete old related records
             $sale->items()->delete();
             $sale->payments()->delete();
+            Sale::where('notes', 'like', "%(Invoice: {$sale->invoice_number})%")->delete();
             if ($sale->emiDetail) {
                 $sale->emiDetail->installments()->delete();
                 $sale->emiDetail()->delete();
@@ -308,10 +346,36 @@ class SaleService
             // 4. Create New Split Payments
             if (!empty($data['payments'])) {
                 foreach ($data['payments'] as $payment) {
+                    $notes = $payment['notes'] ?? null;
+                    
+                    if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
+                        $linkCustomerId = $payment['link_customer_id'];
+                        $linkCust = \App\Models\Customer::find($linkCustomerId);
+                        $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+                        
+                        $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
+                        
+                        Sale::create([
+                            'business_id' => $sale->business_id,
+                            'customer_id' => $linkCustomerId,
+                            'user_id' => $sale->user_id,
+                            'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
+                            'total_amount' => $payment['amount'],
+                            'discount' => 0,
+                            'round_off' => 0,
+                            'final_amount' => $payment['amount'],
+                            'paid_amount' => 0,
+                            'payment_mode' => 'Udhar',
+                            'date' => $sale->date,
+                            'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
+                            'status' => 'completed',
+                        ]);
+                    }
+
                     $sale->payments()->create([
                         'payment_mode' => $payment['payment_mode'],
                         'amount' => $payment['amount'],
-                        'notes' => $payment['notes'] ?? null,
+                        'notes' => $notes,
                     ]);
                 }
             }

@@ -17,14 +17,22 @@ class DashboardController extends Controller
         $thisMonth = Carbon::now()->startOfMonth();
 
         // 1. Today's Sales
-        $todaySales = Sale::whereDate('date', $today)->sum('final_amount');
+        $todaySales = Sale::whereDate('date', $today)
+            ->where('invoice_number', 'not like', 'UDH-%')
+            ->sum('final_amount');
 
         // 2. This Month's Revenue
-        $monthlyRevenue = Sale::where('date', '>=', $thisMonth)->sum('final_amount');
+        $monthlyRevenue = Sale::where('date', '>=', $thisMonth)
+            ->where('invoice_number', 'not like', 'UDH-%')
+            ->sum('final_amount');
 
         // 3. Pending Payments (Expected)
-        $pendingPayments = Sale::whereIn('status', ['pending', 'partial'])->sum('final_amount') 
-                         - Sale::whereIn('status', ['pending', 'partial'])->sum('paid_amount');
+        $pendingPayments = Sale::whereIn('status', ['pending', 'partial'])
+                            ->where('invoice_number', 'not like', 'UDH-%')
+                            ->sum('final_amount') 
+                         - Sale::whereIn('status', ['pending', 'partial'])
+                            ->where('invoice_number', 'not like', 'UDH-%')
+                            ->sum('paid_amount');
 
         // 4. Staff Attendance (Today)
         $activeStaffCount = User::whereHas('businesses', function($q) {
@@ -37,6 +45,7 @@ class DashboardController extends Controller
 
         // 5. Recent Sales (Last 5)
         $recentSales = Sale::with(['customer', 'user'])
+            ->where('invoice_number', 'not like', 'UDH-%')
             ->orderBy('date', 'desc')
             ->orderBy('id', 'desc')
             ->limit(5)

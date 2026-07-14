@@ -37,8 +37,9 @@ class SaleController extends BaseController
             $paymentMode = $request->input('payment_mode');
             $startDate = $request->input('start_date');
             $endDate = $request->input('end_date');
+            $hasUdhar = $request->input('has_udhar');
 
-            $paginator = $this->saleService->getSales($perPage, $search, $paymentMode, $startDate, $endDate);
+            $paginator = $this->saleService->getSales($perPage, $search, $paymentMode, $startDate, $endDate, $hasUdhar);
             return $this->paginated($paginator, 'Sales retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -124,6 +125,7 @@ class SaleController extends BaseController
             'payments.*.payment_mode' => 'required|string',
             'payments.*.amount' => 'required|numeric|min:0',
             'payments.*.notes' => 'nullable|string',
+            'payments.*.link_customer_id' => 'nullable|integer|exists:customers,id',
 
             // EMI Detail
             'emi_detail' => 'nullable|array',
@@ -202,6 +204,7 @@ class SaleController extends BaseController
             'payments.*.payment_mode' => 'required|string',
             'payments.*.amount' => 'required|numeric|min:0',
             'payments.*.notes' => 'nullable|string',
+            'payments.*.link_customer_id' => 'nullable|integer|exists:customers,id',
 
             // EMI Detail
             'emi_detail' => 'nullable|array',
