@@ -18,8 +18,8 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      theme: 'semi-dark',
-      primaryColor: 'orange',
+      theme: 'light',
+      primaryColor: 'teal',
       fontFamily: 'inter',
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set((state) => ({ theme: (state.theme === 'dark' || state.theme === 'semi-dark') ? 'light' : 'dark' })),
@@ -27,7 +27,7 @@ export const useThemeStore = create<ThemeState>()(
       setFontFamily: (font) => set({ fontFamily: font }),
     }),
     {
-      name: 'theme-storage',
+      name: 'theme-storage-v2',
     }
   )
 );

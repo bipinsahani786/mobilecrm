@@ -6,7 +6,7 @@ import { useCreateSale } from '../api/useSales';
 import { useCustomers, useCreateCustomer } from '../../customers/api/useCustomers';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { CustomSelect } from '@/components/ui/CustomSelect';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { OrderSummary } from './checkout/OrderSummary';
 import { PaymentForms } from './checkout/PaymentForms';
 import type { PaymentMode } from '../constants/index';
@@ -62,8 +62,16 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
   const splitUpi  = watch('split_upi')  || 0;
   const splitCard = watch('split_card') || 0;
 
-  const emiDownPayment = watch('emi_down_payment') || 0;
-  const emiTenure      = watch('emi_tenure')       || 0;
+  const emiDownPaymentMode = watch('emi_down_payment_mode') || 'Cash';
+  const emiCashDown = watch('emi_cash_down') || 0;
+  const emiUpiDown  = watch('emi_upi_down')  || 0;
+  const emiSingleDown = watch('emi_down_payment') || 0;
+  
+  const emiDownPayment = emiDownPaymentMode === 'Split' 
+    ? Number(emiCashDown) + Number(emiUpiDown) 
+    : Number(emiSingleDown);
+    
+  const emiTenure = watch('emi_tenure') || 0;
 
   useEffect(() => {
     if (isOpen) { setValue('discount', 0); setValue('round_off', 0); setPaymentType('cash'); }
@@ -110,8 +118,17 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
     } else if (paymentType === 'emi') {
       payload.payment_mode = 'EMI';
       payload.payments = [];
-      if (Number(emiDownPayment) > 0)
-        payload.payments.push({ payment_mode: 'Cash', amount: Number(emiDownPayment), notes: 'EMI Down Payment' });
+      
+      if (emiDownPaymentMode === 'Split') {
+        if (Number(emiCashDown) > 0)
+          payload.payments.push({ payment_mode: 'Cash', amount: Number(emiCashDown), notes: 'EMI Down Payment (Cash)' });
+        if (Number(emiUpiDown) > 0)
+          payload.payments.push({ payment_mode: 'UPI', amount: Number(emiUpiDown), notes: 'EMI Down Payment (UPI)' });
+      } else {
+        if (emiDownPayment > 0)
+          payload.payments.push({ payment_mode: emiDownPaymentMode, amount: emiDownPayment, notes: `EMI Down Payment (${emiDownPaymentMode})` });
+      }
+
       payload.emi_detail = {
         financier_name: data.emi_financier,
         down_payment: Number(emiDownPayment),
@@ -134,13 +151,14 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
 
   if (!isOpen) return null;
 
-  // Build customer options for CustomSelect
+  // Build customer options for SearchableSelect
   const customerOptions = [
     { value: '', label: '— Walk-in Customer —' },
     ...customers.map((c: any) => ({
       value: String(c.id),
       label: c.name,
-      description: c.phone || undefined,
+      description: c.phone ? `📞 ${c.phone}` : 'No phone',
+      searchString: `${c.name} ${c.phone || ''} ${c.address || ''}`,
     })),
   ];
 
@@ -173,11 +191,11 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
                 </button>
               </div>
 
-              <CustomSelect
+              <SearchableSelect
                 value={selectedCustomerId}
-                onChange={setSelectedCustomerId}
+                onChange={(val) => setSelectedCustomerId(String(val))}
                 options={customerOptions}
-                placeholder="Walk-in Customer"
+                placeholder="Search Customer by Name, Phone, or Address..."
               />
 
               {/* Quick Add Form */}
@@ -230,6 +248,8 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
               splitUpi={splitUpi}
               splitCard={splitCard}
               finalAmount={finalAmount}
+              emiDownPaymentMode={emiDownPaymentMode}
+              setEmiDownPaymentMode={(val) => setValue('emi_down_payment_mode', val)}
             />
           </div>
         </div>

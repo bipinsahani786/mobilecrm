@@ -10,6 +10,7 @@ import { MarkReceivedModal } from '../components/MarkReceivedModal';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { formatCurrency } from '@/lib/formatters';
 import type { EmiDetail } from '../schemas/financeSchema';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 export default function FinanceLedgerPage() {
   const [activeTab, setActiveTab] = useState<'pending' | 'completed'>('pending');
@@ -77,19 +78,23 @@ export default function FinanceLedgerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#09090b] text-slate-900 dark:text-slate-200">
-      <PageHeader
-        title="Finance Ledger"
-        subtitle="Track pending payouts from EMI financiers like Bajaj and TVS."
-        icon={Wallet}
-      />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f] text-slate-900 dark:text-slate-200 relative">
+      
+      {/* Background Shapes */}
+      <div className="absolute top-0 left-0 w-full h-[500px] overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-[100px] animate-float" />
+        <div className="absolute top-20 right-1/4 w-[400px] h-[400px] bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-[100px] animate-float2" />
+      </div>
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="relative w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6 z-20">
         
         {/* KPI Analytics Cards */}
         <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
           <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+            <div 
+              className={`flex-1 transition-all hover:-translate-y-1 duration-300 cursor-pointer ${activeTab === 'pending' ? 'ring-2 ring-primary-500 rounded-2xl' : 'opacity-80 hover:opacity-100'}`}
+              onClick={() => { setActiveTab('pending'); setPage(1); }}
+            >
               <CustomKpiCard
                 title="Pending Payouts"
                 value={pendingResponse?.meta?.total || 0}
@@ -98,7 +103,10 @@ export default function FinanceLedgerPage() {
                 subtitle="Awaiting financier clearance"
               />
             </div>
-            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+            <div 
+              className={`flex-1 transition-all hover:-translate-y-1 duration-300 cursor-pointer ${activeTab === 'pending' ? 'ring-2 ring-primary-500 rounded-2xl' : 'opacity-80 hover:opacity-100'}`}
+              onClick={() => { setActiveTab('pending'); setPage(1); }}
+            >
               <CustomKpiCard
                 title="Expected Payout (This Page)"
                 value={formatCurrency(
@@ -112,7 +120,10 @@ export default function FinanceLedgerPage() {
                 subtitle="Clearance value pending"
               />
             </div>
-            <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+            <div 
+              className={`flex-1 transition-all hover:-translate-y-1 duration-300 cursor-pointer ${activeTab === 'completed' ? 'ring-2 ring-primary-500 rounded-2xl' : 'opacity-80 hover:opacity-100'}`}
+              onClick={() => { setActiveTab('completed'); setPage(1); }}
+            >
               <CustomKpiCard
                 title="Completed Payouts"
                 value={completedResponse?.meta?.total || 0}
@@ -125,7 +136,7 @@ export default function FinanceLedgerPage() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
             {/* Search */}
             <div className="relative flex-1">
@@ -141,19 +152,20 @@ export default function FinanceLedgerPage() {
 
             {/* Financier Filter */}
             <div className="w-full sm:w-48">
-              <select
+              <CustomSelect
                 value={financier}
-                onChange={(e) => setFinancier(e.target.value)}
-                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-              >
-                <option value="">All Financiers</option>
-                <option value="Bajaj Finserv">Bajaj Finserv</option>
-                <option value="TVS Credit">TVS Credit</option>
-                <option value="HDB Financial">HDB Financial</option>
-                <option value="Home Credit">Home Credit</option>
-                <option value="IDFC First Bank">IDFC First Bank</option>
-                <option value="Pine Labs">Pine Labs</option>
-              </select>
+                onChange={(val) => setFinancier(val)}
+                placeholder="All Financiers"
+                options={[
+                  { value: '', label: 'All Financiers' },
+                  { value: 'Bajaj Finserv', label: 'Bajaj Finserv' },
+                  { value: 'TVS Credit', label: 'TVS Credit' },
+                  { value: 'HDB Financial', label: 'HDB Financial' },
+                  { value: 'Home Credit', label: 'Home Credit' },
+                  { value: 'IDFC First Bank', label: 'IDFC First Bank' },
+                  { value: 'Pine Labs', label: 'Pine Labs' },
+                ]}
+              />
             </div>
           </div>
 
@@ -191,7 +203,7 @@ export default function FinanceLedgerPage() {
         </div>
 
         {/* Data Table */}
-        <div className="bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/20 dark:shadow-black/40 overflow-hidden">
           <div className="flex border-b border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01]">
             <button
               onClick={() => { setActiveTab('pending'); setPage(1); }}

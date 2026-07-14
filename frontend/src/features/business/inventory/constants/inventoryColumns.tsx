@@ -46,7 +46,11 @@ export const getInventoryColumns = ({ onEdit, onDelete, onAddStock }: InventoryC
       const totalStock = activeBatches.reduce((sum: number, b: any) => sum + b.remaining_quantity, 0) || item.quantity;
       return (
         <div className="flex flex-col gap-1.5 items-start">
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-bold bg-amber-50 text-amber-600 border-amber-200">
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 font-bold ${
+            totalStock <= 10 
+              ? 'bg-rose-50 text-rose-600 border-rose-200 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20' 
+              : 'bg-amber-50 text-amber-600 border-amber-200 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20'
+          }`}>
             {totalStock} UNITS
           </Badge>
         </div>

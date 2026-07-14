@@ -1,11 +1,12 @@
 import React from "react";
 
-export function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
+export function CustomKpiCard({ title, value, subtitle, icon, glowColor, onClick }: {
   title: string;
   value: string | number;
   subtitle?: string;
   icon: React.ReactNode;
   glowColor: 'blue' | 'emerald' | 'indigo' | 'purple' | 'amber' | 'rose' | 'cyan' | 'primary';
+  onClick?: () => void;
 }) {
   const colorMap: Record<string, { bg: string; ring: string; iconBg: string; shape1: string; shape2: string; glow: string }> = {
     primary: {
@@ -78,8 +79,9 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor }: {
 
   return (
     <div
+      onClick={onClick}
       className={`
-        relative overflow-hidden group cursor-default
+        relative overflow-hidden group ${onClick ? 'cursor-pointer' : 'cursor-default'}
         rounded-2xl ring-1 ${colors.ring}
         shadow-lg ${colors.glow} hover:shadow-2xl
         hover:-translate-y-1 hover:scale-[1.015]

@@ -120,12 +120,14 @@ export default function DashboardPage() {
             value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
             icon={<IndianRupee />}
             glowColor="indigo"
+            onClick={() => navigate('/invoices')}
           />
           <CustomKpiCard
             title="Monthly Revenue"
             value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
             icon={<TrendingUp />}
             glowColor="emerald"
+            onClick={() => navigate('/invoices')}
           />
           <CustomKpiCard
             title="Pending Payments"
@@ -297,10 +299,12 @@ export default function DashboardPage() {
               </div>
               <div className="p-3 grid grid-cols-2 gap-2">
                 {[
-                  { label: 'New Sale',     icon: IndianRupee, href: '/pos',        color: 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400' },
-                  { label: 'Customers',   icon: Users,        href: '/customers',   color: 'bg-blue-50    dark:bg-blue-500/10    text-blue-600    dark:text-blue-400'    },
-                  { label: 'Inventory',   icon: Receipt,      href: '/items',       color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-                  { label: 'Reports',     icon: BarChart3,    href: '/reports/staff-performance', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+                  { label: 'New Sale',    icon: IndianRupee, href: '/pos',        color: 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400' },
+                  { label: 'Add Staff',   icon: Users,       href: '/staff',      color: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+                  { label: 'Customers',   icon: Users,       href: '/customers',  color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+                  { label: 'Inventory',   icon: Receipt,     href: '/items',      color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+                  { label: 'Expenses',    icon: Receipt,     href: '/expenses',   color: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+                  { label: 'Reports',     icon: BarChart3,   href: '/reports/staff-performance', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
                 ].map(({ label, icon: Icon, href, color }) => (
                   <button
                     key={label}
@@ -310,7 +314,7 @@ export default function DashboardPage() {
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform duration-200`}>
                       <Icon className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">{label}</span>
+                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase tracking-wider">{label}</span>
                   </button>
                 ))}
               </div>

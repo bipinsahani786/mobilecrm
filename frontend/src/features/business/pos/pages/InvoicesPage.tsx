@@ -9,6 +9,7 @@ import { TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { getInvoiceColumns } from '../constants/invoiceColumns';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { formatCurrency } from '@/lib/formatters';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 export default function InvoicesPage() {
   const [page, setPage] = useState(1);
@@ -69,7 +70,7 @@ export default function InvoicesPage() {
         <div className="absolute top-20 right-1/4 w-[400px] h-[400px] bg-emerald-500/10 dark:bg-emerald-500/5 rounded-full blur-[100px] animate-float2" />
       </div>
 
-      <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 pt-8 mb-8 space-y-6 z-20">
+      <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6 z-20">
         
         {/* Premium Control Panel */}
         <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
@@ -109,7 +110,7 @@ export default function InvoicesPage() {
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
+        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
           <div className="flex flex-col sm:flex-row gap-3 flex-1">
             {/* Search */}
             <div className="relative flex-1">
@@ -125,16 +126,17 @@ export default function InvoicesPage() {
 
             {/* Payment Mode */}
             <div className="w-full sm:w-44">
-              <select
+              <CustomSelect
                 value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
-                className="w-full h-10 px-3 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-              >
-                <option value="">All Payment Modes</option>
-                <option value="Cash">Cash</option>
-                <option value="Split">Split</option>
-                <option value="EMI">EMI / Finance</option>
-              </select>
+                onChange={(val) => setPaymentMode(val)}
+                placeholder="All Payment Modes"
+                options={[
+                  { value: '', label: 'All Payment Modes' },
+                  { value: 'Cash', label: 'Cash' },
+                  { value: 'Split', label: 'Split' },
+                  { value: 'EMI', label: 'EMI / Finance' },
+                ]}
+              />
             </div>
           </div>
 

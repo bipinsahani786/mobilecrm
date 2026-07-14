@@ -118,15 +118,19 @@ class ExpenseService
     /**
      * Get expense analytics
      */
-    public function getAnalytics(): array
+    public function getAnalytics(string $dateFilter = 'monthly'): array
     {
         $now = now();
         $startOfThisMonth = $now->copy()->startOfMonth();
         $startOfLastMonth = $now->copy()->subMonth()->startOfMonth();
         $endOfLastMonth = $now->copy()->subMonth()->endOfMonth();
+        
+        $todayStr = $now->format('Y-m-d');
 
         // Since TenantScope automatically applies business_id, we just query Expense directly
         $totalAllTime = Expense::sum('amount') ?? 0;
+        
+        $totalToday = Expense::whereDate('expense_date', $todayStr)->sum('amount') ?? 0;
         
         $totalThisMonth = Expense::where('expense_date', '>=', $startOfThisMonth)->sum('amount') ?? 0;
         
@@ -139,15 +143,32 @@ class ExpenseService
             $percentChange = 100;
         }
 
-        // Breakdown for current month
-        $categoryBreakdown = Expense::where('expense_date', '>=', $startOfThisMonth)
-            ->selectRaw('category as name, SUM(amount) as value')
+        // Breakdown based on filter
+        $query = Expense::query();
+        switch ($dateFilter) {
+            case 'daily':
+                $query->whereDate('expense_date', $todayStr);
+                break;
+            case 'weekly':
+                $query->whereBetween('expense_date', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()]);
+                break;
+            case 'yearly':
+                $query->whereYear('expense_date', $now->year);
+                break;
+            case 'monthly':
+            default:
+                $query->whereBetween('expense_date', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()]);
+                break;
+        }
+
+        $categoryBreakdown = $query->selectRaw('category as name, SUM(amount) as value')
             ->groupBy('category')
             ->orderByDesc('value')
             ->get();
 
         return [
             'total_all_time' => (float) $totalAllTime,
+            'total_today' => (float) $totalToday,
             'total_this_month' => (float) $totalThisMonth,
             'total_last_month' => (float) $totalLastMonth,
             'percent_change' => round((float) $percentChange, 1),

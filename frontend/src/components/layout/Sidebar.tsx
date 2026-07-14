@@ -248,7 +248,7 @@ export function Sidebar({ className }: { className?: string }) {
 
       <div className={cn(
         "fixed lg:static inset-y-0 left-0 h-screen bg-white dark:bg-[#09090b] border-r border-slate-200 dark:border-white/5 flex-col shadow-2xl lg:shadow-sm z-50 shrink-0 transition-all duration-300 ease-in-out flex",
-        isSidebarCollapsed ? "w-[240px] lg:w-[80px] -translate-x-full lg:translate-x-0" : "w-[240px] translate-x-0",
+        isSidebarCollapsed ? "w-[210px] lg:w-[80px] -translate-x-full lg:translate-x-0" : "w-[210px] translate-x-0",
         className
       )}>
         {/* Brand */}
@@ -297,7 +297,7 @@ export function Sidebar({ className }: { className?: string }) {
                       <Link
                         to={item.href}
                         className={cn(
-                          "relative flex items-center text-[11px] font-semibold tracking-[0.06em] transition-all duration-200 group overflow-hidden",
+                          "relative flex items-center text-[10px] font-semibold tracking-[0.05em] transition-all duration-200 group overflow-hidden",
                           isSidebarCollapsed
                             ? "justify-center w-10 h-10 mx-auto rounded-xl"
                             : "py-2.5 px-3 rounded-xl",
@@ -305,7 +305,7 @@ export function Sidebar({ className }: { className?: string }) {
                             ? isSidebarCollapsed
                               ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
                               : "bg-primary-500 text-white shadow-md shadow-primary-500/25"
-                            : "text-slate-700 dark:text-slate-350 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
+                            : "text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
                         )}
                       >
                         {/* Active left bar — only in expanded mode */}
@@ -321,11 +321,11 @@ export function Sidebar({ className }: { className?: string }) {
                         <item.icon
                           strokeWidth={isActive ? 2.5 : 1.75}
                           className={cn(
-                            "flex-shrink-0 h-[17px] w-[17px] transition-all duration-200 relative z-10",
+                            "flex-shrink-0 h-[15px] w-[15px] transition-all duration-200 relative z-10",
                             isSidebarCollapsed ? "mx-auto" : "mr-2.5",
                             isActive
                               ? "text-white drop-shadow-sm"
-                              : "text-slate-600 dark:text-slate-400 group-hover:text-primary-500 group-hover:scale-110"
+                              : "text-slate-600 dark:text-slate-300 group-hover:text-primary-500 group-hover:scale-110"
                           )}
                         />
                         {!isSidebarCollapsed && (
@@ -356,7 +356,7 @@ export function Sidebar({ className }: { className?: string }) {
             <button
               onClick={() => useAuthStore.getState().logout()}
               className={cn(
-                "relative flex items-center w-full text-[11px] font-semibold tracking-[0.06em] transition-all duration-200 group overflow-hidden",
+                "relative flex items-center w-full text-[10px] font-semibold tracking-[0.05em] transition-all duration-200 group overflow-hidden",
                 "text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300",
                 "hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl",
                 isSidebarCollapsed ? "justify-center w-10 h-10 mx-auto" : "py-2.5 px-3"
@@ -366,7 +366,7 @@ export function Sidebar({ className }: { className?: string }) {
               <LogOut
                 strokeWidth={1.75}
                 className={cn(
-                  "flex-shrink-0 h-[17px] w-[17px] transition-all duration-200 group-hover:scale-110 group-hover:-translate-x-0.5 relative z-10",
+                  "flex-shrink-0 h-[15px] w-[15px] transition-all duration-200 group-hover:scale-110 group-hover:-translate-x-0.5 relative z-10",
                   isSidebarCollapsed ? "mx-auto" : "mr-2.5"
                 )}
               />
