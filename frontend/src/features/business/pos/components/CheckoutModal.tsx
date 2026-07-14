@@ -12,6 +12,7 @@ import { PaymentForms } from './checkout/PaymentForms';
 import type { PaymentMode } from '../constants/index';
 import type { CartItem } from '../schemas/saleSchema';
 import { Plus, UserPlus, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -22,8 +23,16 @@ interface CheckoutModalProps {
 }
 
 export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess }: CheckoutModalProps) {
+  const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState<PaymentMode>('cash');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [splitPayments, setSplitPayments] = useState<{ mode: string; amount: string; link_customer_id?: string }[]>([
+    { mode: 'Cash', amount: '' }
+  ]);
+  const [emiDownPayments, setEmiDownPayments] = useState<{ mode: string; amount: string; link_customer_id?: string }[]>([
+    { mode: 'Cash', amount: '' }
+  ]);
+  const [isManualEmi, setIsManualEmi] = useState(false);
 
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [quickCustName, setQuickCustName] = useState('');
@@ -58,36 +67,57 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
   const roundOff    = watch('round_off')   || 0;
   const finalAmount = cartTotal - Number(discount) + Number(roundOff);
 
-  const splitCash = watch('split_cash') || 0;
-  const splitUpi  = watch('split_upi')  || 0;
-  const splitCard = watch('split_card') || 0;
+  const splitTotal = splitPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
 
   const emiDownPaymentMode = watch('emi_down_payment_mode') || 'Cash';
-  const emiCashDown = watch('emi_cash_down') || 0;
-  const emiUpiDown  = watch('emi_upi_down')  || 0;
   const emiSingleDown = watch('emi_down_payment') || 0;
   
   const emiDownPayment = emiDownPaymentMode === 'Split' 
-    ? Number(emiCashDown) + Number(emiUpiDown) 
+    ? emiDownPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
     : Number(emiSingleDown);
     
   const emiTenure = watch('emi_tenure') || 0;
 
   useEffect(() => {
-    if (isOpen) { setValue('discount', 0); setValue('round_off', 0); setPaymentType('cash'); }
+    if (isOpen) { 
+      setValue('discount', 0); 
+      setValue('round_off', 0); 
+      setPaymentType('cash'); 
+      setSplitPayments([{ mode: 'Cash', amount: '' }]);
+      setEmiDownPayments([{ mode: 'Cash', amount: '' }]);
+      setIsManualEmi(false);
+    }
   }, [isOpen, setValue]);
 
   useEffect(() => {
     if (paymentType === 'emi') {
       const loan = Math.max(0, finalAmount - Number(emiDownPayment));
       setValue('emi_loan_amount', loan);
-      if (Number(emiTenure) > 0) setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
+      if (!isManualEmi && Number(emiTenure) > 0) {
+        setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
+      }
     }
-  }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue]);
+  }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue, isManualEmi]);
 
   const onSubmit = async (data: any) => {
     if (!selectedCustomerId && paymentType === 'emi') {
       toast.error('Customer is required for EMI sales'); return;
+    }
+
+    // Validate EMI fields if payment mode is EMI
+    if (paymentType === 'emi') {
+      if (!data.emi_financier) {
+        toast.error('Financier name is required for EMI sales');
+        return;
+      }
+      if (!data.emi_tenure || Number(data.emi_tenure) <= 0) {
+        toast.error('Please enter a valid tenure in months');
+        return;
+      }
+      if (!data.emi_first_date) {
+        toast.error('First EMI Date is required');
+        return;
+      }
     }
 
     const payload: any = {
@@ -108,11 +138,28 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
       payload.payments = [{ payment_mode: 'Cash', amount: finalAmount }];
     } else if (paymentType === 'split') {
       payload.payment_mode = 'Split';
-      payload.payments = [];
-      if (Number(splitCash) > 0) payload.payments.push({ payment_mode: 'Cash', amount: Number(splitCash) });
-      if (Number(splitUpi)  > 0) payload.payments.push({ payment_mode: 'UPI',  amount: Number(splitUpi)  });
-      if (Number(splitCard) > 0) payload.payments.push({ payment_mode: 'Card', amount: Number(splitCard) });
-      if (Number(splitCash) + Number(splitUpi) + Number(splitCard) > finalAmount) {
+      
+      const hasEmptyUdhar = splitPayments.some(p => p.mode === 'Udhar' && !p.link_customer_id);
+      if (hasEmptyUdhar) {
+        toast.error('Please select a debtor customer for Udhar credit payments.');
+        return;
+      }
+      const hasZeroUdhar = splitPayments.some(p => p.mode === 'Udhar' && (!p.amount || Number(p.amount) <= 0));
+      if (hasZeroUdhar) {
+        toast.error('Please enter a valid amount greater than 0 for Udhar credit payments.');
+        return;
+      }
+
+      payload.payments = splitPayments
+        .filter(p => Number(p.amount) > 0)
+        .map(p => ({ 
+          payment_mode: p.mode, 
+          amount: Number(p.amount),
+          link_customer_id: p.link_customer_id ? Number(p.link_customer_id) : undefined
+        }));
+      
+      const totalPaid = payload.payments.reduce((sum: number, p: any) => sum + p.amount, 0);
+      if (totalPaid > finalAmount) {
         toast.error('Split payment total exceeds final amount'); return;
       }
     } else if (paymentType === 'emi') {
@@ -120,13 +167,34 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
       payload.payments = [];
       
       if (emiDownPaymentMode === 'Split') {
-        if (Number(emiCashDown) > 0)
-          payload.payments.push({ payment_mode: 'Cash', amount: Number(emiCashDown), notes: 'EMI Down Payment (Cash)' });
-        if (Number(emiUpiDown) > 0)
-          payload.payments.push({ payment_mode: 'UPI', amount: Number(emiUpiDown), notes: 'EMI Down Payment (UPI)' });
+        const hasEmptyUdhar = emiDownPayments.some(p => p.mode === 'Udhar' && !p.link_customer_id);
+        if (hasEmptyUdhar) {
+          toast.error('Please select a debtor customer for Udhar credit downpayments.');
+          return;
+        }
+        const hasZeroUdhar = emiDownPayments.some(p => p.mode === 'Udhar' && (!p.amount || Number(p.amount) <= 0));
+        if (hasZeroUdhar) {
+          toast.error('Please enter a valid amount greater than 0 for Udhar credit downpayments.');
+          return;
+        }
+
+        emiDownPayments
+          .filter(p => Number(p.amount) > 0)
+          .forEach(p => {
+            payload.payments.push({
+              payment_mode: p.mode,
+              amount: Number(p.amount),
+              link_customer_id: p.link_customer_id ? Number(p.link_customer_id) : undefined,
+              notes: `EMI Down Payment (${p.mode})`
+            });
+          });
       } else {
         if (emiDownPayment > 0)
-          payload.payments.push({ payment_mode: emiDownPaymentMode, amount: emiDownPayment, notes: `EMI Down Payment (${emiDownPaymentMode})` });
+          payload.payments.push({ 
+            payment_mode: emiDownPaymentMode, 
+            amount: emiDownPayment, 
+            notes: `EMI Down Payment (${emiDownPaymentMode})` 
+          });
       }
 
       payload.emi_detail = {
@@ -141,9 +209,13 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
     }
 
     try {
-      await createSale.mutateAsync(payload);
+      const response = await createSale.mutateAsync(payload);
       toast.success('Sale completed successfully!');
-      onSuccess(); onClose();
+      onSuccess(); 
+      onClose();
+      if (response && response.id) {
+        navigate(`/invoices/${response.id}`);
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to complete sale');
     }
@@ -244,12 +316,16 @@ export function CheckoutModal({ isOpen, onClose, cartTotal, cartItems, onSuccess
               paymentType={paymentType}
               setPaymentType={setPaymentType}
               register={register}
-              splitCash={splitCash}
-              splitUpi={splitUpi}
-              splitCard={splitCard}
+              splitPayments={splitPayments}
+              setSplitPayments={setSplitPayments}
               finalAmount={finalAmount}
               emiDownPaymentMode={emiDownPaymentMode}
               setEmiDownPaymentMode={(val) => setValue('emi_down_payment_mode', val)}
+              emiDownPayments={emiDownPayments}
+              setEmiDownPayments={setEmiDownPayments}
+              customers={customers}
+              isManualEmi={isManualEmi}
+              setIsManualEmi={setIsManualEmi}
             />
           </div>
         </div>

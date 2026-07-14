@@ -8,12 +8,13 @@ export interface SalesFilters {
   payment_mode?: string;
   start_date?: string;
   end_date?: string;
+  has_udhar?: string;
 }
 
 export const useSales = (page = 1, perPage = 15, filters: SalesFilters = {}) => {
-  const { search, payment_mode, start_date, end_date } = filters;
+  const { search, payment_mode, start_date, end_date, has_udhar } = filters;
   return useQuery({
-    queryKey: ['sales', page, perPage, search, payment_mode, start_date, end_date],
+    queryKey: ['sales', page, perPage, search, payment_mode, start_date, end_date, has_udhar],
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append('page', String(page));
@@ -22,6 +23,7 @@ export const useSales = (page = 1, perPage = 15, filters: SalesFilters = {}) => 
       if (payment_mode) params.append('payment_mode', payment_mode);
       if (start_date) params.append('start_date', start_date);
       if (end_date) params.append('end_date', end_date);
+      if (has_udhar) params.append('has_udhar', has_udhar);
 
       const { data } = await api.get(`/business/sales?${params.toString()}`);
       return data;

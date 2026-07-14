@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Phone, MapPin, Edit2, Users, IndianRupee, CheckCircle, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { EditCustomerModal } from '../components/EditCustomerModal';
+import { CollectPaymentModal } from '../components/CollectPaymentModal';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { CardSkeleton, TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { toast } from 'sonner';
@@ -49,6 +50,7 @@ export default function CustomerDetailsPage() {
   const payInstallment = usePayInstallment();
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCollectPaymentOpen, setIsCollectPaymentOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'sales' | 'emi'>('sales');
 
   if (isLoading) return <CustomerDetailsSkeleton />;
@@ -74,20 +76,53 @@ export default function CustomerDetailsPage() {
   const salesColumns: ColumnDef<any>[] = [
     {
       header: 'Date & Invoice',
-      cell: (sale) => (
-        <div className="whitespace-nowrap">
-          <p className="font-medium">{new Date(sale.date).toLocaleDateString()}</p>
-          <p className="text-xs text-slate-500">{sale.invoice_number}</p>
-        </div>
-      )
+      cell: (sale) => {
+        const isUdharInvoice = sale.invoice_number?.startsWith('UDH-');
+        return (
+          <div className="whitespace-nowrap">
+            <p className="font-medium">{new Date(sale.date).toLocaleDateString()}</p>
+            <div className="flex flex-col gap-0.5 mt-0.5">
+              <span className="text-xs text-slate-500 font-mono">{sale.invoice_number}</span>
+              {isUdharInvoice && (
+                <span className="text-[9px] font-black uppercase tracking-wider text-rose-500 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-100 dark:border-rose-500/20 w-fit">
+                  Udhar (Guarantor Debt)
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      }
     },
     {
-      header: 'Items',
-      cell: (sale) => (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-300">
-          {sale.items?.length || 0} Items
-        </span>
-      )
+      header: 'Details / Notes',
+      cell: (sale) => {
+        const parentInvoiceMatch = sale.notes?.match(/Invoice:\s*([A-Z0-9-]+)/i);
+        const parentInvoice = parentInvoiceMatch ? parentInvoiceMatch[1] : null;
+        const parentIdMatch = sale.notes?.match(/,\s*ID:\s*(\d+)\)/i);
+        const parentId = parentIdMatch ? parentIdMatch[1] : null;
+        
+        return (
+          <div className="max-w-[300px]">
+            <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+              {sale.notes || (sale.items?.length ? `${sale.items.length} Items` : 'No details')}
+            </p>
+            {parentInvoice && (
+              parentId ? (
+                <button
+                  onClick={() => navigate(`/invoices/${parentId}`)}
+                  className="mt-1 text-[10px] font-black uppercase tracking-widest text-primary-500 hover:text-primary-600 transition-colors flex items-center gap-0.5 cursor-pointer"
+                >
+                  🔗 Original Invoice: {parentInvoice}
+                </button>
+              ) : (
+                <span className="mt-1 block text-[10px] font-bold text-slate-400">
+                  Original Invoice: {parentInvoice}
+                </span>
+              )
+            )}
+          </div>
+        );
+      }
     },
     {
       header: 'Bill Amount',
@@ -97,7 +132,24 @@ export default function CustomerDetailsPage() {
     {
       header: 'Paid',
       className: 'text-right font-medium text-emerald-600',
-      cell: (sale) => formatCurrency(sale.paid_amount)
+      cell: (sale) => (
+        <div className="flex flex-col items-end gap-1">
+          <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(sale.paid_amount)}</span>
+          {sale.payments && sale.payments.length > 0 && (
+            <div className="flex flex-col items-end gap-0.5 mt-0.5">
+              {sale.payments.map((p: any, idx: number) => (
+                <span key={p.id || idx} className="text-[9px] font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-1 py-0.5 rounded tracking-wide whitespace-nowrap">
+                  {p.payment_mode === 'Cash' && '💵'}
+                  {p.payment_mode === 'UPI' && '📱'}
+                  {p.payment_mode === 'Card' && '💳'}
+                  {p.payment_mode === 'Udhar' && '🤝'}
+                  {` ${p.payment_mode}: ${formatCurrency(p.amount)}`}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )
     },
     {
       header: 'Balance',
@@ -186,7 +238,7 @@ export default function CustomerDetailsPage() {
               variant="brand"
               className="w-full h-10 text-xs font-semibold rounded-xl" 
               onClick={() => {
-                 navigate(`/pos?customer_id=${id}`);
+                setIsCollectPaymentOpen(true);
               }}
             >
               <IndianRupee className="w-3.5 h-3.5" />
@@ -216,7 +268,7 @@ export default function CustomerDetailsPage() {
             >
               EMI Schedule
               <span className={`px-2 py-0.5 text-[10px] font-black rounded-full ${activeTab === 'emi' ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'}`}>
-                {emis?.length || 0}
+                {Array.isArray(emis) ? emis.length : 0}
               </span>
               {activeTab === 'emi' && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
@@ -232,11 +284,11 @@ export default function CustomerDetailsPage() {
               />
             ) : (
               <div className="p-6">
-                {emis?.length === 0 ? (
+                {!Array.isArray(emis) || emis.length === 0 ? (
                   <p className="text-center text-slate-500 py-8">No EMI records found for this customer.</p>
                 ) : (
                   <div className="space-y-6">
-                    {emis?.map((emi: any) => (
+                    {emis.map((emi: any) => (
                       <div key={emi.id} className="border border-slate-200 dark:border-white/5 rounded-lg overflow-hidden">
                         <div className="bg-slate-50 dark:bg-slate-900 px-4 py-3 border-b border-slate-200 dark:border-white/5 flex justify-between items-center">
                           <div>
@@ -261,19 +313,14 @@ export default function CustomerDetailsPage() {
                                     </div>
                                   </div>
                                   <div>
-                                    {inst.status === 'paid' ? (
-                                      <span className="inline-flex items-center text-emerald-600 text-sm font-medium">
-                                        <CheckCircle className="w-4 h-4 mr-1" /> Paid on {new Date(inst.paid_on).toLocaleDateString()}
+                                    {(emi.is_payout_received || inst.status === 'paid') ? (
+                                      <span className="inline-flex items-center text-emerald-600 text-xs font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-100 dark:border-emerald-500/20">
+                                        <CheckCircle className="w-3.5 h-3.5 mr-1" /> Paid / Cleared
                                       </span>
                                     ) : (
-                                      <Button 
-                                        size="sm" 
-                                        className="h-8"
-                                        onClick={() => handlePayInstallment(inst)}
-                                        disabled={payInstallment.isPending}
-                                      >
-                                        <IndianRupee className="w-3.5 h-3.5 mr-1" /> Pay Now
-                                      </Button>
+                                      <span className="inline-flex items-center text-amber-600 text-xs font-black uppercase tracking-wider bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 rounded border border-amber-100 dark:border-amber-500/20">
+                                        <Clock className="w-3.5 h-3.5 mr-1" /> Pending
+                                      </span>
                                     )}
                                   </div>
                                 </div>
@@ -292,6 +339,7 @@ export default function CustomerDetailsPage() {
       </div>
 
       <EditCustomerModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} customer={customer} />
+      <CollectPaymentModal isOpen={isCollectPaymentOpen} onClose={() => setIsCollectPaymentOpen(false)} customer={customer} />
     </div>
   );
 }

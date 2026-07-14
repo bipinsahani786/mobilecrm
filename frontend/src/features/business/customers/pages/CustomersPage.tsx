@@ -4,6 +4,7 @@ import { useCustomers } from '../api/useCustomers';
 import { getCustomerColumns } from '../constants/customerColumns';
 import { AddCustomerModal } from '../components/AddCustomerModal';
 import { EditCustomerModal } from '../components/EditCustomerModal';
+import { CollectPaymentModal } from '../components/CollectPaymentModal';
 import type { Customer } from '../schemas/customerSchema';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [collectPaymentCustomer, setCollectPaymentCustomer] = useState<any | null>(null);
   const navigate = useNavigate();
 
   // Filters state
@@ -60,6 +62,7 @@ export default function CustomersPage() {
   const columns = useMemo(() => getCustomerColumns({
     onEdit: (customer) => setEditingCustomer(customer),
     onView: (customer) => navigate(`/customers/${customer.id}`),
+    onCollectPayment: (customer) => setCollectPaymentCustomer(customer),
   }), [navigate]);
 
   const handleClearFilters = () => {
@@ -200,6 +203,12 @@ export default function CustomersPage() {
         isOpen={!!editingCustomer}
         onClose={() => setEditingCustomer(null)}
         customer={editingCustomer}
+      />
+
+      <CollectPaymentModal
+        isOpen={!!collectPaymentCustomer}
+        onClose={() => setCollectPaymentCustomer(null)}
+        customer={collectPaymentCustomer}
       />
     </div>
   );

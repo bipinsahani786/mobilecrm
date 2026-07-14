@@ -28,6 +28,18 @@ function InvoiceDetailsSkeleton() {
   );
 }
 
+const getGuarantorInfo = (notes?: string) => {
+  if (!notes) return null;
+  const match = notes.match(/Udhar linked to Customer:\s*([^(|]+)(?:\(ID:\s*(\d+)\))?/i);
+  if (match) {
+    return {
+      name: match[1].trim(),
+      id: match[2] ? match[2].trim() : null
+    };
+  }
+  return null;
+};
+
 export default function InvoiceDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -238,15 +250,37 @@ export default function InvoiceDetailsPage() {
                   </div>
                   
                   <div className="space-y-3">
-                    {sale.payments?.map((payment: any) => (
-                      <div key={payment.id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors">
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{payment.payment_mode}</p>
-                          {payment.notes && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{payment.notes}</p>}
+                    {sale.payments?.map((payment: any) => {
+                      const guarantor = getGuarantorInfo(payment.notes);
+                      const displayNotes = payment.notes 
+                        ? payment.notes.split(' | Udhar linked to')[0]
+                        : '';
+                      return (
+                        <div key={payment.id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors">
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{payment.payment_mode}</p>
+                            {displayNotes && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{displayNotes}</p>}
+                            {guarantor && (
+                              <div className="mt-1 flex items-center gap-1">
+                                {guarantor.id ? (
+                                  <button
+                                    onClick={() => navigate(`/customers/${guarantor.id}`)}
+                                    className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-500/20 rounded-md border border-rose-100 dark:border-rose-500/20 transition-all cursor-pointer flex items-center gap-0.5"
+                                  >
+                                    Debtor/Guarantor: {guarantor.name} →
+                                  </button>
+                                ) : (
+                                  <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 bg-rose-50 dark:bg-rose-500/10 text-rose-500 rounded-md border border-rose-100 dark:border-rose-500/20">
+                                    Debtor/Guarantor: {guarantor.name}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <p className="font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(payment.amount)}</p>
                         </div>
-                        <p className="font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(payment.amount)}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   {sale.emiDetail && (
@@ -281,13 +315,33 @@ export default function InvoiceDetailsPage() {
               
               <div className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {sale.payments?.map((payment: any) => (
-                    <div key={payment.id} className="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{payment.payment_mode}</p>
-                      <p className="font-black text-slate-900 dark:text-white text-lg">{formatCurrency(payment.amount)}</p>
-                      {payment.notes && <p className="text-xs font-medium text-slate-500 mt-1">{payment.notes}</p>}
-                    </div>
-                  ))}
+                  {sale.payments?.map((payment: any) => {
+                    const guarantor = getGuarantorInfo(payment.notes);
+                    const displayNotes = payment.notes 
+                      ? payment.notes.split(' | Udhar linked to')[0]
+                      : '';
+                    return (
+                      <div key={payment.id} className="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{payment.payment_mode}</p>
+                        <p className="font-black text-slate-900 dark:text-white text-lg">{formatCurrency(payment.amount)}</p>
+                        {displayNotes && <p className="text-xs font-medium text-slate-500 mt-1">{displayNotes}</p>}
+                        {guarantor && (
+                          guarantor.id ? (
+                            <button
+                              onClick={() => navigate(`/customers/${guarantor.id}`)}
+                              className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider hover:text-rose-600 transition-colors cursor-pointer text-left block"
+                            >
+                              Guarantor: {guarantor.name} →
+                            </button>
+                          ) : (
+                            <p className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider">
+                              Guarantor: {guarantor.name}
+                            </p>
+                          )
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 {sale.emiDetail && (

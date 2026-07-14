@@ -8,9 +8,10 @@ import { formatCurrency } from '@/lib/formatters';
 interface CustomerColumnsProps {
   onEdit: (customer: Customer) => void;
   onView: (customer: Customer) => void;
+  onCollectPayment: (customer: Customer) => void;
 }
 
-export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): ColumnDef<Customer>[] => [
+export const getCustomerColumns = ({ onEdit, onView, onCollectPayment }: CustomerColumnsProps): ColumnDef<Customer>[] => [
   {
     header: 'Customer',
     accessorKey: 'name',
@@ -65,29 +66,47 @@ export const getCustomerColumns = ({ onEdit, onView }: CustomerColumnsProps): Co
   {
     header: '',
     className: 'text-right',
-    cell: (customer) => (
-      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(customer);
-          }}
-        >
-          <Edit2 className="w-4 h-4 text-slate-500 hover:text-slate-700" />
-        </Button>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={(e) => {
-            e.stopPropagation();
-            onView(customer);
-          }}
-        >
-          <ChevronRight className="w-5 h-5" />
-        </Button>
-      </div>
-    )
+    cell: (customer) => {
+      const billed = customer.sales_sum_final_amount || 0;
+      const paid = customer.sales_sum_paid_amount || 0;
+      const outstanding = billed - paid;
+      return (
+        <div className="flex justify-end gap-1.5 items-center">
+          {outstanding > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 rounded-xl h-8 px-2.5 shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCollectPayment(customer);
+              }}
+            >
+              Collect Payment
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(customer);
+            }}
+          >
+            <Edit2 className="w-4 h-4 text-slate-500 hover:text-slate-700" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onView(customer);
+            }}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+      );
+    }
   }
 ];

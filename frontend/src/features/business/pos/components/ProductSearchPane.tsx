@@ -107,7 +107,7 @@ export function ProductSearchPane({ searchQuery, setSearchQuery, searchResults, 
                     </div>
 
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md truncate max-w-[70px]">
+                      <span className="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md truncate max-w-[120px]" title={batch.batch_number || 'N/A'}>
                         #{batch.batch_number || 'N/A'}
                       </span>
                       <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
