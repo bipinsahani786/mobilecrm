@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Building2, Plus, X, Folder, Edit2, Trash2, Package, Layers } from 'lucide-react';
+import { Building2, Plus, X, Folder, Edit2, Trash2, Package, Layers, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCategories, useDeleteCategory } from '../api/useCategories';
 import type { Category } from '../schemas/categorySchema';
 import { toast } from 'sonner';
-import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { CategoryFormModal } from '../components/CategoryFormModal';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -71,12 +70,24 @@ export default function CategoriesPage() {
           </div>
 
           <div className="w-full max-w-md lg:max-w-sm flex flex-col gap-4">
-            <FilterSearch
-              value={search}
-              onChange={(val) => setSearch(val)}
-              placeholder="SEARCH CATEGORIES..."
-              wrapperClassName="h-12 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border-2 border-slate-200/80 dark:border-white/10 rounded-2xl shadow-sm hover:border-primary-500/50"
-            />
+            <div className="relative w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search categories..."
+                className="w-full h-10 pl-9 pr-9 text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all placeholder:text-slate-400"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-rose-500 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
