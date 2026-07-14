@@ -42,7 +42,7 @@ export const businessMenuGroups = [
     title: "RELATIONSHIPS",
     items: [
       { name: "CUSTOMERS", href: "/customers", icon: Users },
-      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus, feature: "suppliers" },
+      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus },
     ]
   },
   {
@@ -185,7 +185,7 @@ export function Sidebar({ className }: { className?: string }) {
 
   const filteredBusinessGroups = businessMenuGroups.map(group => ({
     ...group,
-    items: group.items.filter(item => !item.feature || hasFeature(item.feature))
+    items: group.items.filter((item: any) => !item.feature || hasFeature(item.feature))
   })).filter(group => group.items.length > 0);
 
   const filteredSuperadminGroups = superadminMenuGroups.map(group => ({
