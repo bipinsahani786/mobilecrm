@@ -1,17 +1,34 @@
-import { Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt, CheckCircle2, AlertCircle, BarChart3, Sparkles } from "lucide-react";
+import { Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt, CheckCircle2, AlertCircle, BarChart3, Sparkles, Calendar, Coins, Wallet } from "lucide-react";
 import { DashboardSkeleton } from "./../components/DashboardSkeleton";
 import { useTenantStore } from "@/store/tenantStore";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useDashboardStats } from "../api/useDashboard";
-import { format } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { CustomKpiCard } from "@/components/ui/CustomKpiCard";
+import { useAuthStore } from "@/store/authStore";
+import { usePermissions } from "@/hooks/usePermissions";
+import { useStaffPerformance } from "../../reports/api/useStaffPerformance";
+import { useTodayAttendance } from "../../attendance/api/useAttendance";
 
 export default function DashboardPage() {
   const { activeBusiness, isLoading: isTenantLoading } = useTenantStore();
   const navigate = useNavigate();
+  const user = useAuthStore((state) => state.user);
+  const { hasPermission } = usePermissions();
+
+  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
 
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
+
+  const today = new Date();
+  const from_date = format(startOfMonth(today), 'yyyy-MM-dd');
+  const to_date = format(endOfMonth(today), 'yyyy-MM-dd');
+
+  const { data: performanceData } = useStaffPerformance({ from_date, to_date });
+  const { data: todayAttendance } = useTodayAttendance();
+
+  const myPerformance = performanceData?.find((p: any) => p.user_id === user?.id);
 
   if (isTenantLoading || isStatsLoading) {
     return <DashboardSkeleton />;
@@ -26,13 +43,12 @@ export default function DashboardPage() {
   };
 
   const percentage = getCompletionPercentage();
-  const today = new Date();
 
   const statusConfig: Record<string, { label: string; cls: string }> = {
-    paid:     { label: 'Paid',     cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' },
-    pending:  { label: 'Pending',  cls: 'bg-amber-50  text-amber-600  dark:bg-amber-500/15  dark:text-amber-400'  },
-    overdue:  { label: 'Overdue',  cls: 'bg-rose-50   text-rose-600   dark:bg-rose-500/15   dark:text-rose-400'   },
-    partial:  { label: 'Partial',  cls: 'bg-blue-50   text-blue-600   dark:bg-blue-500/15   dark:text-blue-400'   },
+    paid: { label: 'Paid', cls: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' },
+    pending: { label: 'Pending', cls: 'bg-amber-50  text-amber-600  dark:bg-amber-500/15  dark:text-amber-400' },
+    overdue: { label: 'Overdue', cls: 'bg-rose-50   text-rose-600   dark:bg-rose-500/15   dark:text-rose-400' },
+    partial: { label: 'Partial', cls: 'bg-blue-50   text-blue-600   dark:bg-blue-500/15   dark:text-blue-400' },
   };
 
   return (
@@ -73,7 +89,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Hero Content ── */}
-      <div className="relative z-10 max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 max-w-[1600px] mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur-sm shadow-sm">
@@ -84,28 +100,32 @@ export default function DashboardPage() {
               </span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight font-display leading-tight drop-shadow-lg">
-              Welcome back 👋
+              Welcome back, {user?.name || 'Staff'} 👋
             </h1>
             <p className="text-sm text-white/65 mt-1.5 font-medium">
-              {activeBusiness?.name || 'Your Business'} &nbsp;·&nbsp; Live overview
+              {activeBusiness?.name || 'Your Business'} &nbsp;·&nbsp; {isBusinessManager ? 'Live overview' : 'Staff overview'}
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/pos')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white text-primary-600 font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-            >
-              <IndianRupee className="w-3.5 h-3.5" />
-              New Bill
-            </button>
-            <button
-              onClick={() => navigate('/invoices')}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-sm text-white font-black text-xs uppercase tracking-widest rounded-2xl border border-white/25 hover:bg-white/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-md"
-            >
-              <Receipt className="w-3.5 h-3.5" />
-              Invoices
-            </button>
+            {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && (
+              <button
+                onClick={() => navigate('/pos')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white text-primary-600 font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+              >
+                <IndianRupee className="w-3.5 h-3.5" />
+                New Bill
+              </button>
+            )}
+            {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && (
+              <button
+                onClick={() => navigate('/invoices')}
+                className="flex items-center gap-2 px-5 py-2.5 bg-white/15 backdrop-blur-sm text-white font-black text-xs uppercase tracking-widest rounded-2xl border border-white/25 hover:bg-white/25 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 shadow-md"
+              >
+                <Receipt className="w-3.5 h-3.5" />
+                Invoices
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -114,42 +134,77 @@ export default function DashboardPage() {
       <div className="relative z-10 max-w-[1600px] mx-auto px-4 md:px-8 -mt-10 pb-8 space-y-4">
 
         {/* ── KPI Cards — floating over banner ─────────────────────── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          <CustomKpiCard
-            title="Today's Sales"
-            value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
-            icon={<IndianRupee />}
-            glowColor="indigo"
-            onClick={() => navigate('/invoices')}
-          />
-          <CustomKpiCard
-            title="Monthly Revenue"
-            value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
-            icon={<TrendingUp />}
-            glowColor="emerald"
-            onClick={() => navigate('/invoices')}
-          />
-          <CustomKpiCard
-            title="Pending Payments"
-            value={`₹${(stats?.pending_payments ?? 0).toLocaleString('en-IN')}`}
-            icon={<Clock />}
-            glowColor="rose"
-          />
-          <CustomKpiCard
-            title="Staff Present"
-            value={stats?.staff?.present_today ?? 0}
-            subtitle={`${stats?.staff?.active ?? 0} total active`}
-            icon={<Users />}
-            glowColor="blue"
-          />
-          <CustomKpiCard
-            title="Total Invoices"
-            value={stats?.recent_sales?.length ? `${stats.recent_sales.length}+` : '0'}
-            subtitle="this month"
-            icon={<Receipt />}
-            glowColor="amber"
-          />
-        </div>
+        {isBusinessManager ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <CustomKpiCard
+              title="Today's Sales"
+              value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
+              icon={<IndianRupee />}
+              glowColor="indigo"
+              onClick={() => navigate('/invoices')}
+            />
+            <CustomKpiCard
+              title="Monthly Revenue"
+              value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
+              icon={<TrendingUp />}
+              glowColor="emerald"
+              onClick={() => navigate('/invoices')}
+            />
+            <CustomKpiCard
+              title="Pending Payments"
+              value={`₹${(stats?.pending_payments ?? 0).toLocaleString('en-IN')}`}
+              icon={<Clock />}
+              glowColor="rose"
+            />
+            <CustomKpiCard
+              title="Staff Present"
+              value={stats?.staff?.present_today ?? 0}
+              subtitle={`${stats?.staff?.active ?? 0} total active`}
+              icon={<Users />}
+              glowColor="blue"
+            />
+            <CustomKpiCard
+              title="Total Invoices"
+              value={stats?.recent_sales?.length ? `${stats.recent_sales.length}+` : '0'}
+              subtitle="this month"
+              icon={<Receipt />}
+              glowColor="amber"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CustomKpiCard
+              title="My Sales Revenue"
+              value={`₹${(myPerformance?.total_sales_amount ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="This month's sales revenue"
+              icon={<TrendingUp />}
+              glowColor="indigo"
+              onClick={() => navigate('/invoices')}
+            />
+            <CustomKpiCard
+              title="My Commission"
+              value={`₹${(myPerformance?.calculated_commission ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle={`Accrued at ${myPerformance?.commission_rate ?? 0}%`}
+              icon={<IndianRupee />}
+              glowColor="emerald"
+            />
+            <CustomKpiCard
+              title="Invoices Billed"
+              value={`${myPerformance?.total_sales ?? 0} invoices`}
+              subtitle="Completed transactions"
+              icon={<Receipt />}
+              glowColor="amber"
+            />
+            <CustomKpiCard
+              title="Attendance Status"
+              value={todayAttendance ? (todayAttendance.status === 'present' ? 'Checked In' : 'Half Day') : 'Not Checked In'}
+              subtitle={todayAttendance?.check_in_time ? `Checked in at ${todayAttendance.check_in_time.substring(0, 5)}` : 'Tap Quick Action to check in'}
+              icon={<Clock />}
+              glowColor={todayAttendance ? 'emerald' : 'rose'}
+              onClick={() => navigate('/attendance')}
+            />
+          </div>
+        )}
 
 
         {/* ── Main Grid ──────────────────────────────────────────────── */}
@@ -164,78 +219,98 @@ export default function DashboardPage() {
                   <BarChart3 className="w-4 h-4 text-primary-500" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Recent Sales</h2>
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+                    {isBusinessManager ? "Recent Sales" : "My Recent Sales"}
+                  </h2>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-semibold">Latest transactions</p>
                 </div>
               </div>
-              <button
-                onClick={() => navigate('/invoices')}
-                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary-500 hover:text-primary-600 transition-colors"
-              >
-                View All <ArrowRight className="w-3 h-3" />
-              </button>
+              {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && (
+                <button
+                  onClick={() => navigate('/invoices')}
+                  className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-primary-500 hover:text-primary-600 transition-colors"
+                >
+                  View All <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
             </div>
 
             {/* Rows */}
             <div className="divide-y divide-slate-50 dark:divide-white/[0.03]">
-              {stats?.recent_sales?.length ? (
-                stats.recent_sales.map((sale: any, i: number) => {
-                  const sc = statusConfig[sale.status] ?? { label: sale.status, cls: 'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400' };
-                  return (
-                    <div
-                      key={sale.id}
-                      onClick={() => navigate(`/invoices/${sale.id}`)}
-                      className="group flex items-center px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors cursor-pointer"
-                    >
-                      {/* Index */}
-                      <span className="w-6 text-[10px] font-black text-slate-300 dark:text-slate-700 shrink-0 group-hover:text-primary-400 transition-colors">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
+              {(() => {
+                const salesToDisplay = isBusinessManager
+                  ? stats?.recent_sales
+                  : stats?.recent_sales?.filter((sale: any) => sale.user_id === user?.id);
 
-                      {/* Avatar */}
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-indigo-500 flex items-center justify-center text-white text-[11px] font-black shrink-0 mx-3 shadow-sm">
-                        {(sale.customer?.name || 'W')[0].toUpperCase()}
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white truncate leading-tight">
-                          {sale.customer?.name || 'Walk-in Customer'}
-                        </p>
-                        <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
-                          {sale.invoice_number} &nbsp;·&nbsp; {format(new Date(sale.date), 'dd MMM yyyy')}
-                        </p>
-                      </div>
-
-                      {/* Amount & Status */}
-                      <div className="flex flex-col items-end gap-1 shrink-0 ml-4">
-                        <span className="text-sm font-black text-slate-900 dark:text-white">
-                          ₹{Number(sale.final_amount).toLocaleString('en-IN')}
+                return salesToDisplay?.length ? (
+                  salesToDisplay.map((sale: any, i: number) => {
+                    const sc = statusConfig[sale.status] ?? { label: sale.status, cls: 'bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400' };
+                    return (
+                      <div
+                        key={sale.id}
+                        onClick={() => (isBusinessManager || hasPermission('manage_sales')) ? navigate(`/invoices/${sale.id}`) : undefined}
+                        className="group flex items-center px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.025] transition-colors cursor-pointer"
+                      >
+                        {/* Index */}
+                        <span className="w-6 text-[10px] font-black text-slate-300 dark:text-slate-700 shrink-0 group-hover:text-primary-400 transition-colors">
+                          {String(i + 1).padStart(2, '0')}
                         </span>
-                        <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full ${sc.cls}`}>
-                          {sc.label}
-                        </span>
-                      </div>
 
-                      <ArrowRight className="w-3.5 h-3.5 ml-3 text-slate-300 dark:text-slate-700 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-indigo-500 flex items-center justify-center text-white text-[11px] font-black shrink-0 mx-3 shadow-sm">
+                          {(sale.customer?.name || 'W')[0].toUpperCase()}
+                        </div>
+
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white truncate leading-tight">
+                            {sale.customer?.name || 'Walk-in Customer'}
+                          </p>
+                          <p className="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-0.5">
+                            {sale.invoice_number} &nbsp;·&nbsp; {format(new Date(sale.date), 'dd MMM yyyy')}
+                          </p>
+                        </div>
+
+                        {/* Amount & Status */}
+                        <div className="flex flex-col items-end gap-1 shrink-0 ml-4">
+                          <span className="text-sm font-black text-slate-900 dark:text-white">
+                            ₹{Number(sale.final_amount).toLocaleString('en-IN')}
+                          </span>
+                          <span className={`text-[9px] uppercase font-black tracking-widest px-2 py-0.5 rounded-full ${sc.cls}`}>
+                            {sc.label}
+                          </span>
+                        </div>
+
+                        {(isBusinessManager || hasPermission('manage_sales')) && (
+                          <ArrowRight className="w-3.5 h-3.5 ml-3 text-slate-300 dark:text-slate-700 group-hover:text-primary-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                        )}
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
+                      <Receipt className="w-6 h-6 text-slate-300 dark:text-slate-600" />
                     </div>
-                  );
-                })
-              ) : (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-4">
-                    <Receipt className="w-6 h-6 text-slate-300 dark:text-slate-600" />
+                    <p className="text-sm font-bold text-slate-400 dark:text-slate-500">
+                      {isBusinessManager ? "No recent sales" : "No recent sales from you"}
+                    </p>
+                    {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) ? (
+                      <>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Start billing to see transactions here</p>
+                        <button
+                          onClick={() => navigate('/pos')}
+                          className="mt-4 px-4 py-2 bg-primary-500 text-white text-xs font-bold rounded-xl hover:bg-primary-600 transition-colors"
+                        >
+                          Open POS
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">You haven't billed any sales yet.</p>
+                    )}
                   </div>
-                  <p className="text-sm font-bold text-slate-400 dark:text-slate-500">No recent sales</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Start billing to see transactions here</p>
-                  <button
-                    onClick={() => navigate('/pos')}
-                    className="mt-4 px-4 py-2 bg-primary-500 text-white text-xs font-bold rounded-xl hover:bg-primary-600 transition-colors"
-                  >
-                    Open POS
-                  </button>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
 
@@ -243,53 +318,55 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-6">
 
             {/* Complete Business Profile */}
-            {percentage < 100 ? (
-              <div className="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 shadow-lg shadow-amber-500/20">
-                {/* Decorative circles */}
-                <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
-                <div className="absolute -left-4 -bottom-4 w-24 h-24 rounded-full bg-white/5" />
+            {isBusinessManager && (
+              percentage < 100 ? (
+                <div className="relative overflow-hidden bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 shadow-lg shadow-amber-500/20">
+                  {/* Decorative circles */}
+                  <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
+                  <div className="absolute -left-4 -bottom-4 w-24 h-24 rounded-full bg-white/5" />
 
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                      <AlertCircle className="w-5 h-5 text-white" />
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <AlertCircle className="w-5 h-5 text-white" />
+                      </div>
+                      <span className="text-2xl font-black text-white">{percentage}%</span>
                     </div>
-                    <span className="text-2xl font-black text-white">{percentage}%</span>
+
+                    <h3 className="text-sm font-black text-white mb-1">Complete Your Profile</h3>
+                    <p className="text-[11px] text-white/75 font-medium leading-relaxed mb-4">
+                      Unlock all features by completing your business profile setup.
+                    </p>
+
+                    {/* Progress bar */}
+                    <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-4">
+                      <div
+                        className="h-full bg-white rounded-full transition-all duration-1000"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+
+                    <Button
+                      onClick={() => navigate('/setup/profile')}
+                      className="w-full bg-white text-amber-600 hover:bg-amber-50 font-black text-xs uppercase tracking-widest rounded-xl h-9 shadow-sm"
+                    >
+                      {activeBusiness ? 'Complete Profile' : 'Setup Business'}
+                      <ArrowRight className="w-3.5 h-3.5 ml-2" />
+                    </Button>
                   </div>
-
-                  <h3 className="text-sm font-black text-white mb-1">Complete Your Profile</h3>
-                  <p className="text-[11px] text-white/75 font-medium leading-relaxed mb-4">
-                    Unlock all features by completing your business profile setup.
-                  </p>
-
-                  {/* Progress bar */}
-                  <div className="h-1.5 bg-white/20 rounded-full overflow-hidden mb-4">
-                    <div
-                      className="h-full bg-white rounded-full transition-all duration-1000"
-                      style={{ width: `${percentage}%` }}
-                    />
-                  </div>
-
-                  <Button
-                    onClick={() => navigate('/setup/profile')}
-                    className="w-full bg-white text-amber-600 hover:bg-amber-50 font-black text-xs uppercase tracking-widest rounded-xl h-9 shadow-sm"
-                  >
-                    {activeBusiness ? 'Complete Profile' : 'Setup Business'}
-                    <ArrowRight className="w-3.5 h-3.5 ml-2" />
-                  </Button>
                 </div>
-              </div>
-            ) : (
-              <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-lg shadow-emerald-500/20">
-                <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
-                <div className="relative z-10 flex flex-col items-center text-center py-2">
-                  <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 shadow-sm">
-                    <CheckCircle2 className="w-7 h-7 text-white" />
+              ) : (
+                <div className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 shadow-lg shadow-emerald-500/20">
+                  <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-white/10" />
+                  <div className="relative z-10 flex flex-col items-center text-center py-2">
+                    <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 shadow-sm">
+                      <CheckCircle2 className="w-7 h-7 text-white" />
+                    </div>
+                    <h3 className="text-sm font-black text-white mb-1">Profile Complete!</h3>
+                    <p className="text-[11px] text-white/75 font-medium">All business details are set up and verified.</p>
                   </div>
-                  <h3 className="text-sm font-black text-white mb-1">Profile Complete!</h3>
-                  <p className="text-[11px] text-white/75 font-medium">All business details are set up and verified.</p>
                 </div>
-              </div>
+              )
             )}
 
             {/* Quick Actions */}
@@ -298,14 +375,20 @@ export default function DashboardPage() {
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Quick Actions</h3>
               </div>
               <div className="p-3 grid grid-cols-2 gap-2">
-                {[
-                  { label: 'New Sale',    icon: IndianRupee, href: '/pos',        color: 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400' },
-                  { label: 'Add Staff',   icon: Users,       href: '/staff',      color: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400' },
-                  { label: 'Customers',   icon: Users,       href: '/customers',  color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
-                  { label: 'Inventory',   icon: Receipt,     href: '/items',      color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
-                  { label: 'Expenses',    icon: Receipt,     href: '/expenses',   color: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' },
-                  { label: 'Reports',     icon: BarChart3,   href: '/reports/staff-performance', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
-                ].map(({ label, icon: Icon, href, color }) => (
+                {(isBusinessManager ? [
+                  { label: 'New Sale', icon: IndianRupee, href: '/pos', color: 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400' },
+                  { label: 'Add Staff', icon: Users, href: '/staff', color: 'bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400' },
+                  { label: 'Customers', icon: Users, href: '/customers', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+                  { label: 'Inventory', icon: Receipt, href: '/items', color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+                  { label: 'Expenses', icon: Receipt, href: '/expenses', color: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+                  { label: 'Reports', icon: BarChart3, href: '/reports/staff-performance', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+                ] : [
+                  ...(hasPermission('manage_sales') ? [{ label: 'New Sale', icon: IndianRupee, href: '/pos', color: 'bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400' }] : []),
+                  { label: 'My Attendance', icon: Clock, href: '/attendance', color: 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' },
+                  { label: 'Salary Slips', icon: Wallet, href: '/payroll', color: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' },
+                  { label: 'Request Leave', icon: Calendar, href: '/hr/leave-requests', color: 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400' },
+                  { label: 'Salary Advance', icon: Coins, href: '/hr/advances', color: 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400' },
+                ]).map(({ label, icon: Icon, href, color }) => (
                   <button
                     key={label}
                     onClick={() => navigate(href)}
@@ -321,39 +404,41 @@ export default function DashboardPage() {
             </div>
 
             {/* Staff snapshot */}
-            <div className="bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm p-5">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-blue-500" />
+            {isBusinessManager && (
+              <div className="bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm p-5">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-blue-500" />
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Staff Today</h3>
                 </div>
-                <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Staff Today</h3>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.staff?.present_today ?? 0}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Present Today</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xl font-black text-slate-400 dark:text-slate-500">{stats?.staff?.active ?? 0}</p>
+                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Total Active</p>
+                  </div>
+                </div>
+                {/* Mini attendance bar */}
+                {(stats?.staff?.active ?? 0) > 0 && (
+                  <div className="mt-4 h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
+                      style={{ width: `${Math.round(((stats?.staff?.present_today ?? 0) / (stats?.staff?.active ?? 1)) * 100)}%` }}
+                    />
+                  </div>
+                )}
+                <button
+                  onClick={() => navigate('/attendance')}
+                  className="mt-4 w-full flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors"
+                >
+                  View Attendance <ArrowRight className="w-3 h-3" />
+                </button>
               </div>
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.staff?.present_today ?? 0}</p>
-                  <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Present Today</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xl font-black text-slate-400 dark:text-slate-500">{stats?.staff?.active ?? 0}</p>
-                  <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Total Active</p>
-                </div>
-              </div>
-              {/* Mini attendance bar */}
-              {(stats?.staff?.active ?? 0) > 0 && (
-                <div className="mt-4 h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
-                    style={{ width: `${Math.round(((stats?.staff?.present_today ?? 0) / (stats?.staff?.active ?? 1)) * 100)}%` }}
-                  />
-                </div>
-              )}
-              <button
-                onClick={() => navigate('/attendance')}
-                className="mt-4 w-full flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors"
-              >
-                View Attendance <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
+            )}
 
           </div>
         </div>
