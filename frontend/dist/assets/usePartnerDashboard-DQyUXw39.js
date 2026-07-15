@@ -1,0 +1,1 @@
+import{r as e}from"./authStore-DiPp3CXB.js";import{rt as t}from"./index-AK5kL5DO.js";var n=()=>t({queryKey:[`partner`,`dashboard`],queryFn:async()=>{let{data:t}=await e.get(`/partner/dashboard`);return t.data}});export{n as t};
