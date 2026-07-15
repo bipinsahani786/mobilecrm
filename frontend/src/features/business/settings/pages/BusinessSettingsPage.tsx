@@ -123,7 +123,7 @@ export default function BusinessSettingsPage() {
         }
       };
 
-      const res = await updateBusinessMutation.mutateAsync({ id: activeBusiness.id, data: payload });
+      const res = await updateBusinessMutation.mutateAsync({ id: activeBusiness.id, data: payload as any });
       updateBusiness(res);
       toast.success('Business settings updated!');
     } catch (error) {

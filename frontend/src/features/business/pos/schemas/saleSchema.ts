@@ -40,7 +40,9 @@ export interface Sale {
   customer?: any; // Will use Customer from customers/schemas in full implementation
   items?: SaleItem[];
   payments?: SalePayment[];
-  emiDetail?: any; // Will use EmiDetail from finance/schemas
+  emiDetail?: any;
+  emi_detail?: any;
+  draft_data?: any;
 }
 
 export interface CartItem {

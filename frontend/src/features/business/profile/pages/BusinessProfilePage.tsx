@@ -35,22 +35,36 @@ export default function BusinessProfilePage() {
     resolver: zodResolver(businessSchema) as any,
     defaultValues: activeBusiness ? {
       ...activeBusiness,
-      card_preferences: activeBusiness.card_preferences || {
-        show_address: true,
-        show_email: true,
-        show_phone_2: true,
-        show_gst: true,
-        theme: 'dark',
+      card_preferences: {
+        show_address: activeBusiness.card_preferences?.show_address ?? true,
+        show_email: activeBusiness.card_preferences?.show_email ?? true,
+        show_phone_2: activeBusiness.card_preferences?.show_phone_2 ?? true,
+        show_gst: activeBusiness.card_preferences?.show_gst ?? true,
+        theme: activeBusiness.card_preferences?.theme ?? 'primary',
+      },
+      settings: {
+        commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
+        sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
+        purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
+        whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
+        whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
+        whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
       }
     } : {
+      name: '',
       card_preferences: {
         show_address: true,
         show_email: true,
         show_phone_2: true,
         show_gst: true,
-        theme: 'dark',
+        theme: 'primary',
+      },
+      settings: {
+        commission_calculation_base: 'sales',
+        sale_invoice_prefix: 'INV-',
+        purchase_invoice_prefix: 'PUR-',
       }
-    }
+    } as any
   });
 
   const { watch, control, reset, formState: { isSubmitting } } = form;
@@ -62,12 +76,20 @@ export default function BusinessProfilePage() {
     if (activeBusiness) {
       reset({
         ...activeBusiness,
-        card_preferences: activeBusiness.card_preferences || {
-          show_address: true,
-          show_email: true,
-          show_phone_2: true,
-        show_gst: true,
-          theme: 'dark',
+        card_preferences: {
+          show_address: activeBusiness.card_preferences?.show_address ?? true,
+          show_email: activeBusiness.card_preferences?.show_email ?? true,
+          show_phone_2: activeBusiness.card_preferences?.show_phone_2 ?? true,
+          show_gst: activeBusiness.card_preferences?.show_gst ?? true,
+          theme: activeBusiness.card_preferences?.theme ?? 'primary',
+        },
+        settings: {
+          commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
+          sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
+          purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
+          whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
+          whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
+          whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
         }
       });
       setLogoUrl(activeBusiness.logo_path);

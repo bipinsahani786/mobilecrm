@@ -32,7 +32,7 @@ export default function PosPage() {
   // Load draft items into cart if editing a draft or completed sale
   useEffect(() => {
     if (draftSale) {
-      const mappedCart: CartItem[] = draftSale.items.map((item: any) => ({
+      const mappedCart: CartItem[] = (draftSale.items || []).map((item: any) => ({
         id: item.product_batch_id ? `${item.product_id}-${item.product_batch_id}` : `${item.product_id}`,
         product_id: item.product_id,
         batch_id: item.product_batch_id,

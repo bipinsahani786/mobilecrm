@@ -459,7 +459,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
       }
       toast.success(isDrafting.current ? 'Draft saved successfully!' : 'Sale completed successfully!');
       
-      const saleId = response?.data?.id || response?.id;
+      const saleId = (response as any)?.data?.id || (response as any)?.id;
       onSuccess(saleId, isDrafting.current);
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to complete sale');

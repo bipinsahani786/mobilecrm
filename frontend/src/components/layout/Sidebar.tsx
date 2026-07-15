@@ -265,7 +265,7 @@ export function Sidebar({ className }: { className?: string }) {
           <div className="flex items-center">
             {activeBusiness?.settings?.whitelabel_logo || appLogo ? (
               <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 mx-auto flex items-center justify-center bg-transparent">
-                <img src={activeBusiness?.settings?.whitelabel_logo || appLogo} alt={activeBusiness?.settings?.whitelabel_name || appName} className="max-w-full max-h-full object-contain" />
+                <img src={activeBusiness?.settings?.whitelabel_logo || appLogo || undefined} alt={activeBusiness?.settings?.whitelabel_name || appName || undefined} className="max-w-full max-h-full object-contain" />
               </div>
             ) : (
               <div className="bg-primary-500 p-1.5 rounded-lg w-8 h-8 flex items-center justify-center font-bold text-white shrink-0 mx-auto">
