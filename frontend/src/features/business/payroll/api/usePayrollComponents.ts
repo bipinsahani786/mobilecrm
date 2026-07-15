@@ -29,7 +29,11 @@ export const useCreatePayrollComponent = () => {
       const response = await api.post('/business/payroll-components', data);
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (newComponent) => {
+      queryClient.setQueryData(['payroll-components'], (oldData: PayrollComponent[] | undefined) => {
+        if (!oldData) return [newComponent];
+        return [...oldData, newComponent];
+      });
       queryClient.invalidateQueries({ queryKey: ['payroll-components'] });
     },
   });
@@ -43,7 +47,11 @@ export const useUpdatePayrollComponent = () => {
       const response = await api.put(`/business/payroll-components/${id}`, data);
       return response.data.data;
     },
-    onSuccess: () => {
+    onSuccess: (updatedComponent) => {
+      queryClient.setQueryData(['payroll-components'], (oldData: PayrollComponent[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.map(comp => comp.id === updatedComponent.id ? updatedComponent : comp);
+      });
       queryClient.invalidateQueries({ queryKey: ['payroll-components'] });
     },
   });
@@ -55,9 +63,13 @@ export const useDeletePayrollComponent = () => {
   return useMutation({
     mutationFn: async (id: number) => {
       const response = await api.delete(`/business/payroll-components/${id}`);
-      return response.data;
+      return { id };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData(['payroll-components'], (oldData: PayrollComponent[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.filter(comp => comp.id !== data.id);
+      });
       queryClient.invalidateQueries({ queryKey: ['payroll-components'] });
     },
   });

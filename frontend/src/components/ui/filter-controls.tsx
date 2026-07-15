@@ -3,7 +3,7 @@ import { Search, RotateCcw, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 
-export interface FilterContainerProps extends React.HTMLAttributes<HTMLDivElement> {}
+export interface FilterContainerProps extends React.HTMLAttributes<HTMLDivElement> { }
 
 export function FilterContainer({ className, children, ...props }: FilterContainerProps) {
   return (
@@ -114,7 +114,7 @@ export function FilterSelect({
   return (
     <div
       ref={containerRef}
-      className={cn("relative w-full sm:w-44 shrink-0 select-none", wrapperClassName)}
+      className={cn("relative w-full shrink-0 select-none", wrapperClassName)}
     >
       {/* Trigger Button */}
       <button

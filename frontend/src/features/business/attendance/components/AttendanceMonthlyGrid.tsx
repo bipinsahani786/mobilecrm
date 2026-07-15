@@ -3,6 +3,7 @@ import { getDaysInMonth, format, getDate } from 'date-fns';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { FilterSelect } from '@/components/ui/filter-controls';
 import { Input } from '@/components/ui/input';
 import { useMarkAttendance, useApproveAttendance, type AttendanceRecord } from '../api/useAttendance';
 import { Check, Camera } from 'lucide-react';
@@ -316,14 +317,20 @@ export function AttendanceMonthlyGrid({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Status</label>
-                  <Select value={editStatus} onChange={(e: any) => setEditStatus(e.target.value)}>
-                    <option value="present">Present</option>
-                    <option value="absent">Absent</option>
-                    <option value="half_day">Half Day</option>
-                    <option value="leave">Leave</option>
-                    <option value="week_off">Week Off</option>
-                    <option value="holiday">Holiday</option>
-                  </Select>
+                  <FilterSelect
+                    value={editStatus}
+                    onChange={(val) => setEditStatus(val)}
+                    placeholder="Select Status"
+                    options={[
+                      { value: 'present', label: 'Present' },
+                      { value: 'absent', label: 'Absent' },
+                      { value: 'half_day', label: 'Half Day' },
+                      { value: 'leave', label: 'Leave' },
+                      { value: 'week_off', label: 'Week Off' },
+                      { value: 'holiday', label: 'Holiday' }
+                    ]}
+                    wrapperClassName="w-full"
+                  />
                 </div>
 
                 <div>

@@ -72,7 +72,7 @@ export default function PayrollPage() {
         subtitle="Manage employee salaries, commissions, and deductions"
       />
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full max-w-[1600px] px-4 pt-0 pb-4 space-y-4">
         
         {/* Analytics Section (Full Width Grid) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
