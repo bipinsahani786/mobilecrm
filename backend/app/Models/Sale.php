@@ -25,10 +25,12 @@ class Sale extends Model
         'status',
         'notes',
         'date',
+        'draft_data',
     ];
 
     protected $casts = [
         'date' => 'date',
+        'draft_data' => 'array',
     ];
 
     public function business()

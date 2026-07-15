@@ -57,7 +57,8 @@ export default function InvoicesPage() {
 
   const columns = useMemo(() => getInvoiceColumns({
     onView: (sale) => navigate(`/invoices/${sale.id}`),
-    onCustomerView: (customerId) => navigate(`/customers/${customerId}`)
+    onCustomerView: (customerId) => navigate(`/customers/${customerId}`),
+    onResumeDraft: (saleId) => navigate(`/pos?draft_id=${saleId}`)
   }), [navigate]);
 
   const handleClearFilters = () => {

@@ -27,9 +27,16 @@ export const businessSchema = z.object({
     theme: 'primary'
   }),
   settings: z.object({
-    commission_calculation_base: z.enum(['sales', 'profit']).default('sales')
+    commission_calculation_base: z.enum(['sales', 'profit']).default('sales'),
+    sale_invoice_prefix: z.string().default('INV-'),
+    purchase_invoice_prefix: z.string().default('PUR-'),
+    whitelabel_name: z.string().nullable().optional(),
+    whitelabel_logo: z.string().nullable().optional(),
+    whitelabel_favicon: z.string().nullable().optional(),
   }).default({
-    commission_calculation_base: 'sales'
+    commission_calculation_base: 'sales',
+    sale_invoice_prefix: 'INV-',
+    purchase_invoice_prefix: 'PUR-'
   })
 });
 

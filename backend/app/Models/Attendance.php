@@ -53,4 +53,26 @@ class Attendance extends Model
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
+
+    public function getCheckInPhotoAttribute($value)
+    {
+        if ($value) {
+            if (str_starts_with($value, 'http')) {
+                return $value;
+            }
+            return \Illuminate\Support\Facades\Storage::disk('s3')->url($value);
+        }
+        return null;
+    }
+
+    public function getCheckOutPhotoAttribute($value)
+    {
+        if ($value) {
+            if (str_starts_with($value, 'http')) {
+                return $value;
+            }
+            return \Illuminate\Support\Facades\Storage::disk('s3')->url($value);
+        }
+        return null;
+    }
 }

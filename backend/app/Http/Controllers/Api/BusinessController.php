@@ -142,6 +142,7 @@ class BusinessController extends BaseController
             'card_preferences' => 'nullable|array',
             'logo_path' => 'nullable|string',
             'signature_path' => 'nullable|string',
+            'settings' => 'nullable|array',
         ]);
 
         $business = $this->businessService->updateBusiness($business, $validated);

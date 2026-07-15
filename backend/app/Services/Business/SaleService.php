@@ -55,7 +55,25 @@ class SaleService
     {
         return DB::transaction(function () use ($data) {
             // Generate Invoice Number
-            $invoiceNumber = 'INV-' . strtoupper(Str::random(8)) . '-' . time();
+            $businessId = auth()->user()->business_id;
+            $business = \App\Models\Business::find($businessId);
+            $prefix = $business->settings['sale_invoice_prefix'] ?? 'INV-';
+            
+            $lastSale = Sale::where('business_id', $businessId)
+                ->where('invoice_number', 'like', $prefix . '%')
+                ->where('invoice_number', 'not like', 'UDH-%')
+                ->orderBy('id', 'desc')
+                ->first();
+                
+            $nextNumber = 1;
+            if ($lastSale) {
+                // Extract only the digits from the end of the invoice number
+                preg_match('/(\d+)$/', $lastSale->invoice_number, $matches);
+                if (!empty($matches)) {
+                    $nextNumber = (int) $matches[1] + 1;
+                }
+            }
+            $invoiceNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
 
             // Calculate totals
             $totalAmount = 0;
@@ -89,7 +107,8 @@ class SaleService
                 'payment_mode' => $data['payment_mode'] ?? null, // legacy/primary
                 'date' => $data['date'] ?? now()->toDateString(),
                 'notes' => $data['notes'] ?? null,
-                'status' => 'completed',
+                'status' => $data['status'] ?? 'completed',
+                'draft_data' => ($data['status'] ?? 'completed') === 'Draft' ? $data : null,
             ]);
 
             // Create Items & Deduct Stock
@@ -102,123 +121,130 @@ class SaleService
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal' => $subtotal,
+                    'imei_1' => $item['imei_1'] ?? null,
+                    'imei_2' => $item['imei_2'] ?? null,
+                    'serial_no' => $item['serial_no'] ?? null,
                 ]);
 
                 // Deduct stock if batch is provided
-                if (!empty($item['product_batch_id'])) {
-                    $batch = ProductBatch::find($item['product_batch_id']);
-                    if ($batch) {
-                        $batch->decrement('remaining_quantity', $item['quantity']);
-                        
-                        // Also decrement main product quantity
-                        $product = $batch->product;
-                        $product->decrement('quantity', $item['quantity']);
-
-                        // Log movement
-                        InventoryMovement::create([
-                            'product_id' => $product->id,
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'reference_type' => 'sale',
-                            'reference_id' => $sale->id,
-                        ]);
-                    }
-                } else {
-                    // Fallback to decrementing main product quantity only
-                    $product = \App\Models\Product::find($item['product_id']);
-                    if ($product) {
-                        $product->decrement('quantity', $item['quantity']);
-                        InventoryMovement::create([
-                            'product_id' => $product->id,
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'reference_type' => 'sale',
-                            'reference_id' => $sale->id,
-                        ]);
+                if (($data['status'] ?? 'completed') !== 'Draft') {
+                    if (!empty($item['product_batch_id'])) {
+                        $batch = ProductBatch::find($item['product_batch_id']);
+                        if ($batch) {
+                            $batch->decrement('remaining_quantity', $item['quantity']);
+                            
+                            // Also decrement main product quantity
+                            $product = $batch->product;
+                            $product->decrement('quantity', $item['quantity']);
+    
+                            // Log movement
+                            InventoryMovement::create([
+                                'product_id' => $product->id,
+                                'type' => 'out',
+                                'quantity' => $item['quantity'],
+                                'reference_type' => 'sale',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
+                    } else {
+                        // Fallback to decrementing main product quantity only
+                        $product = \App\Models\Product::find($item['product_id']);
+                        if ($product) {
+                            $product->decrement('quantity', $item['quantity']);
+                            InventoryMovement::create([
+                                'product_id' => $product->id,
+                                'type' => 'out',
+                                'quantity' => $item['quantity'],
+                                'reference_type' => 'sale',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
                     }
                 }
             }
 
-            // Create Split Payments
-            if (!empty($data['payments'])) {
-                foreach ($data['payments'] as $payment) {
-                    $notes = $payment['notes'] ?? null;
-                    
-                    if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
-                        $linkCustomerId = $payment['link_customer_id'];
-                        $linkCust = \App\Models\Customer::find($linkCustomerId);
-                        $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+            if (($data['status'] ?? 'completed') !== 'Draft') {
+                // Create Split Payments
+                if (!empty($data['payments'])) {
+                    foreach ($data['payments'] as $payment) {
+                        $notes = $payment['notes'] ?? null;
                         
-                        $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
-                        
-                        Sale::create([
-                            'business_id' => $sale->business_id,
-                            'customer_id' => $linkCustomerId,
-                            'user_id' => $sale->user_id,
-                            'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
-                            'total_amount' => $payment['amount'],
-                            'discount' => 0,
-                            'round_off' => 0,
-                            'final_amount' => $payment['amount'],
-                            'paid_amount' => 0,
-                            'payment_mode' => 'Udhar',
-                            'date' => $sale->date,
-                            'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
-                            'status' => 'completed',
+                        if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
+                            $linkCustomerId = $payment['link_customer_id'];
+                            $linkCust = \App\Models\Customer::find($linkCustomerId);
+                            $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+                            
+                            $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
+                            
+                            Sale::create([
+                                'business_id' => $sale->business_id,
+                                'customer_id' => $linkCustomerId,
+                                'user_id' => $sale->user_id,
+                                'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
+                                'total_amount' => $payment['amount'],
+                                'discount' => 0,
+                                'round_off' => 0,
+                                'final_amount' => $payment['amount'],
+                                'paid_amount' => 0,
+                                'payment_mode' => 'Udhar',
+                                'date' => $sale->date,
+                                'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
+                                'status' => 'completed',
+                            ]);
+                        }
+    
+                        $sale->payments()->create([
+                            'payment_mode' => $payment['payment_mode'],
+                            'amount' => $payment['amount'],
+                            'notes' => $notes,
                         ]);
                     }
-
-                    $sale->payments()->create([
-                        'payment_mode' => $payment['payment_mode'],
-                        'amount' => $payment['amount'],
-                        'notes' => $notes,
+                }
+    
+                // Create EMI Detail
+                if (!empty($data['emi_detail'])) {
+                    $emiDetail = $sale->emiDetail()->create([
+                        'financier_name' => $data['emi_detail']['financier_name'],
+                        'down_payment' => $data['emi_detail']['down_payment'] ?? 0,
+                        'loan_amount' => $data['emi_detail']['loan_amount'],
+                        'processing_fee' => $data['emi_detail']['processing_fee'] ?? 0,
+                        'tenure_months' => $data['emi_detail']['tenure_months'] ?? null,
+                        'monthly_installment_amount' => $data['emi_detail']['monthly_installment_amount'] ?? null,
+                        'first_emi_date' => $data['emi_detail']['first_emi_date'] ?? null,
+                    ]);
+    
+                    if ($emiDetail->tenure_months > 0 && $emiDetail->monthly_installment_amount > 0) {
+                        $firstDate = $emiDetail->first_emi_date ? \Carbon\Carbon::parse($emiDetail->first_emi_date) : now()->addMonth();
+                        
+                        for ($i = 1; $i <= $emiDetail->tenure_months; $i++) {
+                            $emiDetail->installments()->create([
+                                'installment_number' => $i,
+                                'amount' => $emiDetail->monthly_installment_amount,
+                                'due_date' => $firstDate->copy()->addMonths($i - 1)->format('Y-m-d'),
+                            ]);
+                        }
+                    }
+                }
+    
+                // Auto-calculate Commission for Staff
+                $staffPivot = \Illuminate\Support\Facades\DB::table('business_user')
+                    ->where('business_id', $sale->business_id)
+                    ->where('user_id', auth()->id())
+                    ->first();
+    
+                if ($staffPivot && $staffPivot->commission_rate > 0) {
+                    $commissionRate = (float) $staffPivot->commission_rate;
+                    $commissionAmount = ($sale->final_amount * $commissionRate) / 100;
+                    
+                    \App\Models\SaleCommission::create([
+                        'business_id' => $sale->business_id,
+                        'user_id' => auth()->id(),
+                        'sale_id' => $sale->id,
+                        'sale_amount' => $sale->final_amount,
+                        'commission_rate' => $commissionRate,
+                        'commission_amount' => $commissionAmount,
                     ]);
                 }
-            }
-
-            // Create EMI Detail
-            if (!empty($data['emi_detail'])) {
-                $emiDetail = $sale->emiDetail()->create([
-                    'financier_name' => $data['emi_detail']['financier_name'],
-                    'down_payment' => $data['emi_detail']['down_payment'] ?? 0,
-                    'loan_amount' => $data['emi_detail']['loan_amount'],
-                    'processing_fee' => $data['emi_detail']['processing_fee'] ?? 0,
-                    'tenure_months' => $data['emi_detail']['tenure_months'] ?? null,
-                    'monthly_installment_amount' => $data['emi_detail']['monthly_installment_amount'] ?? null,
-                    'first_emi_date' => $data['emi_detail']['first_emi_date'] ?? null,
-                ]);
-
-                if ($emiDetail->tenure_months > 0 && $emiDetail->monthly_installment_amount > 0) {
-                    $firstDate = $emiDetail->first_emi_date ? \Carbon\Carbon::parse($emiDetail->first_emi_date) : now()->addMonth();
-                    
-                    for ($i = 1; $i <= $emiDetail->tenure_months; $i++) {
-                        $emiDetail->installments()->create([
-                            'installment_number' => $i,
-                            'amount' => $emiDetail->monthly_installment_amount,
-                            'due_date' => $firstDate->copy()->addMonths($i - 1)->format('Y-m-d'),
-                        ]);
-                    }
-                }
-            }
-
-            // Auto-calculate Commission for Staff
-            $staffPivot = \Illuminate\Support\Facades\DB::table('business_user')
-                ->where('business_id', $sale->business_id)
-                ->where('user_id', auth()->id())
-                ->first();
-
-            if ($staffPivot && $staffPivot->commission_rate > 0) {
-                $commissionRate = (float) $staffPivot->commission_rate;
-                $commissionAmount = ($sale->final_amount * $commissionRate) / 100;
-                
-                \App\Models\SaleCommission::create([
-                    'business_id' => $sale->business_id,
-                    'user_id' => auth()->id(),
-                    'sale_id' => $sale->id,
-                    'sale_amount' => $sale->final_amount,
-                    'commission_rate' => $commissionRate,
-                    'commission_amount' => $commissionAmount,
-                ]);
             }
 
             return $sale->load(['customer', 'items.product', 'payments', 'emiDetail']);
@@ -233,9 +259,12 @@ class SaleService
                 throw new \Exception("Cannot edit sale because some EMI installments have already been paid.");
             }
 
+            $isDraftRevert = $sale->status === 'Draft';
+
             // 1. Revert Old Items & Inventory
             foreach ($sale->items as $item) {
-                if ($item->product_batch_id) {
+                if (!$isDraftRevert) {
+                    if ($item->product_batch_id) {
                     $batch = ProductBatch::find($item->product_batch_id);
                     if ($batch) {
                         $batch->increment('remaining_quantity', $item->quantity);
@@ -260,6 +289,7 @@ class SaleService
                             'reference_type' => 'sale_edit_revert',
                             'reference_id' => $sale->id,
                         ]);
+                    }
                     }
                 }
             }
@@ -300,6 +330,8 @@ class SaleService
                 'payment_mode' => $data['payment_mode'] ?? null,
                 'date' => $data['date'] ?? $sale->date,
                 'notes' => $data['notes'] ?? null,
+                'status' => $data['status'] ?? 'completed',
+                'draft_data' => ($data['status'] ?? 'completed') === 'Draft' ? $data : null,
             ]);
 
             // 3. Create New Items & Deduct Stock
@@ -312,95 +344,102 @@ class SaleService
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                     'subtotal' => $subtotal,
+                    'imei_1' => $item['imei_1'] ?? null,
+                    'imei_2' => $item['imei_2'] ?? null,
+                    'serial_no' => $item['serial_no'] ?? null,
                 ]);
 
-                if (!empty($item['product_batch_id'])) {
-                    $batch = ProductBatch::find($item['product_batch_id']);
-                    if ($batch) {
-                        $batch->decrement('remaining_quantity', $item['quantity']);
-                        $batch->product->decrement('quantity', $item['quantity']);
-
-                        InventoryMovement::create([
-                            'product_id' => $batch->product_id,
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'reference_type' => 'sale',
-                            'reference_id' => $sale->id,
-                        ]);
-                    }
-                } else {
-                    $product = \App\Models\Product::find($item['product_id']);
-                    if ($product) {
-                        $product->decrement('quantity', $item['quantity']);
-                        InventoryMovement::create([
-                            'product_id' => $product->id,
-                            'type' => 'out',
-                            'quantity' => $item['quantity'],
-                            'reference_type' => 'sale',
-                            'reference_id' => $sale->id,
-                        ]);
+                if (($data['status'] ?? 'completed') !== 'Draft') {
+                    if (!empty($item['product_batch_id'])) {
+                        $batch = ProductBatch::find($item['product_batch_id']);
+                        if ($batch) {
+                            $batch->decrement('remaining_quantity', $item['quantity']);
+                            $batch->product->decrement('quantity', $item['quantity']);
+    
+                            InventoryMovement::create([
+                                'product_id' => $batch->product_id,
+                                'type' => 'out',
+                                'quantity' => $item['quantity'],
+                                'reference_type' => 'sale',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
+                    } else {
+                        $product = \App\Models\Product::find($item['product_id']);
+                        if ($product) {
+                            $product->decrement('quantity', $item['quantity']);
+                            InventoryMovement::create([
+                                'product_id' => $product->id,
+                                'type' => 'out',
+                                'quantity' => $item['quantity'],
+                                'reference_type' => 'sale',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
                     }
                 }
             }
 
-            // 4. Create New Split Payments
-            if (!empty($data['payments'])) {
-                foreach ($data['payments'] as $payment) {
-                    $notes = $payment['notes'] ?? null;
-                    
-                    if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
-                        $linkCustomerId = $payment['link_customer_id'];
-                        $linkCust = \App\Models\Customer::find($linkCustomerId);
-                        $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+            if (($data['status'] ?? 'completed') !== 'Draft') {
+                // 4. Create New Split Payments
+                if (!empty($data['payments'])) {
+                    foreach ($data['payments'] as $payment) {
+                        $notes = $payment['notes'] ?? null;
                         
-                        $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
-                        
-                        Sale::create([
-                            'business_id' => $sale->business_id,
-                            'customer_id' => $linkCustomerId,
-                            'user_id' => $sale->user_id,
-                            'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
-                            'total_amount' => $payment['amount'],
-                            'discount' => 0,
-                            'round_off' => 0,
-                            'final_amount' => $payment['amount'],
-                            'paid_amount' => 0,
-                            'payment_mode' => 'Udhar',
-                            'date' => $sale->date,
-                            'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
-                            'status' => 'completed',
+                        if (!empty($payment['link_customer_id']) && strtolower($payment['payment_mode']) === 'udhar') {
+                            $linkCustomerId = $payment['link_customer_id'];
+                            $linkCust = \App\Models\Customer::find($linkCustomerId);
+                            $linkCustName = $linkCust ? $linkCust->name : 'Unknown';
+                            
+                            $notes = ($notes ? $notes . ' | ' : '') . "Udhar linked to Customer: {$linkCustName} (ID: {$linkCustomerId})";
+                            
+                            Sale::create([
+                                'business_id' => $sale->business_id,
+                                'customer_id' => $linkCustomerId,
+                                'user_id' => $sale->user_id,
+                                'invoice_number' => 'UDH-' . strtoupper(Str::random(6)) . '-' . time(),
+                                'total_amount' => $payment['amount'],
+                                'discount' => 0,
+                                'round_off' => 0,
+                                'final_amount' => $payment['amount'],
+                                'paid_amount' => 0,
+                                'payment_mode' => 'Udhar',
+                                'date' => $sale->date,
+                                'notes' => "Downpayment Credit (Udhar) for " . ($sale->customer->name ?? 'Walk-in Customer') . "'s purchase (Invoice: {$sale->invoice_number}, ID: {$sale->id})",
+                                'status' => 'completed',
+                            ]);
+                        }
+    
+                        $sale->payments()->create([
+                            'payment_mode' => $payment['payment_mode'],
+                            'amount' => $payment['amount'],
+                            'notes' => $notes,
                         ]);
                     }
-
-                    $sale->payments()->create([
-                        'payment_mode' => $payment['payment_mode'],
-                        'amount' => $payment['amount'],
-                        'notes' => $notes,
+                }
+    
+                // 5. Create New EMI Detail
+                if (!empty($data['emi_detail'])) {
+                    $emiDetail = $sale->emiDetail()->create([
+                        'financier_name' => $data['emi_detail']['financier_name'],
+                        'down_payment' => $data['emi_detail']['down_payment'] ?? 0,
+                        'loan_amount' => $data['emi_detail']['loan_amount'],
+                        'processing_fee' => $data['emi_detail']['processing_fee'] ?? 0,
+                        'tenure_months' => $data['emi_detail']['tenure_months'] ?? null,
+                        'monthly_installment_amount' => $data['emi_detail']['monthly_installment_amount'] ?? null,
+                        'first_emi_date' => $data['emi_detail']['first_emi_date'] ?? null,
                     ]);
-                }
-            }
-
-            // 5. Create New EMI Detail
-            if (!empty($data['emi_detail'])) {
-                $emiDetail = $sale->emiDetail()->create([
-                    'financier_name' => $data['emi_detail']['financier_name'],
-                    'down_payment' => $data['emi_detail']['down_payment'] ?? 0,
-                    'loan_amount' => $data['emi_detail']['loan_amount'],
-                    'processing_fee' => $data['emi_detail']['processing_fee'] ?? 0,
-                    'tenure_months' => $data['emi_detail']['tenure_months'] ?? null,
-                    'monthly_installment_amount' => $data['emi_detail']['monthly_installment_amount'] ?? null,
-                    'first_emi_date' => $data['emi_detail']['first_emi_date'] ?? null,
-                ]);
-
-                if ($emiDetail->tenure_months > 0 && $emiDetail->monthly_installment_amount > 0) {
-                    $firstDate = $emiDetail->first_emi_date ? \Carbon\Carbon::parse($emiDetail->first_emi_date) : now()->addMonth();
-                    
-                    for ($i = 1; $i <= $emiDetail->tenure_months; $i++) {
-                        $emiDetail->installments()->create([
-                            'installment_number' => $i,
-                            'amount' => $emiDetail->monthly_installment_amount,
-                            'due_date' => $firstDate->copy()->addMonths($i - 1)->format('Y-m-d'),
-                        ]);
+    
+                    if ($emiDetail->tenure_months > 0 && $emiDetail->monthly_installment_amount > 0) {
+                        $firstDate = $emiDetail->first_emi_date ? \Carbon\Carbon::parse($emiDetail->first_emi_date) : now()->addMonth();
+                        
+                        for ($i = 1; $i <= $emiDetail->tenure_months; $i++) {
+                            $emiDetail->installments()->create([
+                                'installment_number' => $i,
+                                'amount' => $emiDetail->monthly_installment_amount,
+                                'due_date' => $firstDate->copy()->addMonths($i - 1)->format('Y-m-d'),
+                            ]);
+                        }
                     }
                 }
             }

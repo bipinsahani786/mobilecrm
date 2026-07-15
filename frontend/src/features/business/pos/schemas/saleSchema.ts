@@ -52,6 +52,7 @@ export interface CartItem {
   unit_price: number;
   quantity: number;
   max_quantity: number;
+  category_name?: string;
 }
 
 // --- Zod Schemas ---
