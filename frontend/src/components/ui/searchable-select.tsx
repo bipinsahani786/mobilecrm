@@ -19,6 +19,7 @@ export interface SearchableSelectProps {
   error?: string;
   creatable?: boolean;
   onCreate?: (inputValue: string) => void | Promise<void>;
+  controlSize?: 'default' | 'sm';
 }
 
 export function SearchableSelect({
@@ -31,6 +32,7 @@ export function SearchableSelect({
   error,
   creatable = false,
   onCreate,
+  controlSize = 'default',
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -95,7 +97,10 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-11 w-full items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all text-left shadow-sm font-medium",
+          "flex w-full items-center justify-between border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all text-left shadow-sm font-medium",
+          controlSize === 'sm' 
+            ? "h-9 px-3 py-1.5 text-xs rounded-xl" 
+            : "h-11 px-4 py-2.5 text-sm rounded-xl",
           error && "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500",
           className
         )}

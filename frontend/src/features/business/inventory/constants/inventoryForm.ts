@@ -48,26 +48,6 @@ export const getInventoryFormConfig = (
     ],
   },
   {
-    title: 'Identifiers',
-    description: 'Unique tracking numbers for warranty and stock management.',
-    fields: [
-      {
-        name: 'imei',
-        label: 'IMEI (Optional)',
-        type: 'text',
-        placeholder: 'Enter 15 digit IMEI',
-        tooltip: 'International Mobile Equipment Identity - a unique 15-digit code for cellular devices.',
-      },
-      {
-        name: 'serial_no',
-        label: 'Serial No (Optional)',
-        type: 'text',
-        placeholder: 'Enter Serial Number',
-        tooltip: 'The unique serial number printed on the product box.',
-      },
-    ],
-  },
-  {
     title: isEditing ? 'Pricing' : 'Pricing & Stock',
     description: isEditing ? 'Update your product pricing.' : 'Set your purchase cost, selling price, and initial stock.',
     fields: [

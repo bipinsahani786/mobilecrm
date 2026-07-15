@@ -44,9 +44,10 @@ interface DynamicFormProps {
   sections: FormSectionConfig[];
   className?: string;
   children?: React.ReactNode;
+  controlSize?: 'default' | 'sm';
 }
 
-export function DynamicForm({ id, form, onSubmit, sections, className, children }: DynamicFormProps) {
+export function DynamicForm({ id, form, onSubmit, sections, className, children, controlSize = 'default' }: DynamicFormProps) {
   const { register, formState: { errors } } = form;
 
   const renderField = (field: FormFieldConfig) => {
@@ -56,21 +57,27 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
     switch (field.type) {
       case 'custom':
         return (
-          <div className={cn("space-y-2", field.colSpan === 2 && "md:col-span-2")}>
+          <div className={cn(controlSize === 'sm' ? "space-y-1.5" : "space-y-2", field.colSpan === 2 && "md:col-span-2")}>
             {field.render && field.render(form)}
           </div>
         );
 
       case 'checkbox':
         return (
-          <label className="flex items-start gap-3 p-3 border border-slate-200 dark:border-white/10 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+          <label className={cn(
+            "flex items-start rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-white/5 transition-colors",
+            controlSize === 'sm' ? "gap-2.5 p-2 border border-slate-200/80 dark:border-white/[0.06]" : "gap-3 p-3 border border-slate-200 dark:border-white/10"
+          )}>
             <input
               type="checkbox"
               {...register(field.name)}
-              className="mt-0.5 w-5 h-5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+              className={cn(
+                "rounded border-slate-300 text-primary-600 focus:ring-primary-500",
+                controlSize === 'sm' ? "mt-0.5 w-4 h-4" : "mt-0.5 w-5 h-5"
+              )}
             />
             <div>
-              <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
+              <p className={cn("font-semibold text-slate-800 dark:text-slate-200", controlSize === 'sm' ? "text-xs" : "text-sm")}>
                 {field.label}
               </p>
               {field.description && (
@@ -82,9 +89,9 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
 
       case 'select':
         return (
-          <div className={cn("space-y-2", field.colSpan === 2 && "md:col-span-2")}>
+          <div className={cn(controlSize === 'sm' ? "space-y-1.5" : "space-y-2", field.colSpan === 2 && "md:col-span-2")}>
             <div className="flex items-center">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label className={cn("font-semibold text-slate-700 dark:text-slate-300", controlSize === 'sm' ? "text-xs" : "text-sm")}>
                 {field.label} {field.required && '*'}
               </label>
               {field.tooltip && <InfoTooltip text={field.tooltip} />}
@@ -106,11 +113,12 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
                     error={errorMessage}
                     creatable={field.creatable}
                     onCreate={field.onCreate}
+                    controlSize={controlSize}
                   />
                 )}
               />
             ) : (
-              <Select {...register(field.name)}>
+              <Select {...register(field.name)} controlSize={controlSize}>
                 {field.placeholder && (
                   <option value="">{field.placeholder}</option>
                 )}
@@ -128,9 +136,9 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
 
       case 'textarea':
         return (
-          <div className={cn("space-y-2", field.colSpan === 2 && "md:col-span-2")}>
+          <div className={cn(controlSize === 'sm' ? "space-y-1.5" : "space-y-2", field.colSpan === 2 && "md:col-span-2")}>
             <div className="flex items-center">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label className={cn("font-semibold text-slate-700 dark:text-slate-300", controlSize === 'sm' ? "text-xs" : "text-sm")}>
                 {field.label} {field.required && '*'}
               </label>
               {field.tooltip && <InfoTooltip text={field.tooltip} />}
@@ -148,9 +156,9 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
       default:
         // text, email, number, password
         return (
-          <div className={cn("space-y-2", field.colSpan === 2 && "md:col-span-2")}>
+          <div className={cn(controlSize === 'sm' ? "space-y-1.5" : "space-y-2", field.colSpan === 2 && "md:col-span-2")}>
             <div className="flex items-center">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <label className={cn("font-semibold text-slate-700 dark:text-slate-300", controlSize === 'sm' ? "text-xs" : "text-sm")}>
                 {field.label} {field.required && '*'}
               </label>
               {field.tooltip && <InfoTooltip text={field.tooltip} />}
@@ -160,6 +168,7 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
               {...register(field.name)}
               placeholder={field.placeholder}
               step={field.step}
+              controlSize={controlSize}
             />
             {field.description && <p className="text-xs text-slate-500">{field.description}</p>}
             {errorMessage && <span className="text-red-500 text-xs">{errorMessage}</span>}
@@ -169,18 +178,18 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children 
   };
 
   return (
-    <form id={id} onSubmit={form.handleSubmit(onSubmit)} className={cn("space-y-6", className)}>
+    <form id={id} onSubmit={form.handleSubmit(onSubmit)} className={cn(controlSize === 'sm' ? "space-y-4" : "space-y-6", className)}>
       {sections.map((section, idx) => (
         <div key={idx}>
           {section.title && (
-            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-100 dark:border-white/5 pb-2">
+            <h3 className={cn("font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5 pb-2", controlSize === 'sm' ? "text-xs mb-3" : "text-sm mb-4")}>
               {section.title}
             </h3>
           )}
           {section.description && (
-            <p className="text-sm text-slate-500 mb-4">{section.description}</p>
+            <p className={cn("text-slate-500", controlSize === 'sm' ? "text-xs mb-3" : "text-sm mb-4")}>{section.description}</p>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={cn("grid grid-cols-1 md:grid-cols-2", controlSize === 'sm' ? "gap-3" : "gap-4")}>
             {section.fields.map((field) => (
               <React.Fragment key={field.name}>
                 {renderField(field)}

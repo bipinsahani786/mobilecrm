@@ -3,10 +3,11 @@ import { cn } from '@/lib/utils';
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   icon?: React.ReactNode;
+  controlSize?: 'default' | 'sm';
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, icon, children, ...props }, ref) => {
+  ({ className, icon, controlSize = 'default', children, ...props }, ref) => {
     return (
       <div className="relative w-full">
         {icon && (
@@ -17,7 +18,10 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           className={cn(
-            "flex h-10 w-full items-center justify-between rounded-md border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] px-3 py-2 text-sm text-slate-900 dark:text-slate-100 ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
+            "flex w-full items-center justify-between border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] text-slate-900 dark:text-slate-100 ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
+            controlSize === 'sm' 
+              ? "h-9 px-3 py-1.5 text-xs rounded-xl" 
+              : "h-10 px-3 py-2 text-sm rounded-md",
             icon ? "pl-10" : "",
             className
           )}

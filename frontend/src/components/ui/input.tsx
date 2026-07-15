@@ -5,10 +5,11 @@ import { Eye, EyeOff } from "lucide-react"
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   icon?: React.ReactNode;
+  controlSize?: 'default' | 'sm';
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, icon, ...props }, ref) => {
+  ({ className, type, error, icon, controlSize = 'default', ...props }, ref) => {
     const [showPassword, setShowPassword] = React.useState(false);
     const isPassword = type === "password";
     const inputType = isPassword ? (showPassword ? "text" : "password") : type;
@@ -17,16 +18,19 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full">
         <div className="relative group">
           {icon && (
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none group-focus-within:text-primary-500 transition-colors text-zinc-400">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none group-focus-within:text-primary-500 transition-colors text-zinc-400">
               {icon}
             </div>
           )}
           <input
             type={inputType}
             className={cn(
-              "block w-full pr-5 py-2.5 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 dark:focus:border-primary-500 transition-all font-medium text-sm text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-zinc-500 [color-scheme:light] dark:[color-scheme:dark]",
-              icon ? "pl-14" : "pl-5",
-              isPassword && "pr-14",
+              "block w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 dark:focus:border-primary-500 transition-all font-medium text-slate-900 dark:text-white shadow-sm placeholder:text-slate-400 dark:placeholder:text-zinc-500 [color-scheme:light] dark:[color-scheme:dark]",
+              controlSize === 'sm' 
+                ? "h-9 py-1.5 px-3 text-xs rounded-xl" 
+                : "h-11 py-2.5 px-5 text-sm rounded-lg",
+              icon ? (controlSize === 'sm' ? "pl-10" : "pl-14") : (controlSize === 'sm' ? "pl-3" : "pl-5"),
+              isPassword ? (controlSize === 'sm' ? "pr-10" : "pr-14") : (controlSize === 'sm' ? "pr-3" : "pr-5"),
               error && "border-red-500 focus:ring-red-500/10 focus:border-red-500",
               className
             )}
