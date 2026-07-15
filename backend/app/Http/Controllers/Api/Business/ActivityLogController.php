@@ -32,8 +32,19 @@ class ActivityLogController extends Controller
             $query->where('model_type', 'like', '%' . $request->model_type . '%');
         }
 
+        $statsQuery = clone $query;
+        $stats = [
+            'total' => $statsQuery->count(),
+            'created' => (clone $statsQuery)->where('action', 'created')->count(),
+            'updated' => (clone $statsQuery)->where('action', 'updated')->count(),
+            'deleted' => (clone $statsQuery)->where('action', 'deleted')->count(),
+        ];
+
         $logs = $query->paginate($perPage);
 
-        return response()->json($logs);
+        $response = $logs->toArray();
+        $response['stats'] = $stats;
+
+        return response()->json($response);
     }
 }
