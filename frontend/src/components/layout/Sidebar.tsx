@@ -42,7 +42,7 @@ export const businessMenuGroups = [
     title: "RELATIONSHIPS",
     items: [
       { name: "CUSTOMERS", href: "/customers", icon: Users },
-      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus, feature: "suppliers" },
+      { name: "SUPPLIERS", href: "/suppliers", icon: UserPlus },
     ]
   },
   {
@@ -175,6 +175,7 @@ export function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
   const { isSidebarCollapsed, setSidebarCollapsed } = useLayoutStore();
   const user = useAuthStore((state) => state.user);
+  const isProfileLoading = useAuthStore((state) => state.isProfileLoading);
   const { appName, appLogo } = useAppStore();
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeature();
@@ -184,7 +185,7 @@ export function Sidebar({ className }: { className?: string }) {
 
   const filteredBusinessGroups = businessMenuGroups.map(group => ({
     ...group,
-    items: group.items.filter(item => !item.feature || hasFeature(item.feature))
+    items: group.items.filter((item: any) => !item.feature || hasFeature(item.feature))
   })).filter(group => group.items.length > 0);
 
   const filteredSuperadminGroups = superadminMenuGroups.map(group => ({
@@ -273,81 +274,113 @@ export function Sidebar({ className }: { className?: string }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-4 space-y-6">
-          {activeMenuGroups.map((group, idx) => (
-            <div key={idx} className="px-3">
-              {/* Group Header */}
-              {!isSidebarCollapsed ? (
-                <div className="flex items-center gap-2 mb-2 px-2">
-                  <span className="text-[9px] font-black text-slate-600 dark:text-slate-400 tracking-[0.2em] uppercase whitespace-nowrap">
-                    {group.title}
-                  </span>
-                  <div className="flex-1 h-px bg-slate-200 dark:bg-white/5" />
+          {isProfileLoading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div key={idx} className="px-3 space-y-3 animate-pulse">
+                {!isSidebarCollapsed ? (
+                  <div className="flex items-center gap-2 mb-2 px-2">
+                    <div className="h-2.5 w-16 bg-slate-200 dark:bg-zinc-800 rounded" />
+                    <div className="flex-1 h-px bg-slate-100 dark:bg-white/5" />
+                  </div>
+                ) : (
+                  idx > 0 && <div className="w-6 h-px bg-slate-200 dark:bg-white/10 mx-auto mb-3" />
+                )}
+                
+                <div className="space-y-1.5">
+                  {Array.from({ length: idx === 0 ? 2 : 3 }).map((_, itemIdx) => (
+                    <div 
+                      key={itemIdx} 
+                      className={cn(
+                        "flex items-center rounded-xl",
+                        isSidebarCollapsed ? "justify-center h-10 w-10 mx-auto" : "py-2.5 px-3"
+                      )}
+                    >
+                      <div className="h-4 w-4 rounded bg-slate-200 dark:bg-zinc-800 shrink-0" />
+                      {!isSidebarCollapsed && (
+                        <div className="h-3.5 w-24 ml-3 rounded bg-slate-100 dark:bg-zinc-850" />
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ) : (
-                idx > 0 && <div className="w-6 h-px bg-slate-200 dark:bg-white/10 mx-auto mb-3" />
-              )}
-
-              <div className="space-y-0.5">
-                {group.items.map((item) => {
-                  const isActive = location.pathname === item.href
-                    || (item.href === '/superadmin/dashboard' && location.pathname === '/superadmin')
-                    || (item.href === '/dashboard' && location.pathname === '/');
-                  return (
-                    <PortalTooltip key={item.name} text={item.name} visible={isSidebarCollapsed}>
-                      <Link
-                        to={item.href}
-                        className={cn(
-                          "relative flex items-center text-[10px] font-semibold tracking-[0.05em] transition-all duration-200 group overflow-hidden",
-                          isSidebarCollapsed
-                            ? "justify-center w-10 h-10 mx-auto rounded-xl"
-                            : "py-2.5 px-3 rounded-xl",
-                          isActive
-                            ? isSidebarCollapsed
-                              ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
-                              : "bg-primary-500 text-white shadow-md shadow-primary-500/25"
-                            : "text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
-                        )}
-                      >
-                        {/* Active left bar — only in expanded mode */}
-                        {isActive && !isSidebarCollapsed && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-white/60" />
-                        )}
-
-                        {/* Hover shimmer */}
-                        {!isActive && (
-                          <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-primary-500/5 to-transparent rounded-xl" />
-                        )}
-
-                        <item.icon
-                          strokeWidth={isActive ? 2.5 : 1.75}
-                          className={cn(
-                            "flex-shrink-0 h-[15px] w-[15px] transition-all duration-200 relative z-10",
-                            isSidebarCollapsed ? "mx-auto" : "mr-2.5",
-                            isActive
-                              ? "text-white drop-shadow-sm"
-                              : "text-slate-600 dark:text-slate-300 group-hover:text-primary-500 group-hover:scale-110"
-                          )}
-                        />
-                        {!isSidebarCollapsed && (
-                          <span className={cn(
-                            "whitespace-nowrap relative z-10 transition-all duration-200",
-                            isActive ? "text-white font-bold" : "group-hover:translate-x-0.5"
-                          )}>
-                            {item.name}
-                          </span>
-                        )}
-
-                        {/* Active dot badge in collapsed mode */}
-                        {isActive && isSidebarCollapsed && (
-                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-white border-2 border-primary-500" />
-                        )}
-                      </Link>
-                    </PortalTooltip>
-                  );
-                })}
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            activeMenuGroups.map((group, idx) => (
+              <div key={idx} className="px-3">
+                {/* Group Header */}
+                {!isSidebarCollapsed ? (
+                  <div className="flex items-center gap-2 mb-2 px-2">
+                    <span className="text-[9px] font-black text-slate-600 dark:text-slate-400 tracking-[0.2em] uppercase whitespace-nowrap">
+                      {group.title}
+                    </span>
+                    <div className="flex-1 h-px bg-slate-200 dark:bg-white/5" />
+                  </div>
+                ) : (
+                  idx > 0 && <div className="w-6 h-px bg-slate-200 dark:bg-white/10 mx-auto mb-3" />
+                )}
+
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = location.pathname === item.href
+                      || (item.href === '/superadmin/dashboard' && location.pathname === '/superadmin')
+                      || (item.href === '/dashboard' && location.pathname === '/');
+                    return (
+                      <PortalTooltip key={item.name} text={item.name} visible={isSidebarCollapsed}>
+                        <Link
+                          to={item.href}
+                          className={cn(
+                            "relative flex items-center text-[10px] font-semibold tracking-[0.05em] transition-all duration-200 group overflow-hidden",
+                            isSidebarCollapsed
+                              ? "justify-center w-10 h-10 mx-auto rounded-xl"
+                              : "py-2.5 px-3 rounded-xl",
+                            isActive
+                              ? isSidebarCollapsed
+                                ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                                : "bg-primary-500 text-white shadow-md shadow-primary-500/25"
+                              : "text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/8"
+                          )}
+                        >
+                          {/* Active left bar — only in expanded mode */}
+                          {isActive && !isSidebarCollapsed && (
+                            <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-white/60" />
+                          )}
+
+                          {/* Hover shimmer */}
+                          {!isActive && (
+                            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-primary-500/5 to-transparent rounded-xl" />
+                          )}
+
+                          <item.icon
+                            strokeWidth={isActive ? 2.5 : 1.75}
+                            className={cn(
+                              "flex-shrink-0 h-[15px] w-[15px] transition-all duration-200 relative z-10",
+                              isSidebarCollapsed ? "mx-auto" : "mr-2.5",
+                              isActive
+                                ? "text-white drop-shadow-sm"
+                                : "text-slate-600 dark:text-slate-300 group-hover:text-primary-500 group-hover:scale-110"
+                            )}
+                          />
+                          {!isSidebarCollapsed && (
+                            <span className={cn(
+                              "whitespace-nowrap relative z-10 transition-all duration-200",
+                              isActive ? "text-white font-bold" : "group-hover:translate-x-0.5"
+                            )}>
+                              {item.name}
+                            </span>
+                          )}
+
+                          {/* Active dot badge in collapsed mode */}
+                          {isActive && isSidebarCollapsed && (
+                            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-white border-2 border-primary-500" />
+                          )}
+                        </Link>
+                      </PortalTooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          )}
         </nav>
 
         {/* Logout Button */}

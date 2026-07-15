@@ -1,20 +1,26 @@
-import React from 'react';
-import { Banknote, Smartphone, CreditCard, GitMerge, BarChart2, IndianRupee } from 'lucide-react';
+import React, { useState } from 'react';
+import { Banknote, Smartphone, CreditCard, GitMerge, BarChart2, IndianRupee, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { formatCurrency } from '@/lib/formatters';
 import { PAYMENT_MODES, COMMON_FINANCIERS, type PaymentMode } from '../../constants/index';
-import { SearchableSelect } from '@/components/ui/searchable-select';
+import { useCreateCustomer } from '../../../customers/api/useCustomers';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface PaymentFormsProps {
   paymentType: PaymentMode;
   setPaymentType: (type: PaymentMode) => void;
   register: any;
-  splitCash: number;
-  splitUpi: number;
-  splitCard: number;
+  splitPayments: { mode: string; amount: string; link_customer_id?: string }[];
+  setSplitPayments: (payments: { mode: string; amount: string; link_customer_id?: string }[]) => void;
   finalAmount: number;
   emiDownPaymentMode?: string;
   setEmiDownPaymentMode?: (val: string) => void;
+  emiDownPayments?: { mode: string; amount: string; link_customer_id?: string }[];
+  setEmiDownPayments?: (payments: { mode: string; amount: string; link_customer_id?: string }[]) => void;
+  customers?: any[];
+  isManualEmi?: boolean;
+  setIsManualEmi?: (val: boolean) => void;
 }
 
 const paymentIcons: Record<string, React.ReactNode> = {
@@ -42,10 +48,95 @@ function AmountInput({ prefix = '₹', ...props }: any) {
   );
 }
 
-export function PaymentForms({ paymentType, setPaymentType, register, splitCash, splitUpi, splitCard, finalAmount, emiDownPaymentMode, setEmiDownPaymentMode }: PaymentFormsProps) {
-  const splitTotal = Number(splitCash) + Number(splitUpi) + Number(splitCard);
+export function PaymentForms({ 
+  paymentType, 
+  setPaymentType, 
+  register, 
+  splitPayments, 
+  setSplitPayments, 
+  finalAmount, 
+  emiDownPaymentMode, 
+  setEmiDownPaymentMode,
+  emiDownPayments = [],
+  setEmiDownPayments = () => {},
+  customers = [],
+  isManualEmi = false,
+  setIsManualEmi = () => {}
+}: PaymentFormsProps) {
+  const splitTotal = splitPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const splitOver  = splitTotal > finalAmount;
   const remaining  = finalAmount - splitTotal;
+
+  // Guarantor states for Split payments
+  const [addingStates, setAddingStates] = useState<Record<number, boolean>>({});
+  const [newCustNames, setNewCustNames] = useState<Record<number, string>>({});
+  const [newCustPhones, setNewCustPhones] = useState<Record<number, string>>({});
+  const [newCustAddresses, setNewCustAddresses] = useState<Record<number, string>>({});
+  const [isSaving, setIsSaving] = useState<Record<number, boolean>>({});
+
+  // Guarantor states for EMI Downpayments
+  const [addingDownpaymentStates, setAddingDownpaymentStates] = useState<Record<number, boolean>>({});
+  const [newDownpaymentCustNames, setNewDownpaymentCustNames] = useState<Record<number, string>>({});
+  const [newDownpaymentCustPhones, setNewDownpaymentCustPhones] = useState<Record<number, string>>({});
+  const [newDownpaymentCustAddresses, setNewDownpaymentCustAddresses] = useState<Record<number, string>>({});
+  const [isDownpaymentSaving, setIsDownpaymentSaving] = useState<Record<number, boolean>>({});
+
+  const createCustomer = useCreateCustomer();
+  const queryClient = useQueryClient();
+
+  const handleCreateGuarantor = async (index: number, isDownpayment: boolean) => {
+    const name = isDownpayment ? newDownpaymentCustNames[index] : newCustNames[index];
+    const phone = isDownpayment ? newDownpaymentCustPhones[index] : newCustPhones[index];
+    const address = isDownpayment ? newDownpaymentCustAddresses[index] : newCustAddresses[index];
+
+    if (!name?.trim()) {
+      toast.error('Customer name is required');
+      return;
+    }
+
+    const setSaving = isDownpayment ? setIsDownpaymentSaving : setIsSaving;
+    setSaving(prev => ({ ...prev, [index]: true }));
+
+    try {
+      const newCustomer = await createCustomer.mutateAsync({
+        name: name.trim(),
+        phone: phone?.trim() || undefined,
+        address: address?.trim() || undefined,
+      });
+
+      toast.success(`Guarantor ${newCustomer.name} added successfully!`);
+
+      // Invalidate queries so select list updates
+      await queryClient.invalidateQueries({ queryKey: ['customers'] });
+
+      // Update the payment link customer ID with the newly created customer ID
+      if (isDownpayment) {
+        const newPayments = [...emiDownPayments];
+        newPayments[index].link_customer_id = String(newCustomer.id);
+        setEmiDownPayments(newPayments);
+
+        // Reset states
+        setAddingDownpaymentStates(prev => ({ ...prev, [index]: false }));
+        setNewDownpaymentCustNames(prev => ({ ...prev, [index]: '' }));
+        setNewDownpaymentCustPhones(prev => ({ ...prev, [index]: '' }));
+        setNewDownpaymentCustAddresses(prev => ({ ...prev, [index]: '' }));
+      } else {
+        const newPayments = [...splitPayments];
+        newPayments[index].link_customer_id = String(newCustomer.id);
+        setSplitPayments(newPayments);
+
+        // Reset states
+        setAddingStates(prev => ({ ...prev, [index]: false }));
+        setNewCustNames(prev => ({ ...prev, [index]: '' }));
+        setNewCustPhones(prev => ({ ...prev, [index]: '' }));
+        setNewCustAddresses(prev => ({ ...prev, [index]: '' }));
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to create customer');
+    } finally {
+      setSaving(prev => ({ ...prev, [index]: false }));
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -95,21 +186,156 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
 
         {/* Split */}
         {paymentType === 'split' && (
-          <div className="space-y-3 w-full">
-            <div className="space-y-2.5">
-              <div>
-                <FieldLabel>Cash Amount</FieldLabel>
-                <AmountInput type="number" {...register('split_cash')} placeholder="0.00" />
-              </div>
-              <div>
-                <FieldLabel>UPI Amount</FieldLabel>
-                <AmountInput type="number" {...register('split_upi')} placeholder="0.00" />
-              </div>
-              <div>
-                <FieldLabel>Card Amount</FieldLabel>
-                <AmountInput type="number" {...register('split_card')} placeholder="0.00" />
-              </div>
+          <div className="space-y-4 w-full">
+            <div className="space-y-3 max-h-[220px] overflow-y-auto pr-1">
+              {splitPayments.map((payment, index) => (
+                <div key={index} className="space-y-1.5 p-2 bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] rounded-xl animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2 group">
+                    <div className="w-1/2">
+                      <select
+                        value={payment.mode}
+                        onChange={(e) => {
+                          const newPayments = [...splitPayments];
+                          newPayments[index].mode = e.target.value;
+                          if (e.target.value !== 'Udhar') {
+                            delete newPayments[index].link_customer_id;
+                          }
+                          setSplitPayments(newPayments);
+                        }}
+                        className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                        <option value="Finance">Finance</option>
+                        <option value="EMI">EMI</option>
+                        <option value="Udhar">Udhar (Credit)</option>
+                      </select>
+                    </div>
+                    <div className="flex-1 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
+                      <Input
+                        type="number"
+                        value={payment.amount}
+                        onChange={(e) => {
+                          const newPayments = [...splitPayments];
+                          newPayments[index].amount = e.target.value;
+                          setSplitPayments(newPayments);
+                        }}
+                        placeholder="0.00"
+                        className="h-9 pl-7 text-sm bg-slate-50 dark:bg-white/[0.03]"
+                      />
+                    </div>
+                    {splitPayments.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newPayments = splitPayments.filter((_, i) => i !== index);
+                          setSplitPayments(newPayments);
+                        }}
+                        className="h-9 w-9 flex items-center justify-center border border-rose-200 dark:border-rose-500/30 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors shrink-0 cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {payment.mode === 'Udhar' && (
+                    <div className="w-full space-y-1 animate-in fade-in duration-200">
+                      {!addingStates[index] ? (
+                        <div className="space-y-1">
+                          <select
+                            value={payment.link_customer_id || ''}
+                            onChange={(e) => {
+                              const newPayments = [...splitPayments];
+                              newPayments[index].link_customer_id = e.target.value;
+                              setSplitPayments(newPayments);
+                            }}
+                            className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-500/20 bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm cursor-pointer"
+                          >
+                            <option value="">-- Select Debtor Customer * --</option>
+                            {customers.map((c: any) => (
+                              <option key={c.id} value={c.id}>
+                                {c.name} {c.phone ? `(${c.phone})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAddingStates(prev => ({ ...prev, [index]: true }));
+                              }}
+                              className="text-[10px] font-black uppercase text-primary-500 hover:text-primary-600 transition-colors flex items-center gap-0.5 cursor-pointer py-1"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Create New Customer</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-2 bg-primary-50/50 dark:bg-primary-500/5 border border-primary-100 dark:border-primary-500/15 rounded-xl space-y-2 animate-in slide-in-from-top-1 duration-200">
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <Input
+                              placeholder="Name *"
+                              value={newCustNames[index] || ''}
+                              onChange={(e) => {
+                                setNewCustNames(prev => ({ ...prev, [index]: e.target.value }));
+                              }}
+                              className="h-8 text-xs bg-white dark:bg-zinc-900"
+                            />
+                            <Input
+                              placeholder="Phone"
+                              value={newCustPhones[index] || ''}
+                              onChange={(e) => {
+                                setNewCustPhones(prev => ({ ...prev, [index]: e.target.value }));
+                              }}
+                              className="h-8 text-xs bg-white dark:bg-zinc-900"
+                            />
+                          </div>
+                          <Input
+                            placeholder="Address (Optional)"
+                            value={newCustAddresses[index] || ''}
+                            onChange={(e) => {
+                              setNewCustAddresses(prev => ({ ...prev, [index]: e.target.value }));
+                            }}
+                            className="h-8 text-xs bg-white dark:bg-zinc-900 w-full"
+                          />
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setAddingStates(prev => ({ ...prev, [index]: false }));
+                              }}
+                              className="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              disabled={isSaving[index]}
+                              onClick={() => handleCreateGuarantor(index, false)}
+                              className="px-3 py-1 bg-primary-500 text-white text-[10px] font-black rounded-lg uppercase tracking-wider disabled:opacity-50"
+                            >
+                              {isSaving[index] ? 'Saving…' : 'Save'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
+
+            <button
+              type="button"
+              onClick={() => setSplitPayments([...splitPayments, { mode: 'UPI', amount: '' }])}
+              className="flex items-center justify-center gap-1.5 w-full h-9 border border-dashed border-primary-300 dark:border-primary-500/30 hover:border-primary-500 text-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-500/5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Payment Mode</span>
+            </button>
 
             <div className={`pt-3 border-t space-y-2.5 ${splitOver ? 'border-rose-200 dark:border-rose-500/30' : 'border-slate-200 dark:border-white/10'}`}>
               <div className="flex justify-between items-center">
@@ -151,16 +377,16 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
                   <div className="flex-1 min-w-[140px]">
                     <FieldLabel>Down Pmt Mode</FieldLabel>
                     <div className="mt-1">
-                      <SearchableSelect
-                        options={[
-                          { value: 'Cash', label: 'Cash' },
-                          { value: 'UPI', label: 'UPI' },
-                          { value: 'Split', label: 'Split (Cash + UPI)' }
-                        ]}
+                      <select
                         value={emiDownPaymentMode || 'Cash'}
-                        onChange={(val) => setEmiDownPaymentMode && setEmiDownPaymentMode(String(val))}
-                        placeholder="Mode"
-                      />
+                        onChange={(e) => setEmiDownPaymentMode && setEmiDownPaymentMode(e.target.value)}
+                        className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="UPI">UPI</option>
+                        <option value="Card">Card</option>
+                        <option value="Split">Split Payment</option>
+                      </select>
                     </div>
                   </div>
                   {emiDownPaymentMode !== 'Split' && (
@@ -172,15 +398,154 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
                 </div>
 
                 {emiDownPaymentMode === 'Split' && (
-                  <div className="flex gap-2.5 pt-2 border-t border-slate-100 dark:border-white/5">
-                    <div className="flex-1">
-                      <FieldLabel>Cash Amount</FieldLabel>
-                      <AmountInput type="number" {...register('emi_cash_down')} placeholder="0.00" />
+                  <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
+                    <div className="max-h-[160px] overflow-y-auto space-y-2.5 pr-1">
+                      {emiDownPayments.map((payment, index) => (
+                        <div key={index} className="space-y-1.5 p-2 bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] rounded-xl animate-in fade-in duration-200">
+                          <div className="flex items-center gap-2 group">
+                            <div className="w-1/2">
+                              <select
+                                value={payment.mode}
+                                onChange={(e) => {
+                                  const newPayments = [...emiDownPayments];
+                                  newPayments[index].mode = e.target.value;
+                                  if (e.target.value !== 'Udhar') {
+                                    delete newPayments[index].link_customer_id;
+                                  }
+                                  setEmiDownPayments(newPayments);
+                                }}
+                                className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
+                              >
+                                <option value="Cash">Cash</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Card">Card</option>
+                                <option value="Udhar">Udhar (Credit)</option>
+                              </select>
+                            </div>
+                            <div className="flex-1 relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
+                              <Input
+                                type="number"
+                                value={payment.amount}
+                                onChange={(e) => {
+                                  const newPayments = [...emiDownPayments];
+                                  newPayments[index].amount = e.target.value;
+                                  setEmiDownPayments(newPayments);
+                                }}
+                                placeholder="0.00"
+                                className="h-9 pl-7 text-sm bg-slate-50 dark:bg-white/[0.03]"
+                              />
+                            </div>
+                            {emiDownPayments.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newPayments = emiDownPayments.filter((_, i) => i !== index);
+                                  setEmiDownPayments(newPayments);
+                                }}
+                                className="h-9 w-9 flex items-center justify-center border border-rose-200 dark:border-rose-500/30 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors shrink-0 cursor-pointer"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+
+                          {payment.mode === 'Udhar' && (
+                            <div className="w-full space-y-1 animate-in fade-in duration-200">
+                              {!addingDownpaymentStates[index] ? (
+                                <div className="space-y-1">
+                                  <select
+                                    value={payment.link_customer_id || ''}
+                                    onChange={(e) => {
+                                      const newPayments = [...emiDownPayments];
+                                      newPayments[index].link_customer_id = e.target.value;
+                                      setEmiDownPayments(newPayments);
+                                    }}
+                                    className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-500/20 bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm cursor-pointer"
+                                  >
+                                    <option value="">-- Select Debtor Customer * --</option>
+                                    {customers.map((c: any) => (
+                                      <option key={c.id} value={c.id}>
+                                        {c.name} {c.phone ? `(${c.phone})` : ''}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="flex justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setAddingDownpaymentStates(prev => ({ ...prev, [index]: true }));
+                                      }}
+                                      className="text-[10px] font-black uppercase text-primary-500 hover:text-primary-600 transition-colors flex items-center gap-0.5 cursor-pointer py-1"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Create New Customer</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="p-2 bg-primary-50/50 dark:bg-primary-500/5 border border-primary-100 dark:border-primary-500/15 rounded-xl space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                  <div className="grid grid-cols-2 gap-1.5">
+                                    <Input
+                                      placeholder="Name *"
+                                      value={newDownpaymentCustNames[index] || ''}
+                                      onChange={(e) => {
+                                        setNewDownpaymentCustNames(prev => ({ ...prev, [index]: e.target.value }));
+                                      }}
+                                      className="h-8 text-xs bg-white dark:bg-zinc-900"
+                                    />
+                                    <Input
+                                      placeholder="Phone"
+                                      value={newDownpaymentCustPhones[index] || ''}
+                                      onChange={(e) => {
+                                        setNewDownpaymentCustPhones(prev => ({ ...prev, [index]: e.target.value }));
+                                      }}
+                                      className="h-8 text-xs bg-white dark:bg-zinc-900"
+                                    />
+                                  </div>
+                                  <Input
+                                    placeholder="Address (Optional)"
+                                    value={newDownpaymentCustAddresses[index] || ''}
+                                    onChange={(e) => {
+                                      setNewDownpaymentCustAddresses(prev => ({ ...prev, [index]: e.target.value }));
+                                    }}
+                                    className="h-8 text-xs bg-white dark:bg-zinc-900 w-full"
+                                  />
+                                  <div className="flex justify-end gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setAddingDownpaymentStates(prev => ({ ...prev, [index]: false }));
+                                      }}
+                                      className="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-700 uppercase"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={isDownpaymentSaving[index]}
+                                      onClick={() => handleCreateGuarantor(index, true)}
+                                      className="px-3 py-1 bg-primary-500 text-white text-[10px] font-black rounded-lg uppercase tracking-wider disabled:opacity-50"
+                                    >
+                                      {isDownpaymentSaving[index] ? 'Saving…' : 'Save'}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex-1">
-                      <FieldLabel>UPI Amount</FieldLabel>
-                      <AmountInput type="number" {...register('emi_upi_down')} placeholder="0.00" />
-                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setEmiDownPayments([...emiDownPayments, { mode: 'Cash', amount: '' }])}
+                      className="flex items-center justify-center gap-1.5 w-full h-9 border border-dashed border-primary-300 dark:border-primary-500/30 hover:border-primary-500 text-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-500/5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-200 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Downpayment Mode</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -201,8 +566,34 @@ export function PaymentForms({ paymentType, setPaymentType, register, splitCash,
 
             <div className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-200 dark:border-white/10">
               <div>
-                <FieldLabel>Monthly EMI</FieldLabel>
-                <AmountInput type="number" step="0.01" {...register('emi_monthly_amount')} placeholder="Auto" className="font-bold text-primary-700 dark:text-primary-300" />
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                    Monthly EMI
+                  </label>
+                  {isManualEmi && (
+                    <button
+                      type="button"
+                      onClick={() => setIsManualEmi && setIsManualEmi(false)}
+                      className="text-[9px] font-black uppercase text-primary-500 hover:text-primary-600 transition-colors flex items-center gap-0.5 cursor-pointer"
+                    >
+                      🔄 Reset Auto
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...register('emi_monthly_amount')}
+                    onChange={(e: any) => {
+                      register('emi_monthly_amount').onChange(e);
+                      setIsManualEmi && setIsManualEmi(true);
+                    }}
+                    placeholder="Auto"
+                    className="h-9 pl-7 text-sm bg-slate-50 dark:bg-white/[0.03] font-bold text-primary-700 dark:text-primary-300"
+                  />
+                </div>
               </div>
               <div>
                 <FieldLabel>First EMI Date</FieldLabel>

@@ -23,9 +23,16 @@ interface EditSaleModalProps {
 export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModalProps) {
   const [paymentType, setPaymentType] = useState<PaymentMode>('cash');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+  const [splitPayments, setSplitPayments] = useState<{ mode: string; amount: string; link_customer_id?: string }[]>([
+    { mode: 'Cash', amount: '' }
+  ]);
   
   // Local cart state for editing items
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [emiDownPayments, setEmiDownPayments] = useState<{ mode: string; amount: string; link_customer_id?: string }[]>([
+    { mode: 'Cash', amount: '' }
+  ]);
+  const [isManualEmi, setIsManualEmi] = useState(false);
   
   const { data: customersResponse } = useCustomers(1, 100);
   const customers = customersResponse?.data || [];
@@ -46,11 +53,21 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
       setPaymentType(pMode);
 
       if (pMode === 'split' && sale.payments) {
-        sale.payments.forEach((p: any) => {
-          if (p.payment_mode === 'Cash') setValue('split_cash', p.amount);
-          if (p.payment_mode === 'UPI') setValue('split_upi', p.amount);
-          if (p.payment_mode === 'Card') setValue('split_card', p.amount);
+        const loadedPayments = sale.payments.map((p: any) => {
+          let linkCustomerId: string | undefined;
+          const match = p.notes?.match(/ID:\s*(\d+)/);
+          if (match) {
+            linkCustomerId = match[1];
+          }
+          return {
+            mode: p.payment_mode,
+            amount: String(p.amount),
+            link_customer_id: linkCustomerId
+          };
         });
+        setSplitPayments(loadedPayments.length > 0 ? loadedPayments : [{ mode: 'Cash', amount: '' }]);
+      } else {
+        setSplitPayments([{ mode: 'Cash', amount: '' }]);
       }
 
       if (pMode === 'emi' && sale.emiDetail) {
@@ -61,6 +78,33 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
         setValue('emi_tenure', sale.emiDetail.tenure_months);
         setValue('emi_monthly_amount', sale.emiDetail.monthly_installment_amount);
         setValue('emi_first_date', sale.emiDetail.first_emi_date);
+        
+        const calculated = (Number(sale.emiDetail.loan_amount) / Number(sale.emiDetail.tenure_months || 1)).toFixed(2);
+        const actual = Number(sale.emiDetail.monthly_installment_amount).toFixed(2);
+        setIsManualEmi(calculated !== actual);
+        
+        if (sale.payments) {
+          const loadedDownPmts = sale.payments.map((p: any) => {
+            let linkCustomerId: string | undefined;
+            const match = p.notes?.match(/ID:\s*(\d+)/);
+            if (match) {
+              linkCustomerId = match[1];
+            }
+            return {
+              mode: p.payment_mode,
+              amount: String(p.amount),
+              link_customer_id: linkCustomerId
+            };
+          });
+          setEmiDownPayments(loadedDownPmts.length > 0 ? loadedDownPmts : [{ mode: 'Cash', amount: '' }]);
+          setValue('emi_down_payment_mode', loadedDownPmts.length > 1 ? 'Split' : (loadedDownPmts[0]?.mode || 'Cash'));
+        } else {
+          setEmiDownPayments([{ mode: 'Cash', amount: '' }]);
+          setValue('emi_down_payment_mode', 'Cash');
+        }
+      } else {
+        setEmiDownPayments([{ mode: 'Cash', amount: '' }]);
+        setValue('emi_down_payment_mode', 'Cash');
       }
 
       const initialCart = sale.items?.map((item: any) => ({
@@ -99,22 +143,25 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
   const roundOff = watch('round_off') || 0;
   const finalAmount = cartTotal - Number(discount) + Number(roundOff);
 
-  const splitCash = watch('split_cash') || 0;
-  const splitUpi = watch('split_upi') || 0;
-  const splitCard = watch('split_card') || 0;
-
-  const emiDownPayment = watch('emi_down_payment') || 0;
+  // Dynamic splitPayments replaces static watches
+  const emiDownPaymentMode = watch('emi_down_payment_mode') || 'Cash';
+  const emiSingleDown = watch('emi_down_payment') || 0;
+  
+  const emiDownPayment = emiDownPaymentMode === 'Split' 
+    ? emiDownPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+    : Number(emiSingleDown);
+    
   const emiTenure = watch('emi_tenure') || 0;
 
   useEffect(() => {
     if (paymentType === 'emi') {
       const loan = Math.max(0, finalAmount - Number(emiDownPayment));
       setValue('emi_loan_amount', loan);
-      if (Number(emiTenure) > 0) {
+      if (!isManualEmi && Number(emiTenure) > 0) {
         setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
       }
     }
-  }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue]);
+  }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue, isManualEmi]);
 
   const onSubmit = async (data: any) => {
     if (cartItems.length === 0) {
@@ -124,6 +171,22 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
     if (!selectedCustomerId && paymentType === 'emi') {
       toast.error('Customer is required for EMI sales');
       return;
+    }
+
+    // Validate EMI fields if payment mode is EMI
+    if (paymentType === 'emi') {
+      if (!data.emi_financier) {
+        toast.error('Financier name is required for EMI sales');
+        return;
+      }
+      if (!data.emi_tenure || Number(data.emi_tenure) <= 0) {
+        toast.error('Please enter a valid tenure in months');
+        return;
+      }
+      if (!data.emi_first_date) {
+        toast.error('First EMI Date is required');
+        return;
+      }
     }
 
     const payload: any = {
@@ -146,22 +209,67 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
       ];
     } else if (paymentType === 'split') {
       payload.payment_mode = 'Split';
-      payload.payments = [];
-      if (Number(splitCash) > 0) payload.payments.push({ payment_mode: 'Cash', amount: Number(splitCash) });
-      if (Number(splitUpi) > 0) payload.payments.push({ payment_mode: 'UPI', amount: Number(splitUpi) });
-      if (Number(splitCard) > 0) payload.payments.push({ payment_mode: 'Card', amount: Number(splitCard) });
       
-      const totalSplit = Number(splitCash) + Number(splitUpi) + Number(splitCard);
-      if (totalSplit > finalAmount) {
+      const hasEmptyUdhar = splitPayments.some(p => p.mode === 'Udhar' && !p.link_customer_id);
+      if (hasEmptyUdhar) {
+        toast.error('Please select a debtor customer for Udhar credit payments.');
+        return;
+      }
+      const hasZeroUdhar = splitPayments.some(p => p.mode === 'Udhar' && (!p.amount || Number(p.amount) <= 0));
+      if (hasZeroUdhar) {
+        toast.error('Please enter a valid amount greater than 0 for Udhar credit payments.');
+        return;
+      }
+
+      payload.payments = splitPayments
+        .filter(p => Number(p.amount) > 0)
+        .map(p => ({ 
+          payment_mode: p.mode, 
+          amount: Number(p.amount),
+          link_customer_id: p.link_customer_id ? Number(p.link_customer_id) : undefined
+        }));
+      
+      const totalPaid = payload.payments.reduce((sum: number, p: any) => sum + p.amount, 0);
+      if (totalPaid > finalAmount) {
         toast.error('Split payment total exceeds final amount');
         return;
       }
     } else if (paymentType === 'emi') {
       payload.payment_mode = 'EMI';
       payload.payments = [];
-      if (Number(emiDownPayment) > 0) {
-        payload.payments.push({ payment_mode: 'Cash', amount: Number(emiDownPayment), notes: 'EMI Down Payment' });
+      
+      if (emiDownPaymentMode === 'Split') {
+        const hasEmptyUdhar = emiDownPayments.some(p => p.mode === 'Udhar' && !p.link_customer_id);
+        if (hasEmptyUdhar) {
+          toast.error('Please select a debtor customer for Udhar credit downpayments.');
+          return;
+        }
+        const hasZeroUdhar = emiDownPayments.some(p => p.mode === 'Udhar' && (!p.amount || Number(p.amount) <= 0));
+        if (hasZeroUdhar) {
+          toast.error('Please enter a valid amount greater than 0 for Udhar credit downpayments.');
+          return;
+        }
+
+        emiDownPayments
+          .filter(p => Number(p.amount) > 0)
+          .forEach(p => {
+            payload.payments.push({
+              payment_mode: p.mode,
+              amount: Number(p.amount),
+              link_customer_id: p.link_customer_id ? Number(p.link_customer_id) : undefined,
+              notes: `EMI Down Payment (${p.mode})`
+            });
+          });
+      } else {
+        if (emiDownPayment > 0) {
+          payload.payments.push({ 
+            payment_mode: emiDownPaymentMode, 
+            amount: emiDownPayment, 
+            notes: `EMI Down Payment (${emiDownPaymentMode})` 
+          });
+        }
       }
+
       payload.emi_detail = {
         financier_name: data.emi_financier,
         down_payment: Number(emiDownPayment),
@@ -284,10 +392,16 @@ export function EditSaleModal({ isOpen, onClose, sale, isEmiPaid }: EditSaleModa
               paymentType={paymentType}
               setPaymentType={setPaymentType}
               register={register}
-              splitCash={splitCash}
-              splitUpi={splitUpi}
-              splitCard={splitCard}
+              splitPayments={splitPayments}
+              setSplitPayments={setSplitPayments}
               finalAmount={finalAmount}
+              emiDownPaymentMode={emiDownPaymentMode}
+              setEmiDownPaymentMode={(val) => setValue('emi_down_payment_mode', val)}
+              emiDownPayments={emiDownPayments}
+              setEmiDownPayments={setEmiDownPayments}
+              customers={customers}
+              isManualEmi={isManualEmi}
+              setIsManualEmi={setIsManualEmi}
             />
           </div>
         </div>

@@ -17,6 +17,7 @@ export default function InvoicesPage() {
   const [paymentMode, setPaymentMode] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [hasUdhar, setHasUdhar] = useState('');
 
   // Debounced search to prevent duplicate network calls
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -31,14 +32,15 @@ export default function InvoicesPage() {
   // Reset pagination when filter selections change
   useEffect(() => {
     setPage(1);
-  }, [paymentMode, startDate, endDate]);
+  }, [paymentMode, startDate, endDate, hasUdhar]);
 
   const filters = useMemo(() => ({
     search: debouncedSearch,
     payment_mode: paymentMode || undefined,
     start_date: startDate || undefined,
     end_date: endDate || undefined,
-  }), [debouncedSearch, paymentMode, startDate, endDate]);
+    has_udhar: hasUdhar || undefined,
+  }), [debouncedSearch, paymentMode, startDate, endDate, hasUdhar]);
 
   const { data: response, isLoading } = useSales(page, 15, filters);
   const navigate = useNavigate();
@@ -48,6 +50,10 @@ export default function InvoicesPage() {
 
   const totalInvoices = meta?.total || 0;
   const totalRevenue = sales?.reduce((sum: number, sale: any) => sum + Number(sale.final_amount || 0), 0) || 0;
+  const totalUdhar = sales?.reduce((sum: number, sale: any) => {
+    const udharPayment = sale.payments?.find((p: any) => p.payment_mode === 'Udhar');
+    return sum + Number(udharPayment?.amount || 0);
+  }, 0) || 0;
 
   const columns = useMemo(() => getInvoiceColumns({
     onView: (sale) => navigate(`/invoices/${sale.id}`),
@@ -59,6 +65,7 @@ export default function InvoicesPage() {
     setPaymentMode('');
     setStartDate('');
     setEndDate('');
+    setHasUdhar('');
   };
 
   return (
@@ -75,7 +82,7 @@ export default function InvoicesPage() {
         {/* Premium Control Panel */}
         <div className="bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-[2rem] p-4 shadow-2xl shadow-slate-200/30 dark:shadow-black/50">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex flex-col sm:flex-row gap-4 flex-1 max-w-3xl">
+            <div className="flex flex-col sm:flex-row gap-4 flex-1 max-w-4xl">
               <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
                 <CustomKpiCard
                   title="Total Invoices"
@@ -92,6 +99,15 @@ export default function InvoicesPage() {
                   icon={<TrendingUp />}
                   glowColor="primary"
                   subtitle="Total from current view"
+                />
+              </div>
+              <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
+                <CustomKpiCard
+                  title="Udhar (This Page)"
+                  value={formatCurrency(totalUdhar)}
+                  icon={<DollarSign />}
+                  glowColor="primary"
+                  subtitle="Guarantor downpayments"
                 />
               </div>
             </div>
@@ -135,6 +151,20 @@ export default function InvoicesPage() {
                   { value: 'Cash', label: 'Cash' },
                   { value: 'Split', label: 'Split' },
                   { value: 'EMI', label: 'EMI / Finance' },
+                ]}
+              />
+            </div>
+
+            {/* Udhar Filter */}
+            <div className="w-full sm:w-48">
+              <CustomSelect
+                value={hasUdhar}
+                onChange={(val) => setHasUdhar(val)}
+                placeholder="All Invoices"
+                options={[
+                  { value: '', label: 'All Invoices' },
+                  { value: 'yes', label: 'With Guarantor Udhar' },
+                  { value: 'no', label: 'No Guarantor Udhar' },
                 ]}
               />
             </div>

@@ -196,9 +196,9 @@ function App() {
             <Route path="/categories" element={<BusinessRoute><CategoriesPage /></BusinessRoute>} />
             <Route path="/brands" element={<BusinessRoute><BrandsPage /></BusinessRoute>} />
             <Route path="/items" element={<BusinessRoute><InventoryPage /></BusinessRoute>} />
-            <Route path="/suppliers" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><SuppliersPage /></FeatureGuard></BusinessRoute>} />
-            <Route path="/suppliers/:id" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><SupplierDetailsPage /></FeatureGuard></BusinessRoute>} />
-            <Route path="/suppliers/:id/purchases/new" element={<BusinessRoute><FeatureGuard feature="suppliers" fallback={<Navigate to="/dashboard" />}><AddPurchasePage /></FeatureGuard></BusinessRoute>} />
+            <Route path="/suppliers" element={<BusinessRoute><SuppliersPage /></BusinessRoute>} />
+            <Route path="/suppliers/:id" element={<BusinessRoute><SupplierDetailsPage /></BusinessRoute>} />
+            <Route path="/suppliers/:id/purchases/new" element={<BusinessRoute><AddPurchasePage /></BusinessRoute>} />
             <Route path="/customers" element={<BusinessRoute><CustomersPage /></BusinessRoute>} />
             <Route path="/customers/:id" element={<BusinessRoute><CustomerDetailsPage /></BusinessRoute>} />
             <Route path="/pos" element={<BusinessRoute><PosPage /></BusinessRoute>} />

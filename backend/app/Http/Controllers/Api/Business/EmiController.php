@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api\Business;
 
-use App\Http\Controllers\Api\BaseController;
+use App\Http\Controllers\BaseController;
 use App\Models\EmiDetail;
 use App\Models\EmiInstallment;
 use App\Models\SalePayment;
@@ -29,7 +29,7 @@ class EmiController extends BaseController
         ->orderByDesc('created_at')
         ->get();
 
-        return $this->success('Customer EMI records retrieved.', $emis);
+        return $this->success($emis, 'Customer EMI records retrieved.');
     }
 
     /**

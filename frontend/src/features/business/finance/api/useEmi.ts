@@ -6,7 +6,7 @@ export function useCustomerEmis(customerId: number | string) {
     queryKey: ['customer-emis', customerId],
     queryFn: async () => {
       const response = await api.get(`/business/emis/customer/${customerId}`);
-      return response.data;
+      return response.data.data;
     },
     enabled: !!customerId,
   });
