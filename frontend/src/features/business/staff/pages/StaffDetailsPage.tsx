@@ -150,202 +150,208 @@ export default function StaffDetailsPage() {
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
-      <PageHeader
-        icon={User}
-        title={staff.name}
-        subtitle={`${staff.role} • Joined ${format(new Date(staff.join_date), 'MMM yyyy')}`}
-        actions={
-          <button
-            onClick={() => navigate('/staff')}
-            className="group relative flex items-center gap-2 h-10 px-4 bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95 duration-200"
-          >
-            <ArrowLeft size={14} className="text-slate-400 group-hover:text-slate-600 transition-colors" />
-            <span>Back to Staff</span>
-          </button>
-        }
-      />
+    <div className="flex flex-col min-h-screen bg-slate-50 dark:bg-[#09090b] relative overflow-hidden animate-in fade-in duration-500">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-[250px] bg-gradient-to-b from-primary-500/10 via-primary-500/5 to-transparent pointer-events-none" />
+      <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary-500/10 blur-[100px] pointer-events-none" />
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* Top Banner & Header Navigation */}
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-5 relative z-10">
+        <button
+          onClick={() => navigate('/staff')}
+          className="group flex items-center gap-2 mb-3 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors w-fit"
+        >
+          <div className="w-7 h-7 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <ArrowLeft size={14} />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest">Back to Staff</span>
+        </button>
+      </div>
 
-        {/* Top Info Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-
-          {/* Profile Details (5 cols) */}
-          <div className="lg:col-span-5 bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-            <div>
-              {/* Profile Card Header */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white text-2xl font-black shadow-lg shadow-primary-500/20">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pb-8 space-y-5 relative z-10">
+        
+        {/* Main Grid Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+          
+          {/* LEFT SIDEBAR */}
+          <div className="xl:col-span-4 space-y-4">
+            <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-5 shadow-xl shadow-slate-200/50 dark:shadow-none relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-br from-primary-500/20 to-primary-600/5" />
+              
+              <div className="relative flex flex-col items-center mt-4 mb-4">
+                <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-primary-500 to-primary-600 flex items-center justify-center text-white text-3xl font-black shadow-lg shadow-primary-500/30 transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500 ring-4 ring-white dark:ring-[#111115]">
                   {staff.name.charAt(0)}
                 </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
-                    {staff.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                      System Role:
-                    </span>
-                    <span className="px-2 py-0.5 rounded-md bg-primary-50 dark:bg-primary-500/10 border border-primary-100 dark:border-primary-500/20 text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest">
-                      {staff.role}
-                    </span>
-                  </div>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white mt-4 text-center leading-tight">
+                  {staff.name}
+                </h2>
+                <div className="mt-1.5 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-primary-50 dark:bg-primary-500/10 border border-primary-100 dark:border-primary-500/20 text-primary-600 dark:text-primary-400">
+                  <User size={10} className="stroke-[3]" />
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em]">{staff.role}</span>
                 </div>
               </div>
 
-              {/* Attributes Flex List */}
-              <div className="space-y-4 border-t border-slate-100 dark:border-white/5 pt-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400">
-                    <Phone className="w-4 h-4" />
+              <div className="space-y-2 pt-4 border-t border-slate-100 dark:border-white/10">
+                <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
+                    <Phone className="w-3.5 h-3.5" />
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Phone Contact</span>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-350 mt-0.5">{staff.phone}</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Address</span>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-350 mt-0.5 truncate max-w-[240px]">
-                      {staff.email || 'No email registered'}
-                    </span>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Phone Contact</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{staff.phone}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 dark:border-white/5 pt-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400">
-                      <IndianRupee className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Base Salary</span>
-                      <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-0.5">
-                        {formatCurrency(staff.monthly_salary)}
-                      </span>
-                    </div>
+                <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
+                    <Mail className="w-3.5 h-3.5" />
                   </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200/50 dark:border-white/5 flex items-center justify-center text-slate-400">
-                      <Percent className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Commission</span>
-                      <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 mt-0.5">
-                        {staff.commission_rate}%
-                      </span>
-                    </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Email Address</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{staff.email || 'N/A'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 shrink-0">
+                    <Calendar className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex flex-col overflow-hidden">
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Joined On</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">{format(new Date(staff.join_date), 'dd MMM yyyy')}</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Compensation Mini-Card */}
+            <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-5 shadow-lg shadow-slate-200/50 dark:shadow-none flex items-center justify-between group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex flex-col gap-1">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <IndianRupee size={9} className="text-primary-500" />
+                  Total Base Salary
+                </span>
+                <span className="text-xl font-black text-slate-900 dark:text-white font-display tracking-tight">
+                  {formatCurrency(staff.monthly_salary)}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-1 text-right">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <Percent size={9} className="text-emerald-500" />
+                  Commission
+                </span>
+                <span className="text-lg font-black text-emerald-500 dark:text-emerald-400">
+                  {staff.commission_rate}%
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Performance Stats (7 cols) */}
-          <div className="lg:col-span-7 bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-6">
-                Performance Metrics (This Month)
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Sales Handled Card */}
-                <div className="p-4 rounded-2xl bg-sky-50/50 dark:bg-sky-950/10 border border-sky-100/80 dark:border-sky-900/30 flex items-center justify-between">
+          {/* RIGHT CONTENT */}
+          <div className="xl:col-span-8 space-y-5 animate-in slide-in-from-right-8 duration-700">
+            
+            {/* KPI Metrics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Metric 1 */}
+              <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-sky-100/50 dark:border-sky-900/30 rounded-2xl p-4 shadow-md shadow-sky-100/50 dark:shadow-none relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-sky-500/10 rounded-full blur-2xl group-hover:bg-sky-500/20 transition-colors" />
+                <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-widest">
                       Sales Handled
                     </span>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 leading-none font-display">
+                    <p className="text-2xl font-black text-slate-900 dark:text-white mt-1 font-display">
                       {stats.this_month_sales}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/20 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                  <div className="w-10 h-10 rounded-xl bg-sky-50 dark:bg-sky-900/20 flex items-center justify-center text-sky-500 shadow-inner group-hover:scale-105 transition-transform">
                     <TrendingUp className="w-5 h-5" />
                   </div>
                 </div>
+              </div>
 
-                {/* Total Revenue Card */}
-                <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100/80 dark:border-emerald-900/30 flex items-center justify-between">
+              {/* Metric 2 */}
+              <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-emerald-100/50 dark:border-emerald-900/30 rounded-2xl p-4 shadow-md shadow-emerald-100/50 dark:shadow-none relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-colors" />
+                <div className="relative z-10 flex items-center justify-between">
                   <div>
                     <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-                      Total Revenue
+                      Revenue Generated
                     </span>
-                    <p className="text-2xl font-black text-slate-900 dark:text-white mt-1.5 leading-none font-display">
+                    <p className="text-xl font-black text-slate-900 dark:text-white mt-1.5 font-display">
                       {formatCurrency(stats.this_month_sales_amount)}
                     </p>
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500 shadow-inner group-hover:scale-105 transition-transform">
                     <IndianRupee className="w-5 h-5" />
                   </div>
                 </div>
+              </div>
 
-                {/* Estimated Commission Earned Card */}
-                <div className="p-5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-100/80 dark:border-amber-900/30 flex items-center justify-between col-span-1 sm:col-span-2">
+              {/* Metric 3 */}
+              <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-4 shadow-lg shadow-amber-500/30 relative overflow-hidden group hover:-translate-y-0.5 transition-all duration-300 text-white">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors" />
+                <div className="relative z-10 flex items-center justify-between">
                   <div>
-                    <span className="text-[9px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-widest">
-                      Estimated Commission Earned
+                    <span className="text-[9px] font-black text-amber-100 uppercase tracking-widest drop-shadow-sm">
+                      Commission
                     </span>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 leading-none font-display">
+                    <p className="text-xl font-black mt-1.5 font-display drop-shadow-sm">
                       {formatCurrency(stats.this_month_commission)}
                     </p>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-500 shadow-sm">
-                    <Award className="w-6 h-6" />
+                  <div className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-white shadow-inner group-hover:scale-105 transition-transform">
+                    <Award className="w-5 h-5" />
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Tables Section */}
+            <div className="space-y-4">
+              {/* Sales History Table */}
+              <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-1 shadow-lg shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-900 dark:text-white">Recent Sales</h3>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Last 5 transactions</p>
+                  </div>
+                  <Badge variant="secondary" className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-none font-bold text-[10px]">
+                    {salesData?.data?.length || 0} Total
+                  </Badge>
+                </div>
+                <div className="p-1">
+                  <DataTable
+                    columns={salesColumns}
+                    data={salesData?.data?.slice(0, 5) || []}
+                    isLoading={isSalesLoading}
+                  />
+                </div>
+              </div>
+
+              {/* Payroll History Table */}
+              <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-1 shadow-lg shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                <div className="p-4 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-900 dark:text-white">Salary History</h3>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Last 5 payouts</p>
+                  </div>
+                  <Badge variant="secondary" className="bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border-none font-bold text-[10px]">
+                    {payrollData?.data?.length || 0} Total
+                  </Badge>
+                </div>
+                <div className="p-1">
+                  <DataTable
+                    columns={payrollColumns}
+                    data={payrollData?.data?.slice(0, 5) || []}
+                    isLoading={isPayrollLoading}
+                  />
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
-
-        {/* History Tables Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-          {/* Sales History */}
-          <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-3xl p-5 shadow-sm overflow-hidden flex flex-col">
-            <div className="pb-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                Recent Sales
-              </h3>
-              <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded-md">
-                {salesData?.data?.length || 0} Records
-              </Badge>
-            </div>
-            <div className="flex-1 overflow-x-auto rounded-xl border border-slate-100 dark:border-white/5">
-              <DataTable
-                columns={salesColumns}
-                data={salesData?.data?.slice(0, 5) || []}
-                isLoading={isSalesLoading}
-              />
-            </div>
-          </div>
-
-          {/* Salary History */}
-          <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-3xl p-5 shadow-sm overflow-hidden flex flex-col">
-            <div className="pb-4 border-b border-slate-100 dark:border-white/5 flex justify-between items-center mb-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                Salary History
-              </h3>
-              <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0.5 rounded-md">
-                {payrollData?.data?.length || 0} Records
-              </Badge>
-            </div>
-            <div className="flex-1 overflow-x-auto rounded-xl border border-slate-100 dark:border-white/5">
-              <DataTable
-                columns={payrollColumns}
-                data={payrollData?.data?.slice(0, 5) || []}
-                isLoading={isPayrollLoading}
-              />
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
   );

@@ -7,7 +7,7 @@ import { useGetPayrollComponents } from '../../payroll/api/usePayrollComponents'
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { formatCurrency } from '@/lib/formatters';
 
@@ -60,8 +60,10 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
   }, [watchedComponents]);
 
   useEffect(() => {
-    setValue('monthly_salary', calculatedSalary);
-  }, [calculatedSalary, setValue]);
+    if (availableComponents && availableComponents.length > 0) {
+      setValue('monthly_salary', calculatedSalary);
+    }
+  }, [calculatedSalary, setValue, availableComponents]);
 
   useEffect(() => {
     if (isOpen && availableComponents) {
@@ -92,21 +94,21 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
             }
             if (Array.isArray(staffComps)) {
                const existing = staffComps.find((c: any) => c.name === comp.name);
-               if (existing) amount = existing.amount;
+               if (existing) amount = Number(existing.amount) || 0;
             } else if (isLegacy) {
                // legacy fallback
                const compName = comp.name.toLowerCase();
-               if (compName.includes('basic')) amount = legacyComponents.basic || staff.monthly_salary || 0;
-               else if (compName.includes('hra')) amount = legacyComponents.hra || 0;
-               else if (compName.includes('allowance')) amount = legacyComponents.allowances || 0;
-               else if (compName.includes('deduction')) amount = legacyComponents.deductions || 0;
+               if (compName.includes('basic')) amount = Number(legacyComponents.basic) || Number(staff.monthly_salary) || 0;
+               else if (compName.includes('hra')) amount = Number(legacyComponents.hra) || 0;
+               else if (compName.includes('allowance')) amount = Number(legacyComponents.allowances) || 0;
+               else if (compName.includes('deduction')) amount = Number(legacyComponents.deductions) || 0;
             }
          }
          return {
             id: comp.id,
             name: comp.name,
             type: comp.type,
-            amount: amount
+            amount: Number(amount) || 0
          };
       });
 
@@ -115,8 +117,8 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
         phone: staff?.phone || '',
         email: staff?.email || '',
         role: staff?.role || 'staff',
-        monthly_salary: staff?.monthly_salary || 0,
-        commission_rate: staff?.commission_rate || 0,
+        monthly_salary: staff ? (Number(staff.monthly_salary) || 0) : 0,
+        commission_rate: staff ? (Number(staff.commission_rate) || 0) : 0,
         status: staff?.status || 'active',
         join_date: staff?.join_date || new Date().toISOString().split('T')[0],
         salary_components: initialComponents,
@@ -125,7 +127,9 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
   }, [staff, isOpen, availableComponents, reset]);
 
   const onSubmit = (data: StaffFormData) => {
-    data.monthly_salary = calculatedSalary;
+    if (availableComponents && availableComponents.length > 0) {
+      data.monthly_salary = calculatedSalary;
+    }
     
     if (isEditing) {
       updateMutation.mutate(
@@ -196,16 +200,21 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
                 <label className="block text-sm font-medium">Role</label>
                 <InfoTooltip text="Choose Manager for full administrative rights, or Staff for POS/Sales only." />
               </div>
-              <Controller
-                name="role"
-                control={control}
-                render={({ field }) => (
-                  <Select onChange={field.onChange} defaultValue={field.value}>
-                    <option value="staff">Staff (Sales)</option>
-                    <option value="manager">Manager</option>
-                  </Select>
-                )}
-              />
+                <Controller
+                  name="role"
+                  control={control}
+                  render={({ field }) => (
+                    <CustomSelect 
+                      value={field.value} 
+                      onChange={field.onChange}
+                      menuPosition="fixed"
+                      options={[
+                        { value: 'staff', label: 'Staff (Sales)' },
+                        { value: 'manager', label: 'Manager' }
+                      ]}
+                    />
+                  )}
+                />
             </div>
 
             <div>
@@ -224,26 +233,42 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
               <Input {...register('join_date')} type="date" error={errors.join_date?.message} />
             </div>
 
+            {(!availableComponents || availableComponents.length === 0) && (
+              <div>
+                <div className="flex items-center mb-1">
+                  <label className="block text-sm font-medium">Total Salary</label>
+                  <InfoTooltip text="Fixed total monthly salary for this staff member." />
+                </div>
+                <Input {...register('monthly_salary', { valueAsNumber: true })} type="number" step="0.01" error={errors.monthly_salary?.message} />
+              </div>
+            )}
+
             {isEditing && (
               <div>
                 <div className="flex items-center mb-1">
                   <label className="block text-sm font-medium">Status</label>
                   <InfoTooltip text="Toggle employee status. Inactive staff members cannot log in." />
                 </div>
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <Select onChange={field.onChange} defaultValue={field.value}>
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </Select>
-                  )}
-                />
+                  <Controller
+                    name="status"
+                    control={control}
+                    render={({ field }) => (
+                      <CustomSelect 
+                        value={field.value} 
+                        onChange={field.onChange}
+                        menuPosition="fixed"
+                        options={[
+                          { value: 'active', label: 'Active' },
+                          { value: 'inactive', label: 'Inactive' }
+                        ]}
+                      />
+                    )}
+                  />
               </div>
             )}
           </div>
 
+          {availableComponents && availableComponents.length > 0 && (
           <div className="border-t border-slate-200 dark:border-white/10 pt-5">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Salary Breakdown</h3>
             
@@ -309,6 +334,7 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
               </div>
             </div>
           </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 dark:border-white/5">
             <button

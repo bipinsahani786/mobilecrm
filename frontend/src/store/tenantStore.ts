@@ -7,6 +7,7 @@ interface TenantState {
   businesses: Business[];
   activeBusiness: Business | null;
   isLoading: boolean;
+  hasFetched: boolean;
   
   fetchBusinesses: () => Promise<void>;
   setActiveBusiness: (business: Business | null) => void;
@@ -22,6 +23,7 @@ export const useTenantStore = create<TenantState>()(
       businesses: [],
       activeBusiness: null,
       isLoading: false,
+      hasFetched: false,
 
       fetchBusinesses: async () => {
         set({ isLoading: true });
@@ -44,10 +46,10 @@ export const useTenantStore = create<TenantState>()(
             active = businesses[0];
           }
 
-          set({ businesses, activeBusiness: active, isLoading: false });
+          set({ businesses, activeBusiness: active, isLoading: false, hasFetched: true });
         } catch (error) {
           console.error("Failed to fetch businesses", error);
-          set({ isLoading: false });
+          set({ isLoading: false, hasFetched: true });
         }
       },
 
@@ -64,7 +66,7 @@ export const useTenantStore = create<TenantState>()(
         activeBusiness: state.activeBusiness?.id === updatedBusiness.id ? updatedBusiness : state.activeBusiness
       })),
 
-      reset: () => set({ businesses: [], activeBusiness: null, isLoading: false }),
+      reset: () => set({ businesses: [], activeBusiness: null, isLoading: false, hasFetched: false }),
     }),
     {
       name: 'tenant-storage',

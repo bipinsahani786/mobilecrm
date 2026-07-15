@@ -62,51 +62,53 @@ export default function PayrollDetailsPage() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
-      <PageHeader 
-        icon={FileText}
-        title={`Salary Slip - ${format(parse(payroll.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}`}
-        subtitle={`For ${payroll.user?.name}`}
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigate('/payroll')}>
-              <ArrowLeft size={14} className="mr-2" /> Back
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">
-              <Printer size={14} className="mr-2" /> Print
-            </Button>
-            {isDraft && !editMode && (
-              <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
-                Edit Details
+      <div className="print:hidden">
+        <PageHeader 
+          icon={FileText}
+          title={`Salary Slip - ${format(parse(payroll.month, 'yyyy-MM', new Date()), 'MMMM yyyy')}`}
+          subtitle={`For ${payroll.user?.name}`}
+          actions={
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/payroll')}>
+                <ArrowLeft size={14} className="mr-2" /> Back
               </Button>
-            )}
-            {isDraft && editMode && (
-              <Button size="sm" onClick={handleSave} isLoading={updateMutation.isPending}>
-                <Save size={14} className="mr-2" /> Save Changes
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
+                <Printer size={14} className="mr-2" /> Print
               </Button>
-            )}
-            {isDraft && !editMode && (
-              <Button 
-                size="sm" 
-                onClick={() => confirmMutation.mutate(payroll.id)}
-                isLoading={confirmMutation.isPending}
-              >
-                <CheckCircle size={14} className="mr-2" /> Confirm Payroll
-              </Button>
-            )}
-            {isConfirmed && (
-              <Button 
-                size="sm" 
-                onClick={() => markPaidMutation.mutate({ id: payroll.id })}
-                isLoading={markPaidMutation.isPending}
-              >
-                Mark as Paid
-              </Button>
-            )}
-          </div>
-        }
-      />
+              {isDraft && !editMode && (
+                <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
+                  Edit Details
+                </Button>
+              )}
+              {isDraft && editMode && (
+                <Button size="sm" onClick={handleSave} isLoading={updateMutation.isPending}>
+                  <Save size={14} className="mr-2" /> Save Changes
+                </Button>
+              )}
+              {isDraft && !editMode && (
+                <Button 
+                  size="sm" 
+                  onClick={() => confirmMutation.mutate(payroll.id)}
+                  isLoading={confirmMutation.isPending}
+                >
+                  <CheckCircle size={14} className="mr-2" /> Confirm Payroll
+                </Button>
+              )}
+              {isConfirmed && (
+                <Button 
+                  size="sm" 
+                  onClick={() => markPaidMutation.mutate({ id: payroll.id })}
+                  isLoading={markPaidMutation.isPending}
+                >
+                  Mark as Paid
+                </Button>
+              )}
+            </div>
+          }
+        />
+      </div>
 
-      <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full max-w-4xl px-4 pt-0 pb-4 space-y-4">
         
         {/* Print Layout Container */}
         <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-8 shadow-sm print:shadow-none print:border-none">
@@ -120,27 +122,37 @@ export default function PayrollDetailsPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 mb-8 pb-8 border-b border-slate-200 dark:border-white/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 pb-8 border-b border-slate-200 dark:border-white/10">
             <div>
               <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Employee Details</h3>
               <div className="space-y-2">
-                <p><span className="text-slate-500 w-24 inline-block">Name:</span> <span className="font-medium text-slate-900 dark:text-white">{payroll.user?.name}</span></p>
-                <p><span className="text-slate-500 w-24 inline-block">ID:</span> <span className="font-medium text-slate-900 dark:text-white">EMP-{payroll.user_id.toString().padStart(4, '0')}</span></p>
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-slate-500 w-16 shrink-0 mt-0.5">Name:</span> 
+                  <span className="font-medium text-slate-900 dark:text-white break-words">{payroll.user?.name}</span>
+                </div>
+                <div className="flex items-start gap-2 text-sm">
+                  <span className="text-slate-500 w-16 shrink-0 mt-0.5">ID:</span> 
+                  <span className="font-medium text-slate-900 dark:text-white">EMP-{payroll.user_id.toString().padStart(4, '0')}</span>
+                </div>
               </div>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Summary</h3>
               <div className="space-y-2">
-                <p><span className="text-slate-500 w-32 inline-block">Status:</span> 
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-slate-500 w-20 shrink-0">Status:</span> 
                   <span className={`font-medium capitalize ${
                     payroll.status === 'paid' ? 'text-emerald-500' : 
                     payroll.status === 'confirmed' ? 'text-blue-500' : 'text-orange-500'
                   }`}>
                     {payroll.status}
                   </span>
-                </p>
+                </div>
                 {payroll.paid_date && (
-                  <p><span className="text-slate-500 w-32 inline-block">Paid On:</span> <span className="font-medium text-slate-900 dark:text-white">{format(new Date(payroll.paid_date), 'dd MMM yyyy')}</span></p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-slate-500 w-20 shrink-0">Paid On:</span> 
+                    <span className="font-medium text-slate-900 dark:text-white">{format(new Date(payroll.paid_date), 'dd MMM yyyy')}</span>
+                  </div>
                 )}
               </div>
             </div>

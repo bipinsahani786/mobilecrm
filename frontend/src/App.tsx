@@ -83,13 +83,13 @@ function SuperadminRoute({ children }: { children: React.ReactNode }) {
 
 function BusinessRoute({ children }: { children: React.ReactNode }) {
   const user = useAuthStore((state) => state.user);
-  const { activeBusiness, isLoading } = useTenantStore();
+  const { activeBusiness, isLoading, hasFetched } = useTenantStore();
   const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin');
   const isPartner = user?.roles?.some(r => r.name === 'Partner');
 
   if (isSuperadmin) return <Navigate to="/superadmin/dashboard" replace />;
   if (isPartner && !user?.businesses?.length) return <Navigate to="/partner/dashboard" replace />;
-  if (!isLoading && !activeBusiness) return <Navigate to="/setup/profile" replace />;
+  if (hasFetched && !activeBusiness) return <Navigate to="/setup/profile" replace />;
 
   return <>{children}</>;
 }

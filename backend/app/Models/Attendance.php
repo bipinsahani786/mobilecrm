@@ -31,7 +31,7 @@ class Attendance extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
         'is_within_geofence' => 'boolean',
         'check_in_latitude' => 'float',
         'check_in_longitude' => 'float',

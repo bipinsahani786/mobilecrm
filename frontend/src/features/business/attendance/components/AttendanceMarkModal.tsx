@@ -5,6 +5,8 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { FilterSelect } from '@/components/ui/filter-controls';
+import { format } from 'date-fns';
 
 interface AttendanceMarkModalProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm({
     defaultValues: {
       user_id: '',
-      date: new Date().toISOString().split('T')[0],
+      date: format(new Date(), 'yyyy-MM-dd'),
       status: 'present',
       notes: ''
     }
@@ -64,13 +66,18 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
             control={control}
             rules={{ required: 'Please select a staff member' }}
             render={({ field }) => (
-              <Select onChange={field.onChange} value={field.value} className={errors.user_id ? 'border-red-500' : ''}>
-                <option value="" disabled>Select staff member</option>
-                <option value="all" className="font-semibold text-primary">All Staff (Bulk)</option>
-                {staffList?.map((staff) => (
-                  <option key={staff.id} value={staff.id.toString()}>{staff.name}</option>
-                ))}
-              </Select>
+              <FilterSelect
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Select staff member"
+                searchable={true}
+                options={[
+                  { value: 'all', label: 'All Staff (Bulk)' },
+                  ...(staffList?.map((staff) => ({ value: staff.id.toString(), label: staff.name })) || [])
+                ]}
+                wrapperClassName="w-full"
+                className={errors.user_id ? 'border-red-500' : ''}
+              />
             )}
           />
           {errors.user_id && <p className="text-red-500 text-xs mt-1">{errors.user_id.message}</p>}
@@ -87,14 +94,20 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
             name="status"
             control={control}
             render={({ field }) => (
-              <Select onChange={field.onChange} value={field.value}>
-                <option value="present">Present</option>
-                <option value="absent">Absent</option>
-                <option value="half_day">Half Day</option>
-                <option value="leave">Leave</option>
-                <option value="week_off">Week Off</option>
-                <option value="holiday">Holiday</option>
-              </Select>
+              <FilterSelect
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="Select Status"
+                options={[
+                  { value: 'present', label: 'Present' },
+                  { value: 'absent', label: 'Absent' },
+                  { value: 'half_day', label: 'Half Day' },
+                  { value: 'leave', label: 'Leave' },
+                  { value: 'week_off', label: 'Week Off' },
+                  { value: 'holiday', label: 'Holiday' }
+                ]}
+                wrapperClassName="w-full"
+              />
             )}
           />
         </div>
