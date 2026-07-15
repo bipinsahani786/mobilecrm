@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Banknote, Smartphone, CreditCard, GitMerge, BarChart2, IndianRupee, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { formatCurrency } from '@/lib/formatters';
 import { PAYMENT_MODES, COMMON_FINANCIERS, type PaymentMode } from '../../constants/index';
 import { useCreateCustomer } from '../../../customers/api/useCustomers';
@@ -151,7 +152,15 @@ export function PaymentForms({
               <button
                 key={mode.id}
                 type="button"
-                onClick={() => setPaymentType(mode.id)}
+                onClick={() => {
+                  setPaymentType(mode.id);
+                  if (mode.id === 'split' && splitPayments.length < 2) {
+                    setSplitPayments([
+                      { mode: 'Cash', amount: '' },
+                      { mode: 'Online', amount: '' }
+                    ]);
+                  }
+                }}
                 className={[
                   'flex flex-col items-center justify-center gap-1 h-16 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all duration-200',
                   active
@@ -192,25 +201,26 @@ export function PaymentForms({
                 <div key={index} className="space-y-1.5 p-2 bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] rounded-xl animate-in fade-in duration-200">
                   <div className="flex items-center gap-2 group">
                     <div className="w-1/2">
-                      <select
+                      <CustomSelect
                         value={payment.mode}
-                        onChange={(e) => {
+                        onChange={(value) => {
                           const newPayments = [...splitPayments];
-                          newPayments[index].mode = e.target.value;
-                          if (e.target.value !== 'Udhar') {
+                          newPayments[index].mode = value;
+                          if (value !== 'Udhar') {
                             delete newPayments[index].link_customer_id;
                           }
                           setSplitPayments(newPayments);
                         }}
-                        className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
-                      >
-                        <option value="Cash">Cash</option>
-                        <option value="UPI">UPI</option>
-                        <option value="Card">Card</option>
-                        <option value="Finance">Finance</option>
-                        <option value="EMI">EMI</option>
-                        <option value="Udhar">Udhar (Credit)</option>
-                      </select>
+                        options={[
+                          { value: 'Cash', label: 'Cash' },
+                          { value: 'Online', label: 'Online' },
+                          { value: 'UPI', label: 'UPI' },
+                          { value: 'Card', label: 'Card' },
+                          { value: 'Finance', label: 'Finance' },
+                          { value: 'EMI', label: 'EMI' },
+                          { value: 'Udhar', label: 'Udhar (Credit)' },
+                        ]}
+                      />
                     </div>
                     <div className="flex-1 relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
@@ -244,22 +254,19 @@ export function PaymentForms({
                     <div className="w-full space-y-1 animate-in fade-in duration-200">
                       {!addingStates[index] ? (
                         <div className="space-y-1">
-                          <select
+                          <CustomSelect
                             value={payment.link_customer_id || ''}
-                            onChange={(e) => {
+                            onChange={(value) => {
                               const newPayments = [...splitPayments];
-                              newPayments[index].link_customer_id = e.target.value;
+                              newPayments[index].link_customer_id = value;
                               setSplitPayments(newPayments);
                             }}
-                            className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-500/20 bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm cursor-pointer"
-                          >
-                            <option value="">-- Select Debtor Customer * --</option>
-                            {customers.map((c: any) => (
-                              <option key={c.id} value={c.id}>
-                                {c.name} {c.phone ? `(${c.phone})` : ''}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="-- Select Debtor Customer * --"
+                            options={customers.map((c: any) => ({
+                              value: String(c.id),
+                              label: `${c.name} ${c.phone ? `(${c.phone})` : ''}`
+                            }))}
+                          />
                           <div className="flex justify-end">
                             <button
                               type="button"
@@ -373,21 +380,28 @@ export function PaymentForms({
 
             <div className="grid grid-cols-2 gap-2.5">
               <div className="col-span-2 space-y-2.5 border border-slate-200 dark:border-white/10 rounded-xl p-3 bg-white dark:bg-white/[0.02]">
-                <div className="flex gap-2.5">
+                <div className="flex items-end gap-2.5 w-full">
                   <div className="flex-1 min-w-[140px]">
                     <FieldLabel>Down Pmt Mode</FieldLabel>
-                    <div className="mt-1">
-                      <select
-                        value={emiDownPaymentMode || 'Cash'}
-                        onChange={(e) => setEmiDownPaymentMode && setEmiDownPaymentMode(e.target.value)}
-                        className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
-                      >
-                        <option value="Cash">Cash</option>
-                        <option value="UPI">UPI</option>
-                        <option value="Card">Card</option>
-                        <option value="Split">Split Payment</option>
-                      </select>
-                    </div>
+                    <CustomSelect
+                      value={emiDownPaymentMode || 'Cash'}
+                      onChange={(value) => {
+                        if (setEmiDownPaymentMode) setEmiDownPaymentMode(value);
+                        if (value === 'Split' && setEmiDownPayments && emiDownPayments.length < 2) {
+                          setEmiDownPayments([
+                            { mode: 'Cash', amount: '' },
+                            { mode: 'Online', amount: '' }
+                          ]);
+                        }
+                      }}
+                      options={[
+                        { value: 'Cash', label: 'Cash' },
+                        { value: 'UPI', label: 'UPI' },
+                        { value: 'Card', label: 'Card' },
+                        { value: 'Online', label: 'Online' },
+                        { value: 'Split', label: 'Split Payment' },
+                      ]}
+                    />
                   </div>
                   {emiDownPaymentMode !== 'Split' && (
                     <div className="flex-1">
@@ -404,23 +418,24 @@ export function PaymentForms({
                         <div key={index} className="space-y-1.5 p-2 bg-white dark:bg-white/[0.02] border border-slate-200/60 dark:border-white/[0.05] rounded-xl animate-in fade-in duration-200">
                           <div className="flex items-center gap-2 group">
                             <div className="w-1/2">
-                              <select
+                              <CustomSelect
                                 value={payment.mode}
-                                onChange={(e) => {
+                                onChange={(value) => {
                                   const newPayments = [...emiDownPayments];
-                                  newPayments[index].mode = e.target.value;
-                                  if (e.target.value !== 'Udhar') {
+                                  newPayments[index].mode = value;
+                                  if (value !== 'Udhar') {
                                     delete newPayments[index].link_customer_id;
                                   }
                                   setEmiDownPayments(newPayments);
                                 }}
-                                className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm cursor-pointer"
-                              >
-                                <option value="Cash">Cash</option>
-                                <option value="UPI">UPI</option>
-                                <option value="Card">Card</option>
-                                <option value="Udhar">Udhar (Credit)</option>
-                              </select>
+                                options={[
+                                  { value: 'Cash', label: 'Cash' },
+                                  { value: 'UPI', label: 'UPI' },
+                                  { value: 'Card', label: 'Card' },
+                                  { value: 'Online', label: 'Online' },
+                                  { value: 'Udhar', label: 'Udhar (Credit)' },
+                                ]}
+                              />
                             </div>
                             <div className="flex-1 relative">
                               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none">₹</span>
@@ -454,22 +469,19 @@ export function PaymentForms({
                             <div className="w-full space-y-1 animate-in fade-in duration-200">
                               {!addingDownpaymentStates[index] ? (
                                 <div className="space-y-1">
-                                  <select
+                                  <CustomSelect
                                     value={payment.link_customer_id || ''}
-                                    onChange={(e) => {
+                                    onChange={(value) => {
                                       const newPayments = [...emiDownPayments];
-                                      newPayments[index].link_customer_id = e.target.value;
+                                      newPayments[index].link_customer_id = value;
                                       setEmiDownPayments(newPayments);
                                     }}
-                                    className="w-full h-9 px-2 text-xs font-bold rounded-xl border border-rose-200 dark:border-rose-500/20 bg-white dark:bg-zinc-900 text-rose-600 dark:text-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all shadow-sm cursor-pointer"
-                                  >
-                                    <option value="">-- Select Debtor Customer * --</option>
-                                    {customers.map((c: any) => (
-                                      <option key={c.id} value={c.id}>
-                                        {c.name} {c.phone ? `(${c.phone})` : ''}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    placeholder="-- Select Debtor Customer * --"
+                                    options={customers.map((c: any) => ({
+                                      value: String(c.id),
+                                      label: `${c.name} ${c.phone ? `(${c.phone})` : ''}`
+                                    }))}
+                                  />
                                   <div className="flex justify-end">
                                     <button
                                       type="button"

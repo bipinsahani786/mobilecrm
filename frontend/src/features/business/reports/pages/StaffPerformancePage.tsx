@@ -6,7 +6,7 @@ import { useStaffPerformance } from '../api/useStaffPerformance';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 export default function StaffPerformancePage() {
   const [dateRange, setDateRange] = useState('this_month');
@@ -82,23 +82,24 @@ export default function StaffPerformancePage() {
         subtitle="Track sales, profit, and commissions for all your staff members"
         actions={
           <div className="flex items-center gap-2">
-            <Select
+            <CustomSelect
               value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              className="w-40 h-10"
-            >
-              <option value="this_month">This Month</option>
-              <option value="last_month">Last Month</option>
-            </Select>
+              onChange={(value) => setDateRange(value)}
+              className="w-40"
+              options={[
+                { value: 'this_month', label: 'This Month' },
+                { value: 'last_month', label: 'Last Month' },
+              ]}
+            />
           </div>
         }
       />
 
-      <div className="flex-1 p-4 sm:p-6 overflow-auto">
+      <div className="w-full max-w-[1600px] px-4 pt-0 pb-4 space-y-4 flex-1">
         
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3 text-slate-500 mb-2">
                     <FileText className="w-5 h-5" />
                     <span className="font-medium text-sm uppercase tracking-wider">Total Sales Invoices</span>
@@ -106,7 +107,7 @@ export default function StaffPerformancePage() {
                 <div className="text-2xl font-bold">{data?.reduce((acc: number, cur: any) => acc + cur.total_sales, 0) || 0}</div>
             </div>
             
-            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3 text-slate-500 mb-2">
                     <IndianRupee className="w-5 h-5 text-primary-500" />
                     <span className="font-medium text-sm uppercase tracking-wider text-primary-600 dark:text-primary-400">Total Revenue</span>
@@ -114,7 +115,7 @@ export default function StaffPerformancePage() {
                 <div className="text-2xl font-bold">₹{data?.reduce((acc: number, cur: any) => acc + cur.total_sales_amount, 0).toLocaleString('en-IN', {minimumFractionDigits: 2}) || '0.00'}</div>
             </div>
             
-            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3 text-slate-500 mb-2">
                     <Activity className="w-5 h-5 text-emerald-500" />
                     <span className="font-medium text-sm uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Total Profit</span>
@@ -122,7 +123,7 @@ export default function StaffPerformancePage() {
                 <div className="text-2xl font-bold">₹{data?.reduce((acc: number, cur: any) => acc + cur.total_profit, 0).toLocaleString('en-IN', {minimumFractionDigits: 2}) || '0.00'}</div>
             </div>
 
-            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl p-4 shadow-sm">
+            <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-center gap-3 text-slate-500 mb-2">
                     <IndianRupee className="w-5 h-5 text-rose-500" />
                     <span className="font-medium text-sm uppercase tracking-wider text-rose-600 dark:text-rose-400">Total Commission Paid</span>
@@ -131,7 +132,7 @@ export default function StaffPerformancePage() {
             </div>
         </div>
 
-        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
           <DataTable 
             columns={columns} 
             data={data || []} 

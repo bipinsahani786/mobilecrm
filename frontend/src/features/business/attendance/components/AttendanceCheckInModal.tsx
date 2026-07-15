@@ -26,13 +26,18 @@ export const AttendanceCheckInModal = ({ isOpen, onClose }: AttendanceCheckInMod
 
   const startCamera = async () => {
     try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast.error('Camera not supported. Please use HTTPS or localhost.');
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         setIsCameraOn(true);
       }
-    } catch (err) {
-      toast.error('Could not access camera. Please check permissions.');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(`Camera error: ${err.message || 'Permission denied'}`);
     }
   };
 
@@ -179,20 +184,22 @@ export const AttendanceCheckInModal = ({ isOpen, onClose }: AttendanceCheckInMod
                       Retake
                     </Button>
                   </>
-                ) : isCameraOn ? (
-                  <>
-                    <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <Button 
-                      onClick={takePhoto}
-                      className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full h-12 w-12 p-0"
-                    >
-                      <Camera size={20} />
-                    </Button>
-                  </>
                 ) : (
-                  <Button variant="outline" onClick={startCamera}>
-                    Start Camera
-                  </Button>
+                  <>
+                    <video ref={videoRef} autoPlay playsInline className={`w-full h-full object-cover ${!isCameraOn ? 'hidden' : ''}`} />
+                    {isCameraOn ? (
+                      <Button 
+                        onClick={takePhoto}
+                        className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full h-12 w-12 p-0 shadow-lg hover:scale-105 transition-transform"
+                      >
+                        <Camera size={20} />
+                      </Button>
+                    ) : (
+                      <Button variant="outline" onClick={startCamera} className="bg-white/10 backdrop-blur border-white/20 hover:bg-white/20 text-white">
+                        <Camera size={16} className="mr-2" /> Start Camera
+                      </Button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
