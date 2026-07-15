@@ -10,7 +10,7 @@ export interface SelectOption {
 }
 
 interface CustomSelectProps {
-  value: string;
+  value?: string;
   onChange: (value: string) => void;
   options: SelectOption[];
   placeholder?: string;
@@ -19,6 +19,7 @@ interface CustomSelectProps {
   disabled?: boolean;
   id?: string;
   menuPlacement?: 'top' | 'bottom';
+  menuPosition?: 'absolute' | 'fixed';
 }
 
 export function CustomSelect({
@@ -31,6 +32,7 @@ export function CustomSelect({
   disabled = false,
   id,
   menuPlacement = 'bottom',
+  menuPosition = 'absolute',
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -84,7 +86,8 @@ export function CustomSelect({
       {/* Dropdown panel — no scrollbar, max-h with overflow hidden */}
       {open && (
         <div className={cn(
-          'absolute z-[9999] left-0 right-0',
+          menuPosition,
+          'z-[9999] left-0 right-0',
           menuPlacement === 'top' ? 'bottom-full mb-1.5 origin-bottom' : 'mt-1.5 origin-top',
           'bg-white dark:bg-[#111118]',
           'border border-slate-200 dark:border-white/10',
