@@ -48,7 +48,7 @@ class AttendanceService
         // Handle photo upload
         $photoPath = null;
         if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
-            $photoPath = $data['photo']->store('attendance/check-in', 'public');
+            $photoPath = $data['photo']->store('attendance/check-in', 's3');
         }
 
         if ($existing) {
@@ -117,7 +117,7 @@ class AttendanceService
         // Handle photo upload
         $photoPath = null;
         if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
-            $photoPath = $data['photo']->store('attendance/check-out', 'public');
+            $photoPath = $data['photo']->store('attendance/check-out', 's3');
         }
 
         $attendance->update([

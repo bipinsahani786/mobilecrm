@@ -9,8 +9,6 @@ import { useState } from 'react';
 import { InvoiceHeader } from '../components/invoice/InvoiceHeader';
 import { InvoiceItemsTable } from '../components/invoice/InvoiceItemsTable';
 import { InvoiceTotals } from '../components/invoice/InvoiceTotals';
-import { EditSaleModal } from '../components/EditSaleModal';
-
 function InvoiceDetailsSkeleton() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f]">
@@ -47,7 +45,6 @@ export default function InvoiceDetailsPage() {
   const { activeBusiness } = useTenantStore();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'receipt'>('overview');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   if (isLoading) return <InvoiceDetailsSkeleton />;
   if (!sale) return <div className="p-8 text-center text-rose-500 font-bold text-xl">Invoice not found</div>;
@@ -99,7 +96,7 @@ export default function InvoiceDetailsPage() {
               <ArrowLeft className="w-3.5 h-3.5" /> Back
             </button>
             <button 
-              onClick={() => setIsEditModalOpen(true)}
+              onClick={() => navigate(`/pos?edit_id=${sale.id}`)}
               className="flex items-center gap-2 h-10 px-5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit
@@ -196,6 +193,12 @@ export default function InvoiceDetailsPage() {
                             <td className="px-4 py-3.5">
                               <p className="font-bold text-slate-900 dark:text-white leading-tight">{item.product?.model_name || 'Unknown Product'}</p>
                               {item.batch && <p className="text-[10px] font-bold text-slate-400 mt-0.5">Batch: {item.batch.batch_number}</p>}
+                              {item.imei_1 && (
+                                <p className="text-[10px] font-bold text-slate-400 mt-0.5">
+                                  IMEI 1: {item.imei_1} {item.imei_2 ? `| IMEI 2: ${item.imei_2}` : ''}
+                                </p>
+                              )}
+                              {item.serial_no && <p className="text-[10px] font-bold text-slate-400 mt-0.5">Serial: {item.serial_no}</p>}
                             </td>
                             <td className="px-4 py-3.5 text-right font-semibold text-slate-600 dark:text-slate-400">{item.quantity}</td>
                             <td className="px-4 py-3.5 text-right font-semibold text-slate-600 dark:text-slate-400">{formatCurrency(item.unit_price)}</td>
@@ -253,7 +256,7 @@ export default function InvoiceDetailsPage() {
                     {sale.payments?.map((payment: any) => {
                       const guarantor = getGuarantorInfo(payment.notes);
                       const displayNotes = payment.notes 
-                        ? payment.notes.split(' | Udhar linked to')[0]
+                        ? payment.notes.replace(/Udhar linked to Customer:[^|]*/i, '').replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').trim()
                         : '';
                       return (
                         <div key={payment.id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors">
@@ -310,21 +313,21 @@ export default function InvoiceDetailsPage() {
             <InvoiceTotals sale={sale} />
 
             {/* Payments Section in Receipt */}
-            <div className="p-8 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
-              <h3 className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-4">Payment Details</h3>
+            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+              <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3">Payment Details</h3>
               
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {sale.payments?.map((payment: any) => {
                     const guarantor = getGuarantorInfo(payment.notes);
                     const displayNotes = payment.notes 
-                      ? payment.notes.split(' | Udhar linked to')[0]
+                      ? payment.notes.replace(/Udhar linked to Customer:[^|]*/i, '').replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').trim()
                       : '';
                     return (
-                      <div key={payment.id} className="bg-white dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{payment.payment_mode}</p>
-                        <p className="font-black text-slate-900 dark:text-white text-lg">{formatCurrency(payment.amount)}</p>
-                        {displayNotes && <p className="text-xs font-medium text-slate-500 mt-1">{displayNotes}</p>}
+                      <div key={payment.id} className="bg-white dark:bg-slate-900/50 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{payment.payment_mode}</p>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{formatCurrency(payment.amount)}</p>
+                        {displayNotes && <p className="text-[10px] font-medium text-slate-500 mt-1">{displayNotes}</p>}
                         {guarantor && (
                           guarantor.id ? (
                             <button
@@ -345,11 +348,11 @@ export default function InvoiceDetailsPage() {
                 </div>
 
                 {sale.emiDetail && (
-                  <div className="bg-indigo-50/80 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/50 p-5 rounded-xl shadow-sm">
-                    <h4 className="text-sm font-black text-indigo-900 dark:text-indigo-400 mb-4 tracking-tight">
+                  <div className="bg-indigo-50/80 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/50 px-4 py-3 rounded-xl shadow-sm">
+                    <h4 className="text-xs font-bold text-indigo-900 dark:text-indigo-400 mb-2 tracking-tight">
                       Finance Details - {sale.emiDetail.financier_name}
                     </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
                       <div>
                         <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Down Payment</p>
                         <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.down_payment)}</p>
@@ -372,21 +375,12 @@ export default function InvoiceDetailsPage() {
               </div>
             </div>
             
-            <div className="p-8 text-center text-[10px] font-black uppercase tracking-widest text-slate-400 border-t border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-black/20">
+            <div className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 border-t border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-black/20">
               Thank you for your business!
             </div>
           </div>
         )}
       </div>
-
-      {isEditModalOpen && (
-        <EditSaleModal 
-          isOpen={isEditModalOpen} 
-          onClose={() => setIsEditModalOpen(false)} 
-          sale={sale}
-          isEmiPaid={isEmiPaid}
-        />
-      )}
     </div>
   );
 }

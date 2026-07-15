@@ -177,7 +177,7 @@ class SupplierController extends BaseController
                         new OA\Property(property: 'paid_amount', type: 'number', nullable: true),
                         new OA\Property(property: 'purchase_date', type: 'string', format: 'date'),
                         new OA\Property(property: 'due_date', type: 'string', format: 'date', nullable: true),
-                        new OA\Property(property: 'invoice_file', type: 'string', format: 'binary', nullable: true),
+                        new OA\Property(property: 'invoice_file', type: 'string', nullable: true),
                     ]
                 )
             )
@@ -193,7 +193,7 @@ class SupplierController extends BaseController
             'paid_amount' => 'nullable|numeric|min:0',
             'purchase_date' => 'required|date',
             'due_date' => 'nullable|date',
-            'invoice_file' => 'nullable|file|mimes:pdf,jpg,jpeg,png',
+            'invoice_file' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -203,8 +203,8 @@ class SupplierController extends BaseController
         ]);
 
         return $this->executeAction(function () use ($supplier, $validated, $request) {
-            $invoiceFile = $request->file('invoice_file');
-            return $this->supplierService->recordPurchase($supplier, $validated, $invoiceFile);
+            $invoicePath = $validated['invoice_file'] ?? null;
+            return $this->supplierService->recordPurchase($supplier, $validated, $invoicePath);
         }, 'Purchase recorded successfully', 201);
     }
 
@@ -238,11 +238,18 @@ class SupplierController extends BaseController
     {
         $validated = $request->validate([
             'supplier_purchase_id' => 'nullable|exists:supplier_purchases,id',
-            'amount' => 'required|numeric|min:0.01',
-            'payment_mode' => 'required|string',
+            'amount' => 'nullable|numeric|min:0.01',
+            'payment_mode' => 'nullable|string',
             'date' => 'required|date',
             'notes' => 'nullable|string',
+            'payments' => 'nullable|array|min:1',
+            'payments.*.amount' => 'required|numeric|min:0.01',
+            'payments.*.payment_mode' => 'required|string',
         ]);
+
+        if (empty($validated['payments']) && (empty($validated['amount']) || empty($validated['payment_mode']))) {
+            return response()->json(['message' => 'Payment details are required.'], 422);
+        }
 
         return $this->executeAction(function () use ($supplier, $validated) {
             return $this->supplierService->recordPayment($supplier, $validated);

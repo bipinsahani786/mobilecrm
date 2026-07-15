@@ -153,8 +153,16 @@ export default function CustomerDetailsPage() {
     },
     {
       header: 'Balance',
-      className: 'text-right font-bold text-rose-600',
-      cell: (sale) => formatCurrency(sale.final_amount - sale.paid_amount)
+      className: 'text-right font-bold',
+      cell: (sale) => {
+        const balance = sale.final_amount - sale.paid_amount;
+        if (balance > 0) {
+          return <span className="text-rose-600 dark:text-rose-400">{formatCurrency(balance)}</span>;
+        } else if (balance < 0) {
+          return <span className="text-emerald-600 dark:text-emerald-400">+{formatCurrency(Math.abs(balance))}</span>;
+        }
+        return <span className="text-slate-900 dark:text-white">{formatCurrency(0)}</span>;
+      }
     }
   ];
 
@@ -170,10 +178,12 @@ export default function CustomerDetailsPage() {
         ]}
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" className="h-10 px-4 py-2 text-sm rounded-lg" onClick={() => setIsEditModalOpen(true)}>
-              <Edit2 className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
+            <button 
+              onClick={() => setIsEditModalOpen(true)}
+              className="flex items-center justify-center gap-2 h-10 px-5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm"
+            >
+              <Edit2 className="w-3.5 h-3.5" /> Edit Customer
+            </button>
             <Button onClick={() => navigate(`/pos?customer_id=${id}`)} className="h-10 px-4 py-2 text-sm rounded-lg">
               <IndianRupee className="w-4 h-4 mr-2" />
               New Sale

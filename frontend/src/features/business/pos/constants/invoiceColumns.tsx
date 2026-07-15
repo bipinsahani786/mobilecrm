@@ -7,9 +7,10 @@ import { formatCurrency } from '@/lib/formatters';
 interface InvoiceColumnsProps {
   onView: (sale: Sale) => void;
   onCustomerView: (customerId: number) => void;
+  onResumeDraft?: (saleId: number) => void;
 }
 
-export const getInvoiceColumns = ({ onView, onCustomerView }: InvoiceColumnsProps): ColumnDef<Sale>[] => [
+export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft }: InvoiceColumnsProps): ColumnDef<Sale>[] => [
   {
     header: 'Invoice',
     cell: (sale) => {
@@ -135,17 +136,35 @@ export const getInvoiceColumns = ({ onView, onCustomerView }: InvoiceColumnsProp
   },
   {
     header: 'Status',
-    cell: (sale) => (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-        {sale.status}
-      </span>
-    )
+    cell: (sale) => {
+      const isDraft = sale.status === 'Draft';
+      return (
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${isDraft ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+            {sale.status || 'completed'}
+          </span>
+          {isDraft && onResumeDraft && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onResumeDraft(sale.id);
+              }}
+              className="h-6 px-2 text-[9px] font-bold text-amber-600 border-amber-200 hover:bg-amber-50 transition-opacity"
+            >
+              Resume
+            </Button>
+          )}
+        </div>
+      );
+    }
   },
   {
     header: '',
     className: 'text-right',
     cell: (sale) => (
-      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center justify-end gap-2 transition-opacity">
         <Button 
           variant="ghost" 
           size="icon" 

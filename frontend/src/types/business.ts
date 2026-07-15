@@ -19,6 +19,16 @@ export interface Business {
     show_email?: boolean;
     show_phone_2?: boolean;
     show_gst?: boolean;
+    theme?: 'dark' | 'blue' | 'green' | 'purple' | 'primary';
+  } | null;
+  settings?: {
+    whitelabel_name?: string | null;
+    whitelabel_logo?: string | null;
+    whitelabel_favicon?: string | null;
+    commission_calculation_base?: 'sales' | 'profit';
+    sale_invoice_prefix?: string;
+    purchase_invoice_prefix?: string;
+    [key: string]: any;
   } | null;
   plan_expires_at?: string | null;
   plan?: {

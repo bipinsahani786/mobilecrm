@@ -10,10 +10,12 @@ import { AppLayout } from './components/layout/AppLayout';
 import { usePublicSettings } from '@/features/superadmin/settings/api/useSettings';
 import { SettingsPage } from '@/features/superadmin/settings/pages/SettingsPage';
 import { PermissionGuard } from '@/components/auth/PermissionGuard';
+import { useAppStore } from '@/store/appStore';
 
 const Login = lazy(() => import('@/features/auth/pages/LoginPage'));
 const Dashboard = lazy(() => import('@/features/business/dashboard/pages/DashboardPage'));
 const BusinessProfile = lazy(() => import('@/features/business/profile/pages/BusinessProfilePage'));
+const BusinessSettings = lazy(() => import('@/features/business/settings/pages/BusinessSettingsPage'));
 const CategoriesPage = lazy(() => import('@/features/business/inventory/pages/CategoriesPage'));
 const BrandsPage = lazy(() => import('@/features/business/inventory/pages/BrandsPage'));
 const InventoryPage = lazy(() => import('@/features/business/inventory/pages/InventoryPage'));
@@ -147,6 +149,24 @@ function App() {
   usePublicSettings();
   const { theme, primaryColor, fontFamily } = useThemeStore();
   const location = useLocation();
+  const { activeBusiness } = useTenantStore();
+  const { appName, appLogo } = useAppStore();
+
+  useEffect(() => {
+    const title = activeBusiness?.settings?.whitelabel_name || appName || 'MobilePhoneCRM';
+    document.title = title;
+
+    const faviconUrl = activeBusiness?.settings?.whitelabel_favicon || activeBusiness?.settings?.whitelabel_logo || appLogo;
+    if (faviconUrl) {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+      }
+      link.href = faviconUrl;
+    }
+  }, [activeBusiness?.settings?.whitelabel_name, activeBusiness?.settings?.whitelabel_favicon, activeBusiness?.settings?.whitelabel_logo, appName, appLogo]);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -193,6 +213,7 @@ function App() {
             <Route path="/dashboard" element={<BusinessRoute><Dashboard /></BusinessRoute>} />
             <Route path="/profile" element={<BusinessRoute><ProfilePage /></BusinessRoute>} />
             <Route path="/setup/profile" element={<BusinessProfile />} />
+            <Route path="/setup/settings" element={<BusinessRoute><BusinessSettings /></BusinessRoute>} />
             <Route path="/categories" element={<BusinessRoute><CategoriesPage /></BusinessRoute>} />
             <Route path="/brands" element={<BusinessRoute><BrandsPage /></BusinessRoute>} />
             <Route path="/items" element={<BusinessRoute><InventoryPage /></BusinessRoute>} />

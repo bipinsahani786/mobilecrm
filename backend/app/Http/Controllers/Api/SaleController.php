@@ -112,6 +112,7 @@ class SaleController extends BaseController
             'payment_mode' => 'nullable|string',
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
+            'status' => 'nullable|string|in:completed,Draft',
             
             // Items
             'items' => 'required|array|min:1',
@@ -119,6 +120,9 @@ class SaleController extends BaseController
             'items.*.product_batch_id' => 'nullable|exists:product_batches,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.imei_1' => 'nullable|string',
+            'items.*.imei_2' => 'nullable|string',
+            'items.*.serial_no' => 'nullable|string',
 
             // Payments (Split Payments)
             'payments' => 'nullable|array',
@@ -191,6 +195,7 @@ class SaleController extends BaseController
             'payment_mode' => 'nullable|string',
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
+            'status' => 'nullable|string|in:completed,Draft',
             
             // Items
             'items' => 'required|array|min:1',
@@ -198,6 +203,9 @@ class SaleController extends BaseController
             'items.*.product_batch_id' => 'nullable|exists:product_batches,id',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.imei_1' => 'nullable|string',
+            'items.*.imei_2' => 'nullable|string',
+            'items.*.serial_no' => 'nullable|string',
 
             // Payments (Split Payments)
             'payments' => 'nullable|array',

@@ -18,6 +18,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useAuthStore } from "@/store/authStore";
 import { useAppStore } from "@/store/appStore";
+import { useTenantStore } from "@/store/tenantStore";
 import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare, Calendar, Calculator } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useFeature } from "@/hooks/useFeature";
@@ -69,6 +70,12 @@ export const businessMenuGroups = [
     items: [
       { name: "STAFF PERFORMANCE", href: "/reports/staff-performance", icon: Activity },
       { name: "SYSTEM LOGS", href: "/reports/audit-logs", icon: Database },
+    ]
+  },
+  {
+    title: "ADMINISTRATION",
+    items: [
+      { name: "SETTINGS", href: "/setup/settings", icon: Settings },
     ]
   }
 ];
@@ -177,6 +184,7 @@ export function Sidebar({ className }: { className?: string }) {
   const user = useAuthStore((state) => state.user);
   const isProfileLoading = useAuthStore((state) => state.isProfileLoading);
   const { appName, appLogo } = useAppStore();
+  const { activeBusiness } = useTenantStore();
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeature();
 
@@ -255,18 +263,18 @@ export function Sidebar({ className }: { className?: string }) {
         {/* Brand */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-100 dark:border-white/5 shrink-0 overflow-hidden">
           <div className="flex items-center">
-            {appLogo ? (
+            {activeBusiness?.settings?.whitelabel_logo || appLogo ? (
               <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 mx-auto flex items-center justify-center bg-transparent">
-                <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+                <img src={activeBusiness?.settings?.whitelabel_logo || appLogo || undefined} alt={activeBusiness?.settings?.whitelabel_name || appName || undefined} className="max-w-full max-h-full object-contain" />
               </div>
             ) : (
               <div className="bg-primary-500 p-1.5 rounded-lg w-8 h-8 flex items-center justify-center font-bold text-white shrink-0 mx-auto">
-                {appName ? appName.charAt(0).toUpperCase() : 'B'}
+                {(activeBusiness?.settings?.whitelabel_name || appName) ? (activeBusiness?.settings?.whitelabel_name || appName).charAt(0).toUpperCase() : 'B'}
               </div>
             )}
             {!isSidebarCollapsed && (
               <span className="font-bold text-lg tracking-tight text-slate-800 dark:text-white uppercase font-display whitespace-nowrap ml-3">
-                {appName}
+                {activeBusiness?.settings?.whitelabel_name || appName}
               </span>
             )}
           </div>

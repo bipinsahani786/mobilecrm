@@ -37,15 +37,9 @@ class SupplierService
         $supplier->delete();
     }
 
-    public function recordPurchase(Supplier $supplier, array $data, $invoiceFile = null)
+    public function recordPurchase(Supplier $supplier, array $data, $invoicePath = null)
     {
-        return DB::transaction(function () use ($supplier, $data, $invoiceFile) {
-            $invoicePath = null;
-            if ($invoiceFile) {
-                $businessId = app()->has('current_business_id') ? app('current_business_id') : (auth()->check() ? auth()->user()->business_id : 'unknown');
-                $invoicePath = $invoiceFile->store("invoices/business_{$businessId}", 'public');
-            }
-
+        return DB::transaction(function () use ($supplier, $data, $invoicePath) {
             $purchase = $supplier->purchases()->create([
                 'bill_amount' => $data['bill_amount'],
                 'paid_amount' => $data['paid_amount'] ?? 0,
@@ -102,15 +96,73 @@ class SupplierService
     public function recordPayment(Supplier $supplier, array $data)
     {
         return DB::transaction(function () use ($supplier, $data) {
-            $payment = $supplier->payments()->create($data);
+            $createdPayments = [];
+            $paymentsToProcess = !empty($data['payments']) ? $data['payments'] : [
+                ['amount' => $data['amount'], 'payment_mode' => $data['payment_mode'] ?? 'Cash']
+            ];
 
-            // If this payment is linked to a specific bill, update the paid amount
-            if (!empty($data['supplier_purchase_id'])) {
-                $purchase = SupplierPurchase::find($data['supplier_purchase_id']);
-                $purchase->increment('paid_amount', $data['amount']);
+            $specificPurchaseId = $data['supplier_purchase_id'] ?? null;
+
+            foreach ($paymentsToProcess as $paymentData) {
+                $amountToAllocate = (float) $paymentData['amount'];
+
+                if ($specificPurchaseId) {
+                    // Payment is for a specific purchase
+                    $payment = $supplier->payments()->create([
+                        'supplier_purchase_id' => $specificPurchaseId,
+                        'date' => $data['date'],
+                        'notes' => $data['notes'] ?? null,
+                        'amount' => $amountToAllocate,
+                        'payment_mode' => $paymentData['payment_mode'],
+                    ]);
+                    $createdPayments[] = $payment;
+                    
+                    $purchase = SupplierPurchase::find($specificPurchaseId);
+                    if ($purchase) {
+                        $purchase->increment('paid_amount', $amountToAllocate);
+                    }
+                } else {
+                    // General payment - auto-allocate to oldest unpaid bills
+                    $unpaidPurchases = $supplier->purchases()
+                        ->whereRaw('bill_amount > paid_amount')
+                        ->orderBy('purchase_date', 'asc')
+                        ->orderBy('id', 'asc')
+                        ->get();
+
+                    foreach ($unpaidPurchases as $purchase) {
+                        if ($amountToAllocate <= 0) break;
+
+                        $due = $purchase->bill_amount - $purchase->paid_amount;
+                        $allocation = min($due, $amountToAllocate);
+
+                        $payment = $supplier->payments()->create([
+                            'supplier_purchase_id' => $purchase->id,
+                            'date' => $data['date'],
+                            'notes' => $data['notes'] ?? null,
+                            'amount' => $allocation,
+                            'payment_mode' => $paymentData['payment_mode'],
+                        ]);
+                        $createdPayments[] = $payment;
+
+                        $purchase->increment('paid_amount', $allocation);
+                        $amountToAllocate -= $allocation;
+                    }
+
+                    // If there is still amount left after paying all bills, save as unlinked advance
+                    if ($amountToAllocate > 0) {
+                        $payment = $supplier->payments()->create([
+                            'supplier_purchase_id' => null,
+                            'date' => $data['date'],
+                            'notes' => $data['notes'] ?? null,
+                            'amount' => $amountToAllocate,
+                            'payment_mode' => $paymentData['payment_mode'],
+                        ]);
+                        $createdPayments[] = $payment;
+                    }
+                }
             }
 
-            return $payment;
+            return collect($createdPayments);
         });
     }
 }

@@ -12,11 +12,10 @@ import { useNavigate } from 'react-router-dom';
 import { businessSchema, type BusinessFormValues } from '../schemas/businessSchema';
 import { useCreateBusiness, useUpdateBusiness } from '../api/useBusinessMutations';
 
-import { BrandingAssetsSection } from '../components/BrandingAssetsSection';
-import { ProfilePreviewPanel } from '../components/ProfilePreviewPanel';
 import { DynamicForm } from '@/components/ui/dynamic-form';
-import { BusinessLocationsSection } from '../components/BusinessLocationsSection';
 import { getBusinessProfileFormConfig } from '../constants/businessForm';
+import { ProfilePreviewPanel } from '../components/ProfilePreviewPanel';
+import { BrandingAssetsSection } from '../components/BrandingAssetsSection';
 
 export default function BusinessProfilePage() {
   const { activeBusiness, addBusiness, updateBusiness, isLoading } = useTenantStore();
@@ -27,11 +26,8 @@ export default function BusinessProfilePage() {
   const createBusinessMutation = useCreateBusiness();
   const updateBusinessMutation = useUpdateBusiness();
 
-  // Custom states for files since they aren't standard text inputs
   const [logoUrl, setLogoUrl] = useState<string | null>(activeBusiness?.logo_path || null);
   const [signatureUrl, setSignatureUrl] = useState<string | null>(activeBusiness?.signature_path || null);
-  
-  // Instant local preview states
   const [logoPreview, setLogoPreview] = useState<string | null>(activeBusiness?.logo_path || null);
   const [sigPreview, setSigPreview] = useState<string | null>(activeBusiness?.signature_path || null);
 
@@ -39,22 +35,36 @@ export default function BusinessProfilePage() {
     resolver: zodResolver(businessSchema) as any,
     defaultValues: activeBusiness ? {
       ...activeBusiness,
-      card_preferences: activeBusiness.card_preferences || {
-        show_address: true,
-        show_email: true,
-        show_phone_2: true,
-        show_gst: true,
-        theme: 'dark',
+      card_preferences: {
+        show_address: activeBusiness.card_preferences?.show_address ?? true,
+        show_email: activeBusiness.card_preferences?.show_email ?? true,
+        show_phone_2: activeBusiness.card_preferences?.show_phone_2 ?? true,
+        show_gst: activeBusiness.card_preferences?.show_gst ?? true,
+        theme: activeBusiness.card_preferences?.theme ?? 'primary',
+      },
+      settings: {
+        commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
+        sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
+        purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
+        whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
+        whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
+        whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
       }
     } : {
+      name: '',
       card_preferences: {
         show_address: true,
         show_email: true,
         show_phone_2: true,
         show_gst: true,
-        theme: 'dark',
+        theme: 'primary',
+      },
+      settings: {
+        commission_calculation_base: 'sales',
+        sale_invoice_prefix: 'INV-',
+        purchase_invoice_prefix: 'PUR-',
       }
-    }
+    } as any
   });
 
   const { watch, control, reset, formState: { isSubmitting } } = form;
@@ -66,12 +76,20 @@ export default function BusinessProfilePage() {
     if (activeBusiness) {
       reset({
         ...activeBusiness,
-        card_preferences: activeBusiness.card_preferences || {
-          show_address: true,
-          show_email: true,
-          show_phone_2: true,
-          show_gst: true,
-          theme: 'dark',
+        card_preferences: {
+          show_address: activeBusiness.card_preferences?.show_address ?? true,
+          show_email: activeBusiness.card_preferences?.show_email ?? true,
+          show_phone_2: activeBusiness.card_preferences?.show_phone_2 ?? true,
+          show_gst: activeBusiness.card_preferences?.show_gst ?? true,
+          theme: activeBusiness.card_preferences?.theme ?? 'primary',
+        },
+        settings: {
+          commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
+          sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
+          purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
+          whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
+          whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
+          whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
         }
       });
       setLogoUrl(activeBusiness.logo_path);
@@ -85,7 +103,6 @@ export default function BusinessProfilePage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Instant Local Preview
     const objectUrl = URL.createObjectURL(file);
     if (type === 'logo') setLogoPreview(objectUrl);
     else setSigPreview(objectUrl);
@@ -94,7 +111,6 @@ export default function BusinessProfilePage() {
       if (type === 'logo') setIsUploadingLogo(true);
       else setIsUploadingSig(true);
 
-      // Using completely generic folders to bypass ALL adblockers
       const folderName = type === 'logo' ? 'asset-1' : 'asset-2';
       const { public_url } = await uploadToR2(file, `uploads/${folderName}`);
       
@@ -136,7 +152,6 @@ export default function BusinessProfilePage() {
     }
   };
 
-  // The live card needs the logo and sig paths too
   const liveCardData = {
     ...formData,
     logo_path: logoPreview,
@@ -192,7 +207,7 @@ export default function BusinessProfilePage() {
         <div className="grid lg:grid-cols-12 gap-4 lg:gap-6 min-w-0">
           
           {/* LEFT: FORM (Scrollable) */}
-          <div className="lg:col-span-7 bg-white dark:bg-slate-900/50 p-4 sm:p-5 md:p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none min-w-0 flex flex-col gap-6">
+          <div className="lg:col-span-7 bg-white dark:bg-slate-900/50 p-4 sm:p-5 md:p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none min-w-0 flex flex-col gap-6 max-w-4xl">
             <DynamicForm 
               id="business-form"
               form={form}
@@ -208,9 +223,6 @@ export default function BusinessProfilePage() {
               ))}
             />
 
-            {/* Geo-fence Location Settings */}
-            <BusinessLocationsSection />
-
             <div className="pt-5 border-t border-slate-200 dark:border-white/5 flex justify-end">
               <Button type="submit" form="business-form" disabled={isSubmitting} className="bg-primary-500 hover:bg-primary-600 text-white shadow-md px-8 h-10 rounded-lg text-sm font-semibold tracking-wide w-full md:w-auto">
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
@@ -223,7 +235,6 @@ export default function BusinessProfilePage() {
           <div className="lg:col-span-5 relative min-w-0">
             <ProfilePreviewPanel control={control} liveCardData={liveCardData} />
           </div>
-
         </div>
       </div>
     </div>

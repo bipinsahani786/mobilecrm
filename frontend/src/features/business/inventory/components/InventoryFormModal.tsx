@@ -129,6 +129,7 @@ export function InventoryFormModal({ isOpen, onClose, productToEdit }: Inventory
         id="product-form"
         form={form}
         onSubmit={onSubmit}
+        controlSize="sm"
         sections={getInventoryFormConfig(
           [
             { value: 0, label: 'Select a category' },

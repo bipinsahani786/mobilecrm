@@ -39,4 +39,15 @@ class SupplierPurchase extends Model
     {
         return $this->hasMany(SupplierPayment::class);
     }
+
+    public function getInvoiceFileAttribute($value)
+    {
+        if ($value) {
+            if (str_starts_with($value, 'http')) {
+                return $value;
+            }
+            return \Illuminate\Support\Facades\Storage::disk('s3')->url($value);
+        }
+        return null;
+    }
 }

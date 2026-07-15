@@ -56,12 +56,8 @@ export const useCreateSupplierPurchase = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ supplierId, formData }: { supplierId: number; formData: FormData }) => {
-      const { data } = await api.post(`/business/suppliers/${supplierId}/purchases`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+    mutationFn: async ({ supplierId, payload }: { supplierId: number; payload: any }) => {
+      const { data } = await api.post(`/business/suppliers/${supplierId}/purchases`, payload);
       return data.data;
     },
     onSuccess: (_, variables) => {
