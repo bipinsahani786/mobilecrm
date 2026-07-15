@@ -10,13 +10,29 @@ import { uploadToR2 } from '@/lib/r2';
 import { useTenantStore } from '@/store/tenantStore';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
-import { businessSchema, type BusinessFormValues } from '../../profile/schemas/businessSchema';
+import { z } from 'zod';
 import { useUpdateBusiness } from '../../profile/api/useBusinessMutations';
-
 
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import type { FormSectionConfig } from '@/components/ui/dynamic-form';
 import { BusinessLocationsSection } from '../../profile/components/BusinessLocationsSection';
+
+const businessSettingsSchema = z.object({
+  settings: z.object({
+    commission_calculation_base: z.enum(['sales', 'profit']).default('sales'),
+    sale_invoice_prefix: z.string().default('INV-'),
+    purchase_invoice_prefix: z.string().default('PUR-'),
+    whitelabel_name: z.string().nullable().optional(),
+    whitelabel_logo: z.string().nullable().optional(),
+    whitelabel_favicon: z.string().nullable().optional(),
+  }).default({
+    commission_calculation_base: 'sales',
+    sale_invoice_prefix: 'INV-',
+    purchase_invoice_prefix: 'PUR-'
+  })
+});
+
+type BusinessSettingsFormValues = z.infer<typeof businessSettingsSchema>;
 
 export default function BusinessSettingsPage() {
   const { activeBusiness, updateBusiness, isLoading } = useTenantStore();
@@ -31,17 +47,9 @@ export default function BusinessSettingsPage() {
   const [wlLogoPreview, setWlLogoPreview] = useState<string | null>(activeBusiness?.settings?.whitelabel_logo || null);
   const [wlFaviconPreview, setWlFaviconPreview] = useState<string | null>(activeBusiness?.settings?.whitelabel_favicon || null);
 
-  const form = useForm<BusinessFormValues>({
-    resolver: zodResolver(businessSchema) as any,
+  const form = useForm<BusinessSettingsFormValues>({
+    resolver: zodResolver(businessSettingsSchema) as any,
     defaultValues: activeBusiness ? {
-      ...activeBusiness,
-      card_preferences: activeBusiness.card_preferences || {
-        show_address: true,
-        show_email: true,
-        show_phone_2: true,
-        show_gst: true,
-        theme: 'dark',
-      },
       settings: activeBusiness.settings || {
         commission_calculation_base: 'sales',
         sale_invoice_prefix: 'INV-',
@@ -63,14 +71,6 @@ export default function BusinessSettingsPage() {
   useEffect(() => {
     if (activeBusiness) {
       reset({
-        ...activeBusiness,
-        card_preferences: activeBusiness.card_preferences || {
-          show_address: true,
-          show_email: true,
-          show_phone_2: true,
-          show_gst: true,
-          theme: 'dark',
-        },
         settings: activeBusiness.settings || {
           commission_calculation_base: 'sales',
           sale_invoice_prefix: 'INV-',
@@ -111,7 +111,7 @@ export default function BusinessSettingsPage() {
     }
   };
 
-  const onSubmit = async (data: BusinessFormValues) => {
+  const onSubmit = async (data: BusinessSettingsFormValues) => {
     try {
       if (!activeBusiness) return;
       const payload = {
