@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCreateStaff, useUpdateStaff } from '../api/useStaff';
@@ -43,7 +43,10 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
     name: "salary_components",
   });
 
-  const watchedComponents = watch('salary_components') || [];
+  const watchedComponents = useWatch({
+    control,
+    name: 'salary_components'
+  }) || [];
   
   const calculatedSalary = useMemo(() => {
     let earnings = 0;
