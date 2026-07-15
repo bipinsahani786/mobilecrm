@@ -177,7 +177,7 @@ export default function AttendancePage() {
         subtitle="Manage daily attendance and time tracking"
       />
 
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 -mt-2 pb-8 space-y-4">
         
         {/* KPI Cards (Theme Based) */}
         <div className="flex gap-3 overflow-x-auto w-full pb-2 hide-scrollbar">

@@ -50,7 +50,9 @@ export function AttendanceMonthlyGrid({
     if (!attendanceMap[record.user_id]) {
       attendanceMap[record.user_id] = {};
     }
-    const dateOnly = record.date.split('T')[0];
+    const dateOnly = record.date.includes('T') 
+      ? format(new Date(record.date), 'yyyy-MM-dd') 
+      : record.date;
     attendanceMap[record.user_id][dateOnly] = record;
   });
 

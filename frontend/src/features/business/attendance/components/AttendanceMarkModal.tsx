@@ -5,6 +5,7 @@ import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { format } from 'date-fns';
 
 interface AttendanceMarkModalProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
   const { register, handleSubmit, control, reset, formState: { errors } } = useForm({
     defaultValues: {
       user_id: '',
-      date: new Date().toISOString().split('T')[0],
+      date: format(new Date(), 'yyyy-MM-dd'),
       status: 'present',
       notes: ''
     }

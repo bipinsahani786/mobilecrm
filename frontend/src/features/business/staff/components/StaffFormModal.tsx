@@ -236,8 +236,8 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
             {(!availableComponents || availableComponents.length === 0) && (
               <div>
                 <div className="flex items-center mb-1">
-                  <label className="block text-sm font-medium">Monthly Salary</label>
-                  <InfoTooltip text="Fixed monthly salary for this staff member." />
+                  <label className="block text-sm font-medium">Total Salary</label>
+                  <InfoTooltip text="Fixed total monthly salary for this staff member." />
                 </div>
                 <Input {...register('monthly_salary', { valueAsNumber: true })} type="number" step="0.01" error={errors.monthly_salary?.message} />
               </div>
