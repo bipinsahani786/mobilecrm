@@ -179,6 +179,7 @@ function ProfileMenu() {
   // Use both roles and route path for robust determination
   const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin') || location.pathname.startsWith('/superadmin');
   const isPartner = user?.roles?.some(r => r.name === 'Partner') || location.pathname.startsWith('/partner');
+  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -245,18 +246,22 @@ function ProfileMenu() {
               <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Active Business</p>
               <p className="text-xs font-bold text-primary-600 dark:text-primary-400 truncate mt-0.5">{activeBusiness?.name || 'None Selected'}</p>
             </div>
-            <button
-              onClick={() => { setIsOpen(false); navigate('/setup/profile'); }}
-              className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
-            >
-              <Settings className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:rotate-90 transition-all duration-300" /> Edit Business
-            </button>
-            <button
-              onClick={() => { clearActiveBusiness(); setIsOpen(false); navigate('/setup/profile'); }}
-              className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
-            >
-              <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Business
-            </button>
+            {isBusinessManager && (
+              <>
+                <button
+                  onClick={() => { setIsOpen(false); navigate('/setup/profile'); }}
+                  className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
+                >
+                  <Settings className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:rotate-90 transition-all duration-300" /> Edit Business
+                </button>
+                <button
+                  onClick={() => { clearActiveBusiness(); setIsOpen(false); navigate('/setup/profile'); }}
+                  className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
+                >
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Business
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -321,6 +326,7 @@ export function Header({ className }: { className?: string }) {
   const location = useLocation();
   const isSuperadminMode = user?.roles?.some(r => r.name === 'Superadmin') || location.pathname.startsWith('/superadmin');
   const isPartnerMode = location.pathname.startsWith('/partner');
+  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
 
   // Real-time DateTime logic
   const [currentDateTime, setCurrentDateTime] = useState(new Date());
@@ -393,69 +399,82 @@ export function Header({ className }: { className?: string }) {
       <div className="flex items-center gap-2">
         {/* Branch Selector - business mode only */}
         {!isSuperadminMode && !isPartnerMode && (
-          <div className="relative">
-            <button
-              onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-primary-200 dark:border-primary-500/20 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors"
-            >
+          isBusinessManager ? (
+            <div className="relative">
+              <button
+                onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-primary-200 dark:border-primary-500/20 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors"
+              >
+                {activeBusiness?.logo_path ? (
+                  <img src={activeBusiness.logo_path} alt="Logo" className="w-4 h-4 object-contain rounded-sm" />
+                ) : (
+                  <Building2 className="w-4 h-4 opacity-70" />
+                )}
+                <span className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[120px]">
+                  {activeBusiness?.name || 'SELECT BRANCH'}
+                </span>
+              </button>
+
+              {isBranchDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-sm shadow-xl z-50 py-2">
+                  <div className="px-3 py-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
+                    <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Branch</p>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {businesses.map((b) => (
+                      <button
+                        key={b.id}
+                        onClick={() => {
+                          if (activeBusiness?.id !== b.id) {
+                            setActiveBusiness(b);
+                            setIsBranchDropdownOpen(false);
+                            window.location.reload();
+                          } else {
+                            setIsBranchDropdownOpen(false);
+                          }
+                        }}
+                        className={cn(
+                          "w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-3 transition-colors",
+                          activeBusiness?.id === b.id
+                            ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                        )}
+                      >
+                        {b.logo_path ? (
+                          <img src={b.logo_path} alt="Logo" className="w-5 h-5 object-contain rounded-sm bg-white/10" />
+                        ) : (
+                          <Building2 className="w-4 h-4 opacity-70" />
+                        )}
+                        <span className="truncate">{b.name}</span>
+                      </button>
+                    ))}
+                    {businesses.length === 0 && (
+                      <div className="px-4 py-3 text-xs text-slate-400 text-center">No branches found</div>
+                    )}
+                  </div>
+                  <div className="border-t border-slate-100 dark:border-white/5 mt-1 pt-1 px-2">
+                    <button
+                      onClick={() => { setIsBranchDropdownOpen(false); navigate('/setup/profile'); }}
+                      className="w-full flex items-center justify-center py-2 text-xs font-bold text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-sm transition-colors"
+                    >
+                      + Add New Branch
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] text-slate-700 dark:text-slate-300 select-none shadow-sm">
               {activeBusiness?.logo_path ? (
                 <img src={activeBusiness.logo_path} alt="Logo" className="w-4 h-4 object-contain rounded-sm" />
               ) : (
                 <Building2 className="w-4 h-4 opacity-70" />
               )}
-              <span className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[120px]">
-                {activeBusiness?.name || 'SELECT BRANCH'}
+              <span className="text-[10px] font-bold tracking-widest uppercase truncate max-w-[150px]">
+                {activeBusiness?.name || 'Company Name'}
               </span>
-            </button>
-
-            {isBranchDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-sm shadow-xl z-50 py-2">
-                <div className="px-3 py-1.5 mb-1 border-b border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Branch</p>
-                </div>
-                <div className="max-h-60 overflow-y-auto">
-                  {businesses.map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => {
-                        if (activeBusiness?.id !== b.id) {
-                          setActiveBusiness(b);
-                          setIsBranchDropdownOpen(false);
-                          window.location.reload();
-                        } else {
-                          setIsBranchDropdownOpen(false);
-                        }
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-3 transition-colors",
-                        activeBusiness?.id === b.id
-                          ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500"
-                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
-                      )}
-                    >
-                      {b.logo_path ? (
-                        <img src={b.logo_path} alt="Logo" className="w-5 h-5 object-contain rounded-sm bg-white/10" />
-                      ) : (
-                        <Building2 className="w-4 h-4 opacity-70" />
-                      )}
-                      <span className="truncate">{b.name}</span>
-                    </button>
-                  ))}
-                  {businesses.length === 0 && (
-                    <div className="px-4 py-3 text-xs text-slate-400 text-center">No branches found</div>
-                  )}
-                </div>
-                <div className="border-t border-slate-100 dark:border-white/5 mt-1 pt-1 px-2">
-                  <button
-                    onClick={() => { setIsBranchDropdownOpen(false); navigate('/setup/profile'); }}
-                    className="w-full flex items-center justify-center py-2 text-xs font-bold text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-sm transition-colors"
-                  >
-                    + Add New Branch
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+          )
         )}
 
         {/* Real-time DateTime Display */}
