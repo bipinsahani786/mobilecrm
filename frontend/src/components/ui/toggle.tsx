@@ -1,4 +1,4 @@
-
+import { cn } from '@/lib/utils';
 interface ToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
@@ -8,11 +8,13 @@ interface ToggleProps {
 
 export function Toggle({ checked, onChange, label, description }: ToggleProps) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p>
-        {description && <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>}
-      </div>
+    <div className={cn("flex items-center", label || description ? "justify-between" : "justify-center")}>
+      {(label || description) && (
+        <div>
+          {label && <p className="text-sm font-medium text-slate-700 dark:text-slate-200">{label}</p>}
+          {description && <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>}
+        </div>
+      )}
       <button
         type="button"
         role="switch"

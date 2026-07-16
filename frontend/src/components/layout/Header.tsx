@@ -176,10 +176,16 @@ function ProfileMenu() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Use both roles and route path for robust determination
+  // Determine Role for Header Display
   const isSuperadmin = user?.roles?.some(r => r.name === 'Superadmin') || location.pathname.startsWith('/superadmin');
   const isPartner = user?.roles?.some(r => r.name === 'Partner') || location.pathname.startsWith('/partner');
   const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
+  
+  let displayRole = "Staff";
+  if (isSuperadmin) displayRole = "Superadmin";
+  else if (isPartner) displayRole = "Partner";
+  else if (activeBusiness && activeBusiness.owner_id === user?.id) displayRole = "System Admin";
+  else if (isBusinessManager) displayRole = "Manager";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -231,11 +237,9 @@ function ProfileMenu() {
           <div className="min-w-0">
             <p className="text-sm font-extrabold text-slate-800 dark:text-white truncate tracking-tight">{user?.name || "User"}</p>
             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email || ""}</p>
-            {isSuperadmin && (
-              <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
-                Superadmin
-              </span>
-            )}
+            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
+              {displayRole}
+            </span>
           </div>
         </div>
 
