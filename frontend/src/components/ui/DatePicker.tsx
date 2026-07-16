@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, isValid } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface DatePickerProps {
   value: string; // "YYYY-MM-DD"
@@ -10,9 +11,19 @@ interface DatePickerProps {
   className?: string;
   placeholder?: string;
   align?: string;
+  controlSize?: 'default' | 'sm' | 'lg';
 }
 
-export function DatePicker({ value, onChange, max, min, className, placeholder = "Select Date", align = 'left' }: DatePickerProps) {
+export function DatePicker({ 
+  value, 
+  onChange, 
+  max, 
+  min, 
+  className, 
+  placeholder = "Select Date", 
+  align = 'left',
+  controlSize = 'default' 
+}: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -109,26 +120,42 @@ export function DatePicker({ value, onChange, max, min, className, placeholder =
   const displayValue = value ? format(new Date(value), 'dd/MM/yyyy') : '';
 
   return (
-    <div className={["relative inline-block w-full", className].join(' ')} ref={containerRef}>
+    <div className={cn("relative inline-block w-full", className)} ref={containerRef}>
       <button
         type="button"
         onClick={() => setIsOpen(p => !isOpen)}
-        className="w-full h-10 px-2.5 flex items-center justify-between gap-1.5 text-left text-base sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer select-none whitespace-nowrap"
+        className={cn(
+          "group w-full flex items-center justify-between gap-2 border transition-all duration-200 select-none cursor-pointer text-left shadow-sm",
+          // Height and padding based on controlSize
+          controlSize === 'sm' 
+            ? "h-9 px-3 text-xs rounded-xl font-medium" 
+            : "h-11 px-4 text-sm rounded-xl font-medium",
+          // Active state (open dropdown) vs normal
+          isOpen 
+            ? "border-primary-500 dark:border-primary-500 ring-2 ring-primary-500/20 bg-white dark:bg-zinc-900" 
+            : "border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-primary-400 dark:hover:border-primary-500",
+          // Text color
+          displayValue 
+            ? "text-black dark:text-white font-bold" 
+            : "text-black/80 dark:text-zinc-400 font-semibold"
+        )}
       >
-        <span className={[
-          displayValue ? 'font-semibold' : 'text-slate-400 font-medium',
-          "whitespace-nowrap truncate"
-        ].join(' ')}>
+        <span className="truncate whitespace-nowrap">
           {displayValue || placeholder}
         </span>
-        <CalendarIcon className="w-4 h-4 text-slate-400 shrink-0" />
+        <CalendarIcon className={cn(
+          "w-4 h-4 shrink-0 transition-colors duration-200",
+          displayValue 
+            ? "text-primary-500" 
+            : "text-black/80 dark:text-zinc-400 group-hover:text-primary-500"
+        )} />
       </button>
 
       {isOpen && (
-        <div className={[
-          "absolute top-11 z-50 mt-1 w-72 p-3 bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/70 animate-in fade-in slide-in-from-top-2 duration-150",
+        <div className={cn(
+          "absolute top-full z-50 mt-1.5 w-72 p-3 bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl shadow-slate-200/50 dark:shadow-black/70 animate-in fade-in slide-in-from-top-2 duration-150",
           align === 'right' ? 'right-0' : 'left-0'
-        ].join(' ')}>
+        )}>
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <button

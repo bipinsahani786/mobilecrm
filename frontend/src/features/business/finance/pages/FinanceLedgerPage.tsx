@@ -179,14 +179,16 @@ export default function FinanceLedgerPage() {
                 placeholder="Start Date"
                 className="w-[155px]"
                 align="left-0 md:right-0 md:left-auto"
+                controlSize="sm"
               />
-              <span className="text-slate-400 text-xs shrink-0">to</span>
+              <span className="text-slate-500 dark:text-zinc-400 text-xs font-semibold shrink-0 select-none px-0.5">to</span>
               <DatePicker
                 value={endDate}
                 onChange={setEndDate}
                 placeholder="End Date"
                 className="w-[155px]"
                 align="right"
+                controlSize="sm"
               />
             </div>
 
