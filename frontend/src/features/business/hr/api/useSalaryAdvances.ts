@@ -6,6 +6,7 @@ export interface SalaryAdvance {
   id: number;
   user_id: number;
   business_id: number;
+  amount: number | string;
   given_date: string;
   notes: string;
   status: 'pending' | 'approved' | 'rejected';
