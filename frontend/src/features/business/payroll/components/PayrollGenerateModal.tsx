@@ -3,7 +3,7 @@ import { useGeneratePayroll } from '../api/usePayroll';
 import { useStaff } from '../../staff/api/useStaff';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { MonthPicker } from '@/components/ui/MonthPicker';
 import { Select } from '@/components/ui/select';
 
 interface PayrollGenerateModalProps {
@@ -38,10 +38,9 @@ export const PayrollGenerateModal = ({ isOpen, onClose, defaultMonth }: PayrollG
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Select Month</label>
-          <Input 
-            type="month" 
+          <MonthPicker 
             value={month} 
-            onChange={(e) => setMonth(e.target.value)} 
+            onChange={setMonth} 
           />
           <p className="text-xs text-slate-500 mt-1">
             Payroll is calculated based on attendance, sales commissions, and advances for this month.

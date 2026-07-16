@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { expenseSchema } from '../schemas';
 import type { ExpenseFormData, Expense } from '../schemas';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { useExpenseCategories } from '../api/useExpenses';
@@ -70,12 +71,22 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
           <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Date</label>
           <InfoTooltip text="Select the exact date when this expense was incurred." />
         </div>
-        <Input 
-          type="date" 
-          {...register('expense_date')} 
-          error={errors.expense_date?.message} 
-          className="font-bold text-sm bg-white dark:bg-white/[0.02]"
+        <Controller
+          name="expense_date"
+          control={control}
+          render={({ field }) => (
+            <DatePicker
+              value={field.value}
+              onChange={field.onChange}
+              className="font-bold text-sm bg-white dark:bg-white/[0.02]"
+            />
+          )}
         />
+        {errors.expense_date && (
+          <p className="text-xs text-red-500 mt-2 ml-1 font-medium animate-in slide-in-from-top-1 fade-in-0 duration-300">
+            {errors.expense_date.message}
+          </p>
+        )}
       </div>
 
       <div>

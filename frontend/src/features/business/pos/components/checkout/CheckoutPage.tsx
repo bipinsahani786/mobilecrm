@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import { COMMON_FINANCIERS } from '../../constants/index';
+import { DatePicker } from '@/components/ui/DatePicker';
 import type { CartItem } from '../../schemas/saleSchema';
 import {
   ArrowLeft, Plus, UserPlus, X, CreditCard, Banknote, Smartphone,
@@ -511,11 +512,11 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
         </div>
       </div>
 
-      {/* ── Main Content Area (Spacious Split Columns, No Page Scroll) ── */}
-      <div className="flex-1 flex overflow-hidden p-4 gap-4 bg-slate-50 dark:bg-[#0a0a0f] h-[calc(100vh-100px)]">
+      {/* ── Main Content Area (Spacious Split Columns, No Page Scroll on PC) ── */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-y-auto lg:overflow-hidden p-3 sm:p-4 gap-4 bg-slate-50 dark:bg-[#0a0a0f] h-auto lg:h-[calc(100vh-100px)]">
 
         {/* ──── LEFT COLUMN (7/12 Width): Customer & Serial/IMEI details ──── */}
-        <div className="w-7/12 overflow-y-auto h-full space-y-4 pr-1.5 custom-scrollbar pb-6">
+        <div className="w-full lg:w-7/12 lg:overflow-y-auto lg:h-full space-y-4 lg:pr-1.5 custom-scrollbar pb-6">
 
           {/* 1. Customer Selection Card */}
           <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm space-y-3">
@@ -678,10 +679,10 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
         </div>
 
         {/* ──── RIGHT COLUMN (5/12 Width): Pricing & Payment Selector ──── */}
-        <div className="w-5/12 flex flex-col h-full pl-1.5 overflow-hidden">
+        <div className="w-full lg:w-5/12 flex flex-col lg:h-full lg:pl-1.5 overflow-visible lg:overflow-hidden">
 
           {/* Scrollable Form Container with bottom padding */}
-          <div className="flex-1 overflow-y-auto space-y-4 pr-1.5 pb-48 overflow-x-visible custom-scrollbar">
+          <div className="flex-1 lg:overflow-y-auto space-y-4 lg:pr-1.5 pb-24 lg:pb-48 overflow-x-visible custom-scrollbar">
 
             {/* 1. Order Totals Card */}
             <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/5 rounded-2xl p-4 shadow-sm space-y-3">
@@ -1384,7 +1385,11 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                       </div>
                       <div>
                         <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">EMI Date</label>
-                        <Input type="date" {...register('emi_first_date')} controlSize="sm" />
+                        <DatePicker
+                          value={watch('emi_first_date')}
+                          onChange={(val) => setValue('emi_first_date', val)}
+                          className="h-9"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1398,12 +1403,12 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
       </div>
 
       {/* 3. Sticky Action Buttons Card (Fixed at the bottom, Full Width) */}
-      <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#111118] shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] dark:shadow-none relative z-30">
+      <div className="flex items-center justify-end gap-2 px-3 sm:px-6 py-3 sm:py-4 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#111118] shrink-0 shadow-[0_-4px_10px_rgba(0,0,0,0.02)] dark:shadow-none relative z-30">
         <Button
           variant="outline"
           type="button"
           onClick={onCancel}
-          className="h-10 px-8 text-xs font-black uppercase tracking-wider rounded-xl hover:bg-slate-100 cursor-pointer"
+          className="h-10 flex-1 lg:flex-none lg:px-8 text-xs font-black uppercase tracking-wider rounded-xl hover:bg-slate-100 cursor-pointer"
         >
           Cancel
         </Button>
@@ -1411,7 +1416,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
           type="submit"
           onClick={() => { isDrafting.current = true; }}
           disabled={isSubmitting}
-          className="h-10 px-8 text-[10px] sm:text-xs font-black uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md shadow-amber-500/20 hover:shadow-lg transition-all duration-150 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+          className="h-10 flex-1 lg:flex-none lg:px-8 text-[10px] sm:text-xs font-black uppercase tracking-widest bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-md shadow-amber-500/20 hover:shadow-lg transition-all duration-150 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-1 sm:gap-2"
         >
           Save Draft
         </button>
@@ -1419,10 +1424,10 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
           type="submit"
           onClick={() => { isDrafting.current = false; }}
           disabled={isSubmitting || splitOver}
-          className="h-10 px-10 text-[10px] sm:text-xs font-black uppercase tracking-widest bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none flex items-center justify-center gap-2"
+          className="h-10 flex-[1.5] lg:flex-none lg:px-10 text-[10px] sm:text-xs font-black uppercase tracking-widest bg-primary-500 hover:bg-primary-600 text-white rounded-xl shadow-md shadow-primary-500/20 hover:shadow-lg hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none flex items-center justify-center gap-1 sm:gap-2"
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>{isSubmitting ? 'Processing…' : 'Complete Sale'}</span>
+          <span>{isSubmitting ? 'Processing…' : 'Complete'}</span>
         </button>
       </div>
 

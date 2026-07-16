@@ -148,7 +148,7 @@ export default function DashboardPage() {
               value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
               icon={<TrendingUp />}
               glowColor="emerald"
-              onClick={() => navigate('/invoices')}
+              onClick={() => navigate('/expenses')}
             />
             <CustomKpiCard
               title="Pending Payments"
@@ -162,6 +162,7 @@ export default function DashboardPage() {
               subtitle={`${stats?.staff?.active ?? 0} total active`}
               icon={<Users />}
               glowColor="blue"
+              onClick={() => navigate('/staff')}
             />
             <CustomKpiCard
               title="Total Invoices"
@@ -169,6 +170,7 @@ export default function DashboardPage() {
               subtitle="this month"
               icon={<Receipt />}
               glowColor="amber"
+              onClick={() => navigate('/invoices')}
             />
           </div>
         ) : (
@@ -194,6 +196,7 @@ export default function DashboardPage() {
               subtitle="Completed transactions"
               icon={<Receipt />}
               glowColor="amber"
+              onClick={() => navigate('/invoices')}
             />
             <CustomKpiCard
               title="Attendance Status"

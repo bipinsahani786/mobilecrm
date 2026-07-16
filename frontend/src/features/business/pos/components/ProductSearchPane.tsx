@@ -8,11 +8,12 @@ interface ProductSearchPaneProps {
   searchResults: any[];
   isLoading?: boolean;
   addToCart: (product: any, batch?: any) => void;
+  className?: string;
 }
 
-export function ProductSearchPane({ searchQuery, setSearchQuery, searchResults, isLoading, addToCart }: ProductSearchPaneProps) {
+export function ProductSearchPane({ className, searchQuery, setSearchQuery, searchResults, isLoading, addToCart }: ProductSearchPaneProps) {
   return (
-    <div className="w-2/3 flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#0a0a0f]">
+    <div className={`w-full lg:w-2/3 flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#0a0a0f] ${className || ''}`}>
 
       {/* ── Premium Search Bar ── */}
       <div className="px-4 py-3 bg-white dark:bg-[#111118] border-b border-slate-200 dark:border-white/5">

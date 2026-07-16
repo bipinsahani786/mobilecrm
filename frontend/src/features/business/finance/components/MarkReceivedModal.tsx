@@ -1,6 +1,6 @@
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { CheckCircle2 } from 'lucide-react';
 
 interface MarkReceivedModalProps {
@@ -47,12 +47,11 @@ export function MarkReceivedModal({
           <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
             Received Date
           </label>
-          <Input 
-            type="date"
+          <DatePicker 
             value={payoutDate}
-            onChange={(e) => setPayoutDate(e.target.value)}
+            onChange={setPayoutDate}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full h-9 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-[#111118]"
+            className="w-full"
           />
         </div>
 
