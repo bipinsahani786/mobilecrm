@@ -40,7 +40,55 @@ class SupplierService
     public function recordPurchase(Supplier $supplier, array $data, $invoicePath = null)
     {
         return DB::transaction(function () use ($supplier, $data, $invoicePath) {
+            $businessId = auth()->user()->business_id;
+            $business = \App\Models\Business::find($businessId);
+            $pattern = $business->settings['purchase_invoice_prefix'] ?? 'PUR-{SEQ:4}';
+            
+            $date = now();
+            $pattern = str_replace('{YYYY}', $date->format('Y'), $pattern);
+            $pattern = str_replace('{YY}', $date->format('y'), $pattern);
+            $pattern = str_replace('{MM}', $date->format('m'), $pattern);
+            
+            $seqLength = 4;
+            if (preg_match('/\{SEQ:(\d+)\}/', $pattern, $matches)) {
+                $seqLength = (int) $matches[1];
+                $pattern = str_replace($matches[0], '{SEQ}', $pattern);
+            } else {
+                if (!str_contains($pattern, '{SEQ}')) {
+                    $pattern .= '{SEQ}';
+                }
+            }
+            
+            $parts = explode('{SEQ}', $pattern);
+            $prefix = $parts[0];
+            $suffix = $parts[1] ?? '';
+            
+            $lastPurchase = SupplierPurchase::where('business_id', $businessId)
+                ->where('purchase_number', 'like', $prefix . '%' . $suffix)
+                ->orderBy('id', 'desc')
+                ->first();
+                
+            $nextNumber = 1;
+            if ($lastPurchase && $lastPurchase->purchase_number) {
+                $purNum = $lastPurchase->purchase_number;
+                $seqStr = substr($purNum, strlen($prefix));
+                if ($suffix !== '') {
+                    $seqStr = substr($seqStr, 0, -strlen($suffix));
+                }
+                if (is_numeric($seqStr)) {
+                    $nextNumber = (int) $seqStr + 1;
+                } else {
+                    preg_match('/(\d+)/', $seqStr, $m);
+                    if (!empty($m)) {
+                        $nextNumber = (int) $m[1] + 1;
+                    }
+                }
+            }
+            $purchaseNumber = $prefix . str_pad($nextNumber, $seqLength, '0', STR_PAD_LEFT) . $suffix;
+
             $purchase = $supplier->purchases()->create([
+                'business_id' => $businessId,
+                'purchase_number' => $purchaseNumber,
                 'bill_amount' => $data['bill_amount'],
                 'paid_amount' => $data['paid_amount'] ?? 0,
                 'purchase_date' => $data['purchase_date'],

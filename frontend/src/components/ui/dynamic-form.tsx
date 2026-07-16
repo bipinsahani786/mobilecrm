@@ -35,6 +35,7 @@ export interface FormSectionConfig {
   title?: string;
   description?: string;
   fields: FormFieldConfig[];
+  className?: string;
 }
 
 interface DynamicFormProps {
@@ -180,7 +181,7 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children,
   return (
     <form id={id} onSubmit={form.handleSubmit(onSubmit)} className={cn(controlSize === 'sm' ? "space-y-4" : "space-y-6", className)}>
       {sections.map((section, idx) => (
-        <div key={idx}>
+        <div key={idx} className={section.className}>
           {section.title && (
             <h3 className={cn("font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-white/5 pb-2", controlSize === 'sm' ? "text-xs mb-3" : "text-sm mb-4")}>
               {section.title}

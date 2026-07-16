@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
         {/* ── KPI Cards — floating over banner ─────────────────────── */}
         {isBusinessManager ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <CustomKpiCard
               title="Today's Sales"
               value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
@@ -148,13 +148,19 @@ export default function DashboardPage() {
               value={`₹${(stats?.monthly_revenue ?? 0).toLocaleString('en-IN')}`}
               icon={<TrendingUp />}
               glowColor="emerald"
+            />
+            <CustomKpiCard
+              title="Monthly Expenses"
+              value={`₹${(stats?.monthly_expenses ?? 0).toLocaleString('en-IN')}`}
+              icon={<Wallet />}
+              glowColor="rose"
               onClick={() => navigate('/expenses')}
             />
             <CustomKpiCard
               title="Pending Payments"
               value={`₹${(stats?.pending_payments ?? 0).toLocaleString('en-IN')}`}
               icon={<Clock />}
-              glowColor="rose"
+              glowColor="amber"
             />
             <CustomKpiCard
               title="Staff Present"
@@ -166,10 +172,10 @@ export default function DashboardPage() {
             />
             <CustomKpiCard
               title="Total Invoices"
-              value={stats?.recent_sales?.length ? `${stats.recent_sales.length}+` : '0'}
+              value={stats?.total_invoices ?? 0}
               subtitle="this month"
               icon={<Receipt />}
-              glowColor="amber"
+              glowColor="purple"
               onClick={() => navigate('/invoices')}
             />
           </div>
@@ -213,8 +219,49 @@ export default function DashboardPage() {
         {/* ── Main Grid ──────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* Recent Sales — 2/3 width */}
-          <div className="lg:col-span-2 bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm overflow-hidden">
+          {/* Left Column — 2/3 width */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+
+            {/* Staff snapshot (Moved here) */}
+            {isBusinessManager && (
+              <div className="bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <Users className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Staff Today</h3>
+                    <div className="flex items-baseline gap-2 mt-1">
+                      <span className="text-3xl font-black text-slate-900 dark:text-white leading-none">{stats?.staff?.present_today ?? 0}</span>
+                      <span className="text-sm font-bold text-slate-400 dark:text-slate-500">/ {stats?.staff?.active ?? 0}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex-1 w-full sm:max-w-xs md:max-w-sm">
+                  <div className="flex justify-between items-end mb-2">
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Present</span>
+                    <button
+                      onClick={() => navigate('/attendance')}
+                      className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors"
+                    >
+                      View Details <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                  {(stats?.staff?.active ?? 0) > 0 && (
+                    <div className="h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
+                        style={{ width: `${Math.round(((stats?.staff?.present_today ?? 0) / (stats?.staff?.active ?? 1)) * 100)}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Recent Sales */}
+            <div className="bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm overflow-hidden">
             {/* Header */}
             <div className="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -316,9 +363,10 @@ export default function DashboardPage() {
               })()}
             </div>
           </div>
+        </div>
 
-          {/* Right sidebar panel */}
-          <div className="flex flex-col gap-6">
+        {/* Right sidebar panel */}
+        <div className="flex flex-col gap-6">
 
             {/* Complete Business Profile */}
             {isBusinessManager && (
@@ -405,43 +453,6 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
-
-            {/* Staff snapshot */}
-            {isBusinessManager && (
-              <div className="bg-white dark:bg-[#111118] rounded-2xl border border-slate-200/70 dark:border-white/[0.06] shadow-sm p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
-                    <Users className="w-4 h-4 text-blue-500" />
-                  </div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Staff Today</h3>
-                </div>
-                <div className="flex items-end justify-between">
-                  <div>
-                    <p className="text-3xl font-black text-slate-900 dark:text-white">{stats?.staff?.present_today ?? 0}</p>
-                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Present Today</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xl font-black text-slate-400 dark:text-slate-500">{stats?.staff?.active ?? 0}</p>
-                    <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">Total Active</p>
-                  </div>
-                </div>
-                {/* Mini attendance bar */}
-                {(stats?.staff?.active ?? 0) > 0 && (
-                  <div className="mt-4 h-2 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000"
-                      style={{ width: `${Math.round(((stats?.staff?.present_today ?? 0) / (stats?.staff?.active ?? 1)) * 100)}%` }}
-                    />
-                  </div>
-                )}
-                <button
-                  onClick={() => navigate('/attendance')}
-                  className="mt-4 w-full flex items-center justify-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-blue-500 hover:text-blue-600 transition-colors"
-                >
-                  View Attendance <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            )}
 
           </div>
         </div>

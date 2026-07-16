@@ -57,23 +57,53 @@ class SaleService
             // Generate Invoice Number
             $businessId = auth()->user()->business_id;
             $business = \App\Models\Business::find($businessId);
-            $prefix = $business->settings['sale_invoice_prefix'] ?? 'INV-';
+            $pattern = $business->settings['sale_invoice_prefix'] ?? 'INV-{SEQ:4}';
+            
+            // Replace date placeholders
+            $date = now();
+            $pattern = str_replace('{YYYY}', $date->format('Y'), $pattern);
+            $pattern = str_replace('{YY}', $date->format('y'), $pattern);
+            $pattern = str_replace('{MM}', $date->format('m'), $pattern);
+            
+            // Find {SEQ:n}
+            $seqLength = 4;
+            if (preg_match('/\{SEQ:(\d+)\}/', $pattern, $matches)) {
+                $seqLength = (int) $matches[1];
+                $pattern = str_replace($matches[0], '{SEQ}', $pattern);
+            } else {
+                if (!str_contains($pattern, '{SEQ}')) {
+                    $pattern .= '{SEQ}';
+                }
+            }
+            
+            $parts = explode('{SEQ}', $pattern);
+            $prefix = $parts[0];
+            $suffix = $parts[1] ?? '';
             
             $lastSale = Sale::where('business_id', $businessId)
-                ->where('invoice_number', 'like', $prefix . '%')
+                ->where('invoice_number', 'like', $prefix . '%' . $suffix)
                 ->where('invoice_number', 'not like', 'UDH-%')
                 ->orderBy('id', 'desc')
                 ->first();
                 
             $nextNumber = 1;
             if ($lastSale) {
-                // Extract only the digits from the end of the invoice number
-                preg_match('/(\d+)$/', $lastSale->invoice_number, $matches);
-                if (!empty($matches)) {
-                    $nextNumber = (int) $matches[1] + 1;
+                $invNum = $lastSale->invoice_number;
+                // Extract the sequence between prefix and suffix
+                $seqStr = substr($invNum, strlen($prefix));
+                if ($suffix !== '') {
+                    $seqStr = substr($seqStr, 0, -strlen($suffix));
+                }
+                if (is_numeric($seqStr)) {
+                    $nextNumber = (int) $seqStr + 1;
+                } else {
+                    preg_match('/(\d+)/', $seqStr, $m);
+                    if (!empty($m)) {
+                        $nextNumber = (int) $m[1] + 1;
+                    }
                 }
             }
-            $invoiceNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $invoiceNumber = $prefix . str_pad($nextNumber, $seqLength, '0', STR_PAD_LEFT) . $suffix;
 
             // Calculate totals
             $totalAmount = 0;

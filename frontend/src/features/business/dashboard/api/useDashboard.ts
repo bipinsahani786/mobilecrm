@@ -4,7 +4,9 @@ import api from '@/lib/api';
 export interface DashboardStats {
   today_sales: number;
   monthly_revenue: number;
+  monthly_expenses: number;
   pending_payments: number;
+  total_invoices: number;
   staff: {
     active: number;
     present_today: number;
