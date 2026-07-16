@@ -157,7 +157,7 @@ export function PaymentForms({
                   if (mode.id === 'split' && splitPayments.length < 2) {
                     setSplitPayments([
                       { mode: 'Cash', amount: '' },
-                      { mode: 'Online', amount: '' }
+                      { mode: 'Net Banking', amount: '' }
                     ]);
                   }
                 }}
@@ -213,10 +213,9 @@ export function PaymentForms({
                         }}
                         options={[
                           { value: 'Cash', label: 'Cash' },
-                          { value: 'Online', label: 'Online' },
+                          { value: 'Net Banking', label: 'Net Banking' },
                           { value: 'UPI', label: 'UPI' },
                           { value: 'Card', label: 'Card' },
-                          { value: 'Finance', label: 'Finance' },
                           { value: 'EMI', label: 'EMI' },
                           { value: 'Udhar', label: 'Udhar (Credit)' },
                         ]}
@@ -390,7 +389,7 @@ export function PaymentForms({
                         if (value === 'Split' && setEmiDownPayments && emiDownPayments.length < 2) {
                           setEmiDownPayments([
                             { mode: 'Cash', amount: '' },
-                            { mode: 'Online', amount: '' }
+                            { mode: 'Net Banking', amount: '' }
                           ]);
                         }
                       }}
@@ -398,7 +397,7 @@ export function PaymentForms({
                         { value: 'Cash', label: 'Cash' },
                         { value: 'UPI', label: 'UPI' },
                         { value: 'Card', label: 'Card' },
-                        { value: 'Online', label: 'Online' },
+                        { value: 'Net Banking', label: 'Net Banking' },
                         { value: 'Split', label: 'Split Payment' },
                       ]}
                     />
@@ -432,7 +431,7 @@ export function PaymentForms({
                                   { value: 'Cash', label: 'Cash' },
                                   { value: 'UPI', label: 'UPI' },
                                   { value: 'Card', label: 'Card' },
-                                  { value: 'Online', label: 'Online' },
+                                  { value: 'Net Banking', label: 'Net Banking' },
                                   { value: 'Udhar', label: 'Udhar (Credit)' },
                                 ]}
                               />
