@@ -107,8 +107,9 @@ export default function InvoicesPage() {
                   title="Udhar (This Page)"
                   value={formatCurrency(totalUdhar)}
                   icon={<DollarSign />}
-                  glowColor="primary"
-                  subtitle="Guarantor downpayments"
+                  glowColor={hasUdhar === 'yes' ? 'rose' : 'primary'}
+                  subtitle={hasUdhar === 'yes' ? 'Filter Active (Click to clear)' : 'Guarantor downpayments'}
+                  onClick={() => setHasUdhar(prev => prev === 'yes' ? '' : 'yes')}
                 />
               </div>
             </div>
@@ -193,7 +194,7 @@ export default function InvoicesPage() {
             </div>
 
             {/* Clear Filters */}
-            {(search || paymentMode || startDate || endDate) && (
+            {(search || paymentMode || startDate || endDate || hasUdhar) && (
               <button
                 onClick={handleClearFilters}
                 className="h-10 px-4 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-xl transition-all border border-rose-100 dark:border-rose-900/30 flex items-center justify-center gap-2"

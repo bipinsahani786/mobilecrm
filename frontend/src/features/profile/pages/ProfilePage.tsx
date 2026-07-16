@@ -10,13 +10,12 @@ import {
   useRemoveAvatar,
   useChangePassword,
 } from '../api/useProfile';
-import { PageHeader } from '@/components/layout/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import {
   User, Camera, Trash2, Save, Lock, Mail, Phone, Shield,
-  Calendar, Loader2, Eye, EyeOff,
+  Calendar, Loader2, Eye, EyeOff, KeyRound, Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -119,81 +118,42 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#f8fafc] dark:bg-[#09090b] text-slate-900 dark:text-slate-200 relative overflow-hidden">
-        {/* Abstract Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary-500/10 to-transparent pointer-events-none" />
+      <div className="min-h-screen bg-slate-50 dark:bg-[#07070a] text-slate-900 dark:text-slate-200 relative overflow-hidden">
+        {/* Ambient background glows */}
+        <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary-500/5 to-transparent pointer-events-none" />
         
-        {/* PageHeader Skeleton */}
-        <div className="pt-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-4 relative z-10">
-          <Skeleton className="h-10 w-48 rounded-xl bg-slate-200/50 dark:bg-white/5" />
-          <Skeleton className="h-5 w-80 rounded-lg bg-slate-200/50 dark:bg-white/5" />
-        </div>
-
-        <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8 relative z-10 mt-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 pt-4 pb-6 space-y-6 z-20">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 animate-pulse">
             
-            {/* Avatar Skeleton */}
-            <div className="lg:col-span-1 space-y-8">
-              <div className="bg-slate-900 dark:bg-[#111115] border border-slate-800 dark:border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden flex flex-col items-center">
-                <Skeleton className="w-40 h-40 rounded-full bg-white/5" />
-                <div className="mt-6 flex gap-3">
-                  <Skeleton className="h-10 w-10 rounded-xl bg-white/5" />
-                  <Skeleton className="h-10 w-10 rounded-xl bg-white/5" />
-                </div>
+            {/* Header Banner Skeleton */}
+            <div className="col-span-1 lg:col-span-5 bg-white/50 dark:bg-[#111118]/50 border border-slate-200/50 dark:border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6">
+              <Skeleton className="w-24 h-24 rounded-2xl bg-slate-200/50 dark:bg-white/5" />
+              <div className="space-y-3 flex-1">
+                <Skeleton className="h-8 w-44 rounded-lg bg-slate-200/50 dark:bg-white/5" />
+                <Skeleton className="h-4 w-60 rounded-md bg-slate-200/50 dark:bg-white/5" />
               </div>
             </div>
 
-            {/* Forms Skeleton */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Profile Form */}
-              <div className="bg-white/70 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/5 rounded-3xl p-8 shadow-xl">
-                <div className="flex items-center gap-4 mb-8">
-                  <Skeleton className="w-12 h-12 rounded-2xl bg-slate-200/50 dark:bg-white/5" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-32 rounded-lg bg-slate-200/50 dark:bg-white/5" />
-                    <Skeleton className="h-4 w-48 rounded-lg bg-slate-200/50 dark:bg-white/5" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-16 rounded-lg bg-slate-200/50 dark:bg-white/5" />
-                    <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
-                  </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-16 rounded-lg bg-slate-200/50 dark:bg-white/5" />
-                    <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
-                  </div>
-                </div>
+            {/* Profile Form Skeleton */}
+            <div className="lg:col-span-3 bg-white/50 dark:bg-[#111118]/50 border border-slate-200/50 dark:border-white/5 rounded-3xl p-8 space-y-6">
+              <Skeleton className="h-6 w-36 rounded-md bg-slate-200/50 dark:bg-white/5" />
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
               </div>
-
-              {/* Security Form */}
-              <div className="bg-slate-900 dark:bg-[#111115] rounded-3xl p-8 shadow-2xl">
-                <div className="flex items-center gap-4 mb-8">
-                  <Skeleton className="w-12 h-12 rounded-2xl bg-white/5" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-6 w-32 rounded-lg bg-white/5" />
-                    <Skeleton className="h-4 w-48 rounded-lg bg-white/5" />
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-32 rounded-lg bg-white/5" />
-                    <Skeleton className="h-12 w-full rounded-xl bg-white/5" />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32 rounded-lg bg-white/5" />
-                      <Skeleton className="h-12 w-full rounded-xl bg-white/5" />
-                    </div>
-                    <div className="space-y-2">
-                      <Skeleton className="h-4 w-32 rounded-lg bg-white/5" />
-                      <Skeleton className="h-12 w-full rounded-xl bg-white/5" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
             </div>
+
+            {/* Security Form Skeleton */}
+            <div className="lg:col-span-2 bg-white/50 dark:bg-[#111118]/50 border border-slate-200/50 dark:border-white/5 rounded-3xl p-8 space-y-6">
+              <Skeleton className="h-6 w-36 rounded-md bg-slate-200/50 dark:bg-white/5" />
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
+                <Skeleton className="h-12 w-full rounded-xl bg-slate-200/50 dark:bg-white/5" />
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -201,59 +161,57 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#09090b] text-slate-900 dark:text-slate-200 relative overflow-hidden">
-      {/* Abstract Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-primary-500/10 to-transparent pointer-events-none" />
-      <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary-500/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
-      <div className="absolute top-40 -left-40 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl opacity-50 pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 dark:bg-[#07070a] text-slate-900 dark:text-slate-200 relative overflow-hidden">
+      
+      {/* Dynamic Background Glows */}
+      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-primary-500/[0.04] dark:bg-primary-500/[0.02] rounded-full blur-[100px] animate-float pointer-events-none" />
+      <div className="absolute bottom-10 left-1/4 w-[450px] h-[450px] bg-indigo-500/[0.04] dark:bg-indigo-500/[0.02] rounded-full blur-[120px] animate-float2 pointer-events-none" />
 
-      <PageHeader
-        icon={User}
-        title="My Profile"
-        subtitle="Manage your personal information, avatar, and security settings"
-      />
+      {/* Outer grid shifted up (pt-2) and stretched wider (max-w-[1600px]) towards the left sidebar */}
+      <div className="relative max-w-[1600px] mx-auto px-4 sm:px-6 pt-4 pb-6 space-y-6 z-20">
 
-      <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-8 relative z-10">
-
-        {/* ═══════════ Avatar & Info Banner ═══════════ */}
-        <div className="group relative bg-white/70 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/5 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/50 dark:shadow-none transition-all duration-500">
-          {/* Banner Gradient */}
-          <div className="h-40 bg-gradient-to-br from-primary-600 via-primary-500 to-primary-800 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        {/* ═══════════ Banner & Profile Photo Card ═══════════ */}
+        <div className="group relative bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/5 rounded-[2rem] overflow-hidden shadow-xl shadow-slate-200/20 dark:shadow-none transition-all duration-300">
+          
+          {/* Header Cover Background */}
+          <div className="h-44 bg-gradient-to-r from-primary-600 via-indigo-600 to-violet-700 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-50" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:24px_24px] opacity-35" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           </div>
 
-          <div className="px-8 pb-8 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
-            {/* Avatar Container with Glow */}
-            <div className="relative -mt-16 md:-mt-20">
-              <div className="absolute -inset-1 bg-gradient-to-br from-primary-400 to-primary-600 rounded-2xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-              <div className="relative w-32 h-32 rounded-2xl border-4 border-white dark:border-[#111115] shadow-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800 transform group-hover:-translate-y-1 transition duration-500">
+          <div className="px-6 pb-6 relative flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8 mt-4 md:mt-0">
+            
+            {/* Squircle Avatar Container with Hover Upload (overlapping banner) */}
+            <div className="relative -mt-14 md:-mt-16 z-20">
+              <div className="absolute -inset-1 bg-gradient-to-br from-primary-400 to-indigo-500 rounded-[2.2rem] blur opacity-25 group-hover:opacity-40 transition duration-500" />
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-[2rem] border-4 border-white dark:border-[#111118] shadow-2xl overflow-hidden bg-slate-100 dark:bg-zinc-800 transform group-hover:-translate-y-1 transition duration-500">
                 {profile?.avatar ? (
                   <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-500/10 dark:to-primary-500/5">
-                    <span className="text-4xl font-black text-primary-500 uppercase tracking-tighter">
+                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-zinc-900 dark:to-zinc-800">
+                    <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-tr from-primary-500 to-indigo-500 uppercase">
                       {profile?.name?.charAt(0) || '?'}
                     </span>
                   </div>
                 )}
                 
-                {/* Overlay buttons */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3 backdrop-blur-sm">
+                {/* Upload Overlays */}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-2.5 backdrop-blur-sm">
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-xl flex items-center justify-center text-white transition-all transform hover:scale-110 shadow-lg"
+                    className="w-9 h-9 bg-white/20 hover:bg-white/35 rounded-xl flex items-center justify-center text-white transition-all transform hover:scale-110 shadow-lg"
                     title="Upload Photo"
                   >
-                    <Camera className="w-5 h-5" />
+                    <Camera className="w-4.5 h-4.5" />
                   </button>
                   {profile?.avatar && (
                     <button
                       onClick={handleRemoveAvatar}
-                      className="w-10 h-10 bg-rose-500/80 hover:bg-rose-500 rounded-xl flex items-center justify-center text-white transition-all transform hover:scale-110 shadow-lg"
+                      className="w-9 h-9 bg-rose-500/80 hover:bg-rose-500 rounded-xl flex items-center justify-center text-white transition-all transform hover:scale-110 shadow-lg"
                       title="Remove Photo"
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4.5 h-4.5" />
                     </button>
                   )}
                 </div>
@@ -268,28 +226,37 @@ export default function ProfilePage() {
               />
 
               {uploadAvatar.isPending && (
-                <div className="absolute inset-0 rounded-2xl bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
-                  <Loader2 className="w-8 h-8 text-white animate-spin" />
+                <div className="absolute inset-0 rounded-[2rem] bg-black/60 backdrop-blur-sm flex items-center justify-center z-10">
+                  <Loader2 className="w-7 h-7 text-white animate-spin" />
                 </div>
               )}
             </div>
 
-            {/* Name & Meta Info */}
-            <div className="text-center md:text-left flex-1 pb-2">
-              <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+            {/* Name, Roles, and Join Date (positioned safely below the dark banner) */}
+            <div className="text-center md:text-left flex-1 pb-1">
+              <span className="text-[9px] bg-primary-500/10 border border-primary-500/20 text-primary-500 px-3 py-1 rounded-full font-black uppercase tracking-[0.2em] mb-2 inline-block">
+                My Profile
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight flex flex-col sm:flex-row items-center justify-center md:justify-start gap-2.5">
                 {profile?.name}
+                <span className="inline-flex items-center gap-1 text-[9px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                  <Sparkles className="w-2.5 h-2.5" />
+                  Active Account
+                </span>
               </h2>
+              
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-3">
                 {profile?.roles?.map((role: any) => (
-                  <div key={role.id || role.name || role} className="flex items-center px-3 py-1 rounded-full bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-500/20 shadow-sm">
-                    <Shield className="w-3.5 h-3.5 text-primary-500 mr-1.5" />
-                    <span className="text-[11px] font-black uppercase tracking-[0.15em] text-primary-700 dark:text-primary-400">
+                  <div key={role.id || role.name || role} className="flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.03] border border-slate-200 dark:border-white/5">
+                    <Shield className="w-3.5 h-3.5 text-primary-500 dark:text-primary-400 mr-1.5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                       {role.name || role}
                     </span>
                   </div>
                 ))}
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5 bg-slate-100 dark:bg-white/5 px-3 py-1 rounded-full border border-slate-200 dark:border-white/5">
-                  <Calendar className="w-3.5 h-3.5 opacity-70" />
+                
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 bg-slate-100 dark:bg-white/[0.03] px-3 py-1 rounded-full border border-slate-200 dark:border-white/5">
+                  <Calendar className="w-3.5 h-3.5" />
                   Joined {profile?.created_at ? format(new Date(profile.created_at), 'MMMM yyyy') : '—'}
                 </span>
               </div>
@@ -297,104 +264,110 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* ═══════════ Forms Grid Container ═══════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
           
-          {/* ═══════════ Personal Info Form ═══════════ */}
-          <div className="lg:col-span-3 bg-white/70 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/5 rounded-3xl p-8 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all hover:shadow-2xl hover:shadow-slate-200/50 dark:hover:shadow-none relative overflow-hidden group">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Personal Info Card (3/5 Grid size on PC, full on mobile) */}
+          <div className="lg:col-span-3 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/5 rounded-[2rem] p-6 sm:p-8 shadow-xl shadow-slate-200/10 dark:shadow-none hover:shadow-2xl transition-all duration-300 flex flex-col justify-between">
             
-            <div className="mb-8 flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center text-primary-500 border border-primary-100 dark:border-primary-500/20 shadow-inner">
-                <User className="w-5 h-5" />
+            <div>
+              <div className="mb-6 flex items-center gap-4">
+                <div className="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center text-primary-500 border border-primary-100/50 dark:border-primary-500/10 shadow-inner">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white tracking-tight">Personal Details</h3>
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest mt-0.5">Manage your user profile identity</p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">Personal Information</h3>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mt-1">Update your identity details</p>
-              </div>
+
+              <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-5">
+                <div className="space-y-4">
+                  {/* Name */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                      <User className="w-3.5 h-3.5" /> Full Name
+                    </label>
+                    <div className="relative">
+                      <Input
+                        {...profileForm.register('name')}
+                        placeholder="Name"
+                        className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all pl-10"
+                      />
+                    </div>
+                    {profileForm.formState.errors.name && (
+                      <p className="text-xs text-rose-500 font-bold ml-1">{profileForm.formState.errors.name.message}</p>
+                    )}
+                  </div>
+
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                      <Mail className="w-3.5 h-3.5" /> Email Address
+                    </label>
+                    <div className="relative">
+                      <Input
+                        {...profileForm.register('email')}
+                        type="email"
+                        placeholder="you@example.com"
+                        className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all pl-10"
+                      />
+                    </div>
+                    {profileForm.formState.errors.email && (
+                      <p className="text-xs text-rose-500 font-bold ml-1">{profileForm.formState.errors.email.message}</p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ml-1">
+                      <Phone className="w-3.5 h-3.5" /> Phone Number
+                    </label>
+                    <div className="relative">
+                      <Input
+                        {...profileForm.register('phone')}
+                        placeholder="+91 XXXXX XXXXX"
+                        className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all pl-10"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={updateProfile.isPending || !profileForm.formState.isDirty}
+                    className="bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white px-8 h-11 text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-primary-500/20 transition-all active:scale-[0.98]"
+                  >
+                    {updateProfile.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
+                    Save Profile
+                  </Button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-6">
-              <div className="space-y-5">
-                {/* Name */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2 ml-1">
-                    <User className="w-3.5 h-3.5" /> Full Name
-                  </label>
-                  <Input
-                    {...profileForm.register('name')}
-                    placeholder="E.g. Jane Doe"
-                    className="h-12 bg-slate-50/50 dark:bg-[#0a0a0c] border-slate-200 dark:border-white/5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-inner"
-                  />
-                  {profileForm.formState.errors.name && (
-                    <p className="text-xs text-rose-500 font-bold ml-1">{profileForm.formState.errors.name.message}</p>
-                  )}
-                </div>
-
-                {/* Email */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2 ml-1">
-                    <Mail className="w-3.5 h-3.5" /> Email Address
-                  </label>
-                  <Input
-                    {...profileForm.register('email')}
-                    type="email"
-                    placeholder="you@example.com"
-                    className="h-12 bg-slate-50/50 dark:bg-[#0a0a0c] border-slate-200 dark:border-white/5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-inner"
-                  />
-                  {profileForm.formState.errors.email && (
-                    <p className="text-xs text-rose-500 font-bold ml-1">{profileForm.formState.errors.email.message}</p>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div className="space-y-2">
-                  <label className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-2 ml-1">
-                    <Phone className="w-3.5 h-3.5" /> Phone Number
-                  </label>
-                  <Input
-                    {...profileForm.register('phone')}
-                    placeholder="+1 (555) 000-0000"
-                    className="h-12 bg-slate-50/50 dark:bg-[#0a0a0c] border-slate-200 dark:border-white/5 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-inner"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 dark:border-white/5 flex justify-end">
-                <Button
-                  type="submit"
-                  disabled={updateProfile.isPending || !profileForm.formState.isDirty}
-                  className="bg-primary-600 hover:bg-primary-500 text-white px-8 h-12 text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary-500/20 transition-all hover:-translate-y-0.5"
-                >
-                  {updateProfile.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  Save Profile
-                </Button>
-              </div>
-            </form>
           </div>
 
-          {/* ═══════════ Change Password Form ═══════════ */}
-          <div className="lg:col-span-2 bg-slate-900 dark:bg-[#111115] border border-slate-800 dark:border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
-            {/* Dark abstract glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+          {/* Change Password Card (2/5 Grid size on PC, full on mobile) */}
+          <div className="lg:col-span-2 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/5 rounded-[2rem] p-6 sm:p-8 shadow-xl shadow-slate-200/10 dark:shadow-none hover:shadow-2xl transition-all duration-300">
             
-            <div className="mb-8 flex items-center gap-4 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-primary-400 border border-white/10 shadow-inner">
+            <div className="mb-6 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center text-primary-500 border border-primary-100/50 dark:border-primary-500/10 shadow-inner">
                 <Lock className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-white tracking-tight">Security</h3>
-                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mt-1">Update your password</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-800 dark:text-white tracking-tight">Security Credentials</h3>
+                <p className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase tracking-widest mt-0.5">Manage password credentials</p>
               </div>
             </div>
 
-            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5 relative z-10">
+            <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
               {/* Current Password */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest ml-1">
                   Current Password
                 </label>
                 <div className="relative">
@@ -402,24 +375,24 @@ export default function ProfilePage() {
                     {...passwordForm.register('current_password')}
                     type={showCurrentPw ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="h-12 bg-black/40 border-white/10 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 pr-12 transition-all shadow-inner"
+                    className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 pr-12 transition-all pl-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowCurrentPw(!showCurrentPw)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                   >
                     {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {passwordForm.formState.errors.current_password && (
-                  <p className="text-xs text-rose-400 font-bold ml-1">{passwordForm.formState.errors.current_password.message}</p>
+                  <p className="text-xs text-rose-500 font-bold ml-1">{passwordForm.formState.errors.current_password.message}</p>
                 )}
               </div>
 
               {/* New Password */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest ml-1">
                   New Password
                 </label>
                 <div className="relative">
@@ -427,47 +400,47 @@ export default function ProfilePage() {
                     {...passwordForm.register('new_password')}
                     type={showNewPw ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="h-12 bg-black/40 border-white/10 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 pr-12 transition-all shadow-inner"
+                    className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 pr-12 transition-all pl-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPw(!showNewPw)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
                   >
                     {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {passwordForm.formState.errors.new_password && (
-                  <p className="text-xs text-rose-400 font-bold ml-1">{passwordForm.formState.errors.new_password.message}</p>
+                  <p className="text-xs text-rose-500 font-bold ml-1">{passwordForm.formState.errors.new_password.message}</p>
                 )}
               </div>
 
               {/* Confirm Password */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] ml-1">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest ml-1">
                   Confirm Password
                 </label>
                 <Input
                   {...passwordForm.register('new_password_confirmation')}
                   type={showNewPw ? 'text' : 'password'}
                   placeholder="••••••••"
-                  className="h-12 bg-black/40 border-white/10 rounded-xl text-sm font-semibold text-white placeholder:text-slate-600 focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all shadow-inner"
+                  className="h-11 bg-slate-50/50 dark:bg-white/[0.02] border-slate-200/80 dark:border-white/10 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all pl-10"
                 />
                 {passwordForm.formState.errors.new_password_confirmation && (
-                  <p className="text-xs text-rose-400 font-bold ml-1">{passwordForm.formState.errors.new_password_confirmation.message}</p>
+                  <p className="text-xs text-rose-500 font-bold ml-1">{passwordForm.formState.errors.new_password_confirmation.message}</p>
                 )}
               </div>
 
-              <div className="pt-6">
+              <div className="pt-4">
                 <Button
                   type="submit"
                   disabled={changePassword.isPending}
-                  className="w-full bg-white text-slate-900 hover:bg-slate-200 h-12 text-xs font-black uppercase tracking-[0.15em] rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all hover:scale-[1.02]"
+                  className="w-full bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white h-11 text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-primary-500/20 transition-all active:scale-[0.98]"
                 >
                   {changePassword.isPending ? (
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   ) : (
-                    <Lock className="w-4 h-4 mr-2" />
+                    <KeyRound className="w-4 h-4 mr-2" />
                   )}
                   Update Password
                 </Button>

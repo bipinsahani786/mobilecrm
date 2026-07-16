@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useAppStore } from '@/store/appStore';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Building2, User, Mail, Phone, Lock, ArrowRight, KeyRound, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { Building2, User, Mail, Phone, Lock, ArrowRight, KeyRound, ArrowLeft, ShieldCheck, Sparkles } from 'lucide-react';
 import { useCheckUser, useSendOtp, useVerifyOtp } from '../api/useAuthMutations';
 
 export default function PartnerRegisterPage() {
@@ -109,171 +109,221 @@ export default function PartnerRegisterPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#f5f5f4] flex flex-col lg:flex-row font-sans overflow-hidden selection:bg-[#fe7d02] selection:text-white">
-
-      {/* Dynamic Wavy Background (Responsive) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Subtle shadow/glow wave for depth */}
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full text-[#fe7d02]/10 fill-current translate-x-1 translate-y-1 scale-150 sm:scale-100 origin-left">
-          <path d="M0,0 L35,0 C55,35 25,65 45,100 L0,100 Z" />
+    <div className="h-screen w-full bg-[#FAF9F5] text-slate-800 flex overflow-hidden relative select-none">
+      
+      {/* ── SHARED BACKGROUND LAYER (Visible on both PC and mobile) ── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Radial Dots */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e3decb_1px,transparent_1px)] bg-[size:24px_24px] opacity-70" />
+        
+        {/* Layered Diagonal Curve SVGs */}
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <path d="M0,0 L100,0 L100,70 C70,78 30,48 0,94 Z" fill="#EFE8DD" opacity="0.5" />
+          <path d="M0,0 L100,0 L100,64 C65,74 25,44 0,88 Z" fill="#F4EFE6" />
         </svg>
 
-        {/* Main Dark Wave */}
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full text-[#0b0f19] fill-current scale-150 sm:scale-100 origin-left">
-          <path d="M0,0 L35,0 C55,35 25,65 45,100 L0,100 Z" />
-        </svg>
-
-        {/* Ambient Glows inside the dark wave */}
-        <div className="absolute top-1/4 left-0 sm:left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-[#fe7d02]/10 sm:bg-[#fe7d02]/5 blur-[80px] sm:blur-[100px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-1/4 -left-10 sm:left-1/8 w-48 sm:w-64 h-48 sm:h-64 bg-blue-500/10 sm:bg-blue-500/5 blur-[60px] sm:blur-[80px] rounded-full mix-blend-screen" />
+        {/* Floating Circle and Curved Geometric Elements */}
+        <div className="absolute top-16 left-16 w-32 h-32 rounded-full border-2 border-[#E3DECB]" />
+        <div className="absolute bottom-24 left-1/4 w-60 h-60 rounded-full border border-dashed border-primary-500/15 animate-[spin_60s_linear_infinite]" />
+        <div className="absolute top-1/4 right-1/4 w-72 h-72 bg-rose-200/35 rounded-full blur-3xl" />
+        <div className="absolute bottom-12 right-12 w-80 h-80 bg-indigo-100/25 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-1/3 w-3 h-3 bg-amber-400 rounded-full opacity-60 animate-ping" />
+        <div className="absolute bottom-1/3 left-16 w-2.5 h-2.5 bg-rose-400 rounded-full opacity-60" />
       </div>
 
-      {/* Left Content (Branding - Desktop Only) */}
-      <div className="hidden lg:flex w-[40%] relative z-10 flex-col justify-between p-12 xl:p-16 text-white h-full pointer-events-none">
-
-        {/* Top Left Logo */}
-        <div className="flex items-center gap-4 animate-in slide-in-from-top-8 fade-in duration-700 fill-mode-both">
+      {/* ── LEFT CANVAS (Desktop Only) ── */}
+      <div className="hidden lg:flex flex-1 h-full flex-col justify-between p-12 lg:p-16 relative z-10">
+        
+        {/* Top Left Header Logo */}
+        <div className="relative z-10 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
           {appLogo ? (
-            <div className="bg-[#0b0f19] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.85),inset_-4px_-4px_8px_rgba(255,255,255,0.015)] p-2.5 rounded-2xl border border-white/[0.005] flex items-center justify-center w-14 h-14 overflow-hidden backdrop-blur-sm">
-              <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+            <div className="p-1 rounded-2xl bg-white shadow-sm border border-[#E3DECB] hover:scale-105 transition-transform duration-500">
+              <div className="bg-[#FAF9F5] rounded-[12px] p-2 flex items-center justify-center w-12 h-12 overflow-hidden">
+                <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+              </div>
             </div>
           ) : (
-            <div className="bg-[#0b0f19] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.85),inset_-4px_-4px_8px_rgba(255,255,255,0.015)] p-2.5 rounded-2xl border border-white/[0.005] flex items-center justify-center w-14 h-14 backdrop-blur-sm">
-              <span className="font-black text-2xl text-[#fe7d02]">{appName?.charAt(0).toUpperCase() || 'B'}</span>
+            <div className="p-1 rounded-2xl bg-white shadow-sm border border-[#E3DECB] hover:scale-105 transition-transform duration-500">
+              <div className="bg-[#FAF9F5] rounded-[12px] p-2 flex items-center justify-center w-12 h-12">
+                <span className="font-black text-xl text-primary-500">
+                  {appName ? appName.charAt(0).toUpperCase() : 'B'}
+                </span>
+              </div>
             </div>
           )}
-          <span className="font-black text-2xl tracking-widest text-white uppercase transition-all duration-300">
-            {appName}
-          </span>
+          <span className="font-black text-base tracking-widest text-slate-800 uppercase">{appName}</span>
         </div>
 
-        {/* Main Typography Area */}
-        <div className="my-auto animate-in slide-in-from-left-8 fade-in duration-700 delay-150 fill-mode-both pr-10">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md text-[10px] font-bold text-[#fe7d02] uppercase tracking-widest mb-8 border border-white/10">
-            Partner Program
-          </div>
-          <h2 className="text-5xl xl:text-7xl font-black text-white mb-6 leading-[1.1] tracking-tighter">
-            Grow with <br />Us as a <span className="text-[#fe7d02] inline-block -rotate-2 scale-110 mx-1">Partner</span>.
-          </h2>
-          <p className="text-lg xl:text-xl text-zinc-400 leading-relaxed font-medium max-w-md">
-            Join our partner program and earn generous lifetime commissions for every business you refer to our platform.
+        {/* Center Big Bold Typography Area */}
+        <div className="my-auto max-w-xl space-y-6 relative z-10 animate-in slide-in-from-left-6 duration-700">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.05] uppercase">
+            Grow with us <br />
+            as a certified <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-indigo-650">partner.</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-primary-600 font-extrabold tracking-[0.25em] uppercase">
+            Partner Commission program
+          </p>
+          <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-indigo-500 rounded-full" />
+          <p className="text-slate-600 font-medium text-base sm:text-lg lg:text-xl leading-relaxed">
+            Join our partner program and earn generous lifetime commissions for every business reference you refer to our platform.
           </p>
         </div>
 
-        <div className="text-xs text-zinc-500 font-bold uppercase tracking-widest animate-in slide-in-from-bottom-8 fade-in duration-700 delay-300 fill-mode-both">
-          Enterprise Billing Cloud
+        {/* Bottom Metadata */}
+        <div className="relative z-10 flex gap-8 text-slate-400 font-bold uppercase tracking-widest text-[9px] select-none">
+          <span>• LIFETIME COMMISSIONS</span>
+          <span>• EASY ONBOARDING</span>
+          <span>• PARTNER API</span>
         </div>
+
       </div>
 
-      {/* Right Content (Registration Form) */}
-      <div className="w-full lg:w-[50%] lg:ml-auto relative z-10 flex flex-col justify-center items-center p-4 sm:p-8 lg:p-16 min-h-screen">
-        <div className="w-full max-w-xl bg-white/70 backdrop-blur-2xl rounded-[3rem] p-6 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white space-y-6 sm:space-y-8 animate-in zoom-in-95 fade-in duration-700 relative overflow-hidden">
-          
-          {/* Decorative elements inside the card */}
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#fe7d02]/10 blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
+      {/* ── RIGHT PANEL (Transparent on mobile, solid white on desktop) ── */}
+      <div className="w-full lg:w-[480px] xl:w-[540px] h-full bg-transparent lg:bg-white relative z-20 shrink-0 flex flex-col justify-between p-6 sm:p-10 border-l border-slate-100/50 shadow-2xl shadow-slate-200/50 lg:shadow-none overflow-y-auto">
+        
+        {/* Layered Organic Wave Separators on the left edge of the white card (Desktop only) */}
+        <svg className="absolute top-0 bottom-0 left-[-55px] w-[55px] h-full text-[#EFE8DD]/70 fill-current hidden lg:block z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M100,0 C20,30 20,70 100,100 Z" />
+        </svg>
+        <svg className="absolute top-0 bottom-0 left-[-40px] w-[40px] h-full text-white fill-current hidden lg:block z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M100,0 C60,25 40,75 100,100 Z" />
+        </svg>
 
-          {/* Mobile Logo */}
-          <div className="lg:hidden relative z-10 flex flex-col items-center justify-center gap-3 mb-4 animate-in slide-in-from-top-4 fade-in duration-500 fill-mode-both">
-            {appLogo ? (
-              <div className="bg-white/80 shadow-neu-light-inset rounded-2xl w-16 h-16 p-2 flex items-center justify-center overflow-hidden border border-white">
-                <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain drop-shadow-md" />
-              </div>
-            ) : (
-              <div className="bg-white/80 shadow-neu-light-inset rounded-2xl w-16 h-16 flex items-center justify-center font-bold text-2xl text-[#fe7d02] border border-white">
+        {/* Mobile Header - Logo & Title (Visible on Mobile only at the very top of screen) */}
+        <div className="flex lg:hidden items-center gap-3.5 mb-6 shrink-0 relative z-30">
+          {appLogo ? (
+            <div className="w-11 h-11 overflow-hidden flex items-center justify-center rounded-xl border border-slate-200 p-1 bg-white shadow-sm">
+              <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+            </div>
+          ) : (
+            <div className="w-11 h-11 overflow-hidden flex items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm">
+              <span className="font-black text-lg text-primary-500">
                 {appName ? appName.charAt(0).toUpperCase() : 'B'}
-              </div>
-            )}
-            <span className="font-bold text-xl text-zinc-900 uppercase tracking-tight mt-2">{appName}</span>
+              </span>
+            </div>
+          )}
+          <div>
+            <h1 className="font-black text-lg tracking-wider text-slate-900 uppercase leading-none">{appName}</h1>
+            <p className="text-[9px] text-primary-600 font-bold uppercase tracking-widest mt-0.5">Partner Program</p>
           </div>
+        </div>
 
-          <div className="relative z-10 animate-in slide-in-from-top-4 fade-in duration-500 delay-150 fill-mode-both text-center lg:text-left">
-            <h1 className="text-4xl font-black text-zinc-900 tracking-tighter mb-3">
-              {step === 'FORM' ? 'Partner Registration' : 'Verify Your Email'}
-            </h1>
-            <p className="text-zinc-500 font-medium text-sm">
+        {/* Form Container (Translucent floating card on mobile, transparent layout on PC) */}
+        <div className="my-auto w-full max-w-lg mx-auto bg-white/80 backdrop-blur-xl border border-slate-200/50 lg:border-none lg:bg-transparent lg:shadow-none rounded-[2rem] p-6 sm:p-8 shadow-xl shadow-slate-200/10 space-y-6 flex flex-col justify-center relative z-30">
+          
+          {/* Header Title describing each step */}
+          <div className="space-y-1.5 animate-in slide-in-from-top-4 duration-500 text-center lg:text-left">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">
+              {step === 'FORM' ? 'Partner Signup' : 'Verify Email'}
+            </h2>
+            <p className="text-slate-550 font-semibold text-xs">
               {step === 'FORM'
-                ? 'Fill in your details to create a partner account.'
+                ? 'Fill in details to set up your partner workspace.'
                 : `We've sent a 6-digit secure code to ${email}`}
             </p>
           </div>
 
-          <div className="relative z-10 py-2">
+          {/* Form Content */}
+          <div className="relative z-10">
             {step === 'FORM' ? (
-              <form onSubmit={handleFormSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="space-y-4">
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative group animate-in slide-in-from-left-4 fade-in duration-500 delay-200 fill-mode-both">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
+              <form onSubmit={handleFormSubmit} className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Full Name */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Full Name *</label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
                       <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Full Name *"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
+                        placeholder="E.g. John Doe"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
                       />
                     </div>
+                  </div>
 
-                    <div className="relative group animate-in slide-in-from-right-4 fade-in duration-500 delay-200 fill-mode-both">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Email *</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
                       <input
                         type="email"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email Address *"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
+                        placeholder="john@company.com"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative group animate-in slide-in-from-left-4 fade-in duration-500 delay-300 fill-mode-both">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
+                    <div className="relative group">
+                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
                       <input
                         type="text"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        placeholder="Phone Number (Optional)"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
-                      />
-                    </div>
-
-                    <div className="relative group animate-in slide-in-from-right-4 fade-in duration-500 delay-300 fill-mode-both">
-                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
-                      <input
-                        type="text"
-                        value={companyName}
-                        onChange={(e) => setCompanyName(e.target.value)}
-                        placeholder="Company/Agency Name (Optional)"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
+                        placeholder="+91 XXXXX XXXXX"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="relative group animate-in slide-in-from-left-4 fade-in duration-500 delay-500 fill-mode-both">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
+                  {/* Company */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Company / Agency</label>
+                    <div className="relative group">
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Company Name"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Password */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Password *</label>
+                    <div className="relative group">
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
                       <input
                         type="password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Password *"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
+                        placeholder="••••••••"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
                       />
                     </div>
-                    <div className="relative group animate-in slide-in-from-right-4 fade-in duration-500 delay-500 fill-mode-both">
-                      <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Confirm Password *</label>
+                    <div className="relative group">
+                      <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
                       <input
                         type="password"
                         required
                         value={passwordConfirmation}
                         onChange={(e) => setPasswordConfirmation(e.target.value)}
-                        placeholder="Confirm *"
-                        className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-zinc-950 placeholder-zinc-400 focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
+                        placeholder="••••••••"
+                        className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-300"
                       />
                     </div>
                   </div>
@@ -282,67 +332,72 @@ export default function PartnerRegisterPage() {
                 <button
                   type="submit"
                   disabled={registerMutation.isPending || checkUserMutation.isPending}
-                  className="w-full bg-[#fe7d02] text-white py-4 rounded-2xl font-bold text-lg hover:bg-[#e67002] transition-all duration-300 shadow-[4px_4px_10px_rgba(254,125,2,0.3),inset_2px_2px_4px_rgba(255,255,255,0.3)] hover:shadow-[2px_2px_5px_rgba(254,125,2,0.3),inset_2px_2px_4px_rgba(255,255,255,0.3)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 group animate-in slide-in-from-bottom-6 fade-in duration-500 delay-1000 fill-mode-both"
+                  className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-650 hover:from-primary-600 hover:to-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-md shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none flex items-center justify-center gap-2 animate-in slide-in-from-bottom-4 fade-in duration-500"
                 >
                   {checkUserMutation.isPending || sendOtpMutation.isPending ? 'Processing...' : (
                     <>
-                      Continue
-                      <ArrowRight className="w-5 h-5" />
+                      Register Now
+                      <ArrowRight className="w-4.5 h-4.5" />
                     </>
                   )}
                 </button>
 
-                <p className="text-center text-zinc-500 pt-6 border-t border-black/5 text-sm font-medium animate-in fade-in duration-500 delay-[1200ms] fill-mode-both">
-                  Already have an account?{' '}
-                  <Link to="/login" className="text-[#fe7d02] font-black hover:text-[#e67002] transition-colors hover:underline decoration-2 underline-offset-4">
-                    Log in here
-                  </Link>
-                </p>
               </form>
             ) : (
-              <form onSubmit={handleOtpSubmit} className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                <div className="relative group">
-                  <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-[#fe7d02] transition-colors" />
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
-                    className="w-full pl-12 pr-4 py-4 bg-[#f5f5f4] dark:bg-zinc-800 border border-black/5 dark:border-white/5 shadow-neu-light-inset dark:shadow-none rounded-2xl text-zinc-950 dark:text-white text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:border-[#fe7d02]/50 focus:ring-0 transition-all duration-300"
-                  />
+              <form onSubmit={handleOtpSubmit} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider ml-1">Verification Code</label>
+                  <div className="relative group">
+                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                      placeholder="123456"
+                      className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-center text-xl tracking-[0.5em] font-black focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-slate-900 placeholder-slate-400 transition-all duration-300"
+                    />
+                  </div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={verifyOtpMutation.isPending || registerMutation.isPending || otp.length !== 6}
-                  className="w-full bg-[#fe7d02] hover:bg-[#ea580c] text-white font-bold py-4 rounded-2xl transition-all shadow-neu-btn active:shadow-neu-btn-inset active:translate-y-0.5 hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 border-none"
+                  className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-650 hover:from-primary-600 hover:to-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-md shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none flex items-center justify-center gap-2"
                 >
                   {verifyOtpMutation.isPending || registerMutation.isPending ? 'Verifying & Registering...' : (
                     <>
                       Verify & Register
-                      <ArrowRight className="w-5 h-5" />
+                      <ArrowRight className="w-4.5 h-4.5" />
                     </>
                   )}
                 </button>
 
-                <div className="pt-4 text-center">
-                  <button
-                    type="button"
-                    onClick={() => setStep('FORM')}
-                    className="text-sm font-bold text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors flex items-center justify-center w-full gap-2"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    Go back to details
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setStep('FORM')}
+                  className="text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center w-full gap-2"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  Go back to details
+                </button>
               </form>
             )}
           </div>
 
         </div>
+
+        {/* Footer Login text */}
+        <p className="text-center text-slate-500 text-xs font-semibold select-none pt-4 border-t border-slate-100/50 relative z-30">
+          Already have a partner account?{' '}
+          <Link to="/login" className="text-primary-600 font-black hover:text-primary-750 transition-colors">
+            Log in here
+          </Link>
+        </p>
+
       </div>
+
     </div>
   );
 }

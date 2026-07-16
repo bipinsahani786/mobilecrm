@@ -17,122 +17,139 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full bg-[#f5f5f4] flex flex-col lg:flex-row font-sans overflow-hidden selection:bg-[#fe7d02] selection:text-white">
-
-      {/* Dynamic Wavy Background (Responsive) */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Subtle shadow/glow wave for depth */}
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full text-[#fe7d02]/10 fill-current translate-x-1 translate-y-1 scale-150 sm:scale-100 origin-left">
-          <path d="M0,0 L35,0 C55,35 25,65 45,100 L0,100 Z" />
+    <div className="h-screen w-full bg-[#FAF9F5] text-slate-800 flex overflow-hidden relative select-none">
+      
+      {/* ── SHARED BACKGROUND LAYER (Visible on both PC and mobile) ── */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* Radial Dots */}
+        <div className="absolute inset-0 bg-[radial-gradient(#e3decb_1px,transparent_1px)] bg-[size:24px_24px] opacity-70" />
+        
+        {/* Layered Diagonal Curve SVGs */}
+        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <path d="M0,0 L100,0 L100,70 C70,78 30,48 0,94 Z" fill="#EFE8DD" opacity="0.5" />
+          <path d="M0,0 L100,0 L100,64 C65,74 25,44 0,88 Z" fill="#F4EFE6" />
         </svg>
 
-        {/* Main Dark Wave */}
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full text-[#0b0f19] fill-current scale-150 sm:scale-100 origin-left">
-          <path d="M0,0 L35,0 C55,35 25,65 45,100 L0,100 Z" />
-        </svg>
-
-        {/* Ambient Glows inside the dark wave */}
-        <div className="absolute top-1/4 left-0 sm:left-1/4 w-64 sm:w-96 h-64 sm:h-96 bg-[#fe7d02]/10 sm:bg-[#fe7d02]/5 blur-[80px] sm:blur-[100px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-1/4 -left-10 sm:left-1/8 w-48 sm:w-64 h-48 sm:h-64 bg-blue-500/10 sm:bg-blue-500/5 blur-[60px] sm:blur-[80px] rounded-full mix-blend-screen" />
+        {/* Floating Circle and Curved Geometric Elements */}
+        <div className="absolute top-16 left-16 w-32 h-32 rounded-full border-2 border-[#E3DECB]" />
+        <div className="absolute bottom-24 left-1/4 w-60 h-60 rounded-full border border-dashed border-primary-500/15 animate-[spin_60s_linear_infinite]" />
+        <div className="absolute top-1/4 right-1/4 w-72 h-72 bg-rose-200/35 rounded-full blur-3xl" />
+        <div className="absolute bottom-12 right-12 w-80 h-80 bg-indigo-100/25 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-1/3 w-3 h-3 bg-amber-400 rounded-full opacity-60 animate-ping" />
+        <div className="absolute bottom-1/3 left-16 w-2.5 h-2.5 bg-rose-400 rounded-full opacity-60" />
       </div>
 
-      {/* Left Content (Branding - Desktop Only) */}
-      <div className="hidden lg:flex w-[40%] relative z-10 flex-col justify-between p-12 xl:p-16 text-white h-full pointer-events-none">
-
-        {/* Top Left Logo */}
-        <div className="flex items-center gap-4 animate-in slide-in-from-top-8 fade-in duration-700 fill-mode-both">
+      {/* ── LEFT CANVAS (Desktop Only) ── */}
+      <div className="hidden lg:flex flex-1 h-full flex-col justify-between p-12 lg:p-16 relative z-10">
+        
+        {/* Top Left Header Logo */}
+        <div className="relative z-10 flex items-center gap-4 animate-in slide-in-from-top-4 duration-500">
           {appLogo ? (
-            <div className="bg-[#0b0f19] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.85),inset_-4px_-4px_8px_rgba(255,255,255,0.015)] p-2.5 rounded-2xl border border-white/[0.005] flex items-center justify-center w-14 h-14 overflow-hidden backdrop-blur-sm">
-              <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+            <div className="p-1 rounded-2xl bg-white shadow-sm border border-[#E3DECB] hover:scale-105 transition-transform duration-500">
+              <div className="bg-[#FAF9F5] rounded-[12px] p-2 flex items-center justify-center w-12 h-12 overflow-hidden">
+                <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+              </div>
             </div>
           ) : (
-            <div className="bg-[#0b0f19] shadow-[inset_4px_4px_8px_rgba(0,0,0,0.85),inset_-4px_-4px_8px_rgba(255,255,255,0.015)] p-2.5 rounded-2xl border border-white/[0.005] flex items-center justify-center w-14 h-14 backdrop-blur-sm">
-              <span className="font-black text-2xl text-[#fe7d02]">{appName ? appName.charAt(0).toUpperCase() : 'B'}</span>
+            <div className="p-1 rounded-2xl bg-white shadow-sm border border-[#E3DECB] hover:scale-105 transition-transform duration-500">
+              <div className="bg-[#FAF9F5] rounded-[12px] p-2 flex items-center justify-center w-12 h-12">
+                <span className="font-black text-xl text-primary-500">
+                  {appName ? appName.charAt(0).toUpperCase() : 'B'}
+                </span>
+              </div>
             </div>
           )}
-          <span className="font-black text-2xl tracking-widest text-white uppercase transition-all duration-300">
-            {appName}
-          </span>
+          <span className="font-black text-base tracking-widest text-slate-800 uppercase">{appName}</span>
         </div>
 
-        {/* Main Typography Area */}
-        <div className="my-auto animate-in slide-in-from-left-8 fade-in duration-700 delay-150 fill-mode-both pr-10">
-          <h2 className="text-5xl xl:text-7xl font-black text-white mb-6 leading-[1.1] tracking-tighter">
-            Intelligence <br />at the <span className="text-[#fe7d02] inline-block -rotate-2 scale-110 mx-1">Core</span> <br />of Billing.
-          </h2>
-          <p className="text-lg xl:text-xl text-zinc-400 leading-relaxed font-medium max-w-md">
-            Securely manage invoices, inventory, party ledgers, and multi-business settlements in one unified cloud ecosystem.
+        {/* Center Big Bold Typography Area */}
+        <div className="my-auto max-w-xl space-y-6 relative z-10 animate-in slide-in-from-left-6 duration-700">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.05] uppercase">
+            Manage your <br />
+            retail store <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-indigo-650">intelligently.</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-primary-600 font-extrabold tracking-[0.25em] uppercase">
+            Unified Party billing & ledger platform
+          </p>
+          <div className="w-20 h-1 bg-gradient-to-r from-primary-500 to-indigo-500 rounded-full" />
+          <p className="text-slate-600 font-medium text-base sm:text-lg lg:text-xl leading-relaxed">
+            Track business collections, custom billing invoices, party ledger payments, and customer accounts inside a clean, modern ecosystem.
           </p>
         </div>
 
-        {/* Bottom Stats */}
-        <div className="flex items-center gap-6 animate-in slide-in-from-bottom-8 fade-in duration-700 delay-300 fill-mode-both">
-          <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 flex-1 border border-white/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-[#fe7d02]/20 blur-2xl rounded-full -mr-10 -mt-10" />
-            <p className="text-4xl font-black text-white tracking-tighter mb-1 relative z-10">5K+</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest relative z-10">Businesses</p>
-          </div>
-          <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 flex-1 border border-white/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/20 blur-2xl rounded-full -mr-10 -mt-10" />
-            <p className="text-4xl font-black text-white tracking-tighter mb-1 relative z-10">1M+</p>
-            <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-widest relative z-10">Invoices/Mo</p>
-          </div>
+        {/* Bottom Metadata */}
+        <div className="relative z-10 flex gap-8 text-slate-400 font-bold uppercase tracking-widest text-[9px] select-none">
+          <span>• SECURE ACCESS</span>
+          <span>• GST LEDGER</span>
+          <span>• COMPLIANT</span>
         </div>
+
       </div>
 
-      {/* Right Content (Login Form) */}
-      <div className="w-full lg:w-[50%] lg:ml-auto relative z-10 flex flex-col justify-center items-center p-4 sm:p-8 lg:p-16 min-h-screen">
+      {/* ── RIGHT PANEL (Transparent on mobile, solid white on desktop) ── */}
+      <div className="w-full lg:w-[460px] xl:w-[500px] h-full bg-transparent lg:bg-white relative z-20 shrink-0 flex flex-col justify-between p-6 sm:p-12 lg:border-l lg:border-slate-100/50 shadow-2xl shadow-slate-200/50 lg:shadow-none">
         
-        <div className="w-full max-w-md bg-white/70 backdrop-blur-2xl rounded-[3rem] p-6 sm:p-10 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-white space-y-6 sm:space-y-8 animate-in zoom-in-95 fade-in duration-700 relative overflow-hidden">
-          
-          {/* Decorative elements inside the card */}
-          <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#fe7d02]/10 blur-3xl rounded-full pointer-events-none" />
-          <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-blue-500/10 blur-3xl rounded-full pointer-events-none" />
+        {/* Layered Organic Wave Separators on the left edge of the white card (Desktop only) */}
+        <svg className="absolute top-0 bottom-0 left-[-55px] w-[55px] h-full text-[#EFE8DD]/70 fill-current hidden lg:block z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M100,0 C20,30 20,70 100,100 Z" />
+        </svg>
+        <svg className="absolute top-0 bottom-0 left-[-40px] w-[40px] h-full text-white fill-current hidden lg:block z-10 pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M100,0 C60,25 40,75 100,100 Z" />
+        </svg>
 
-          {/* Mobile Dark Header (Only visible on mobile since wave is hidden) */}
-          <div className="lg:hidden w-full flex flex-col items-center justify-center relative overflow-hidden">
-            {appLogo ? (
-              <div className="bg-white/80 shadow-neu-light-inset rounded-2xl w-16 h-16 p-2 flex items-center justify-center overflow-hidden border border-white">
-                <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain drop-shadow-md" />
-              </div>
-            ) : (
-              <div className="bg-white/80 shadow-neu-light-inset rounded-2xl w-16 h-16 flex items-center justify-center font-bold text-2xl text-[#fe7d02] border border-white">
+        {/* Mobile Header - Logo & Title (Visible on Mobile only at the very top of screen) */}
+        <div className="flex lg:hidden items-center gap-3.5 mb-6 shrink-0 relative z-30">
+          {appLogo ? (
+            <div className="w-11 h-11 overflow-hidden flex items-center justify-center rounded-xl border border-slate-200 p-1 bg-white shadow-sm">
+              <img src={appLogo} alt={appName} className="max-w-full max-h-full object-contain" />
+            </div>
+          ) : (
+            <div className="w-11 h-11 overflow-hidden flex items-center justify-center rounded-xl border border-slate-200 bg-white shadow-sm">
+              <span className="font-black text-lg text-primary-500">
                 {appName ? appName.charAt(0).toUpperCase() : 'B'}
-              </div>
-            )}
-            <span className="font-bold text-xl tracking-tight text-zinc-900 uppercase mt-3">
-              {appName}
-            </span>
+              </span>
+            </div>
+          )}
+          <div>
+            <h1 className="font-black text-lg tracking-wider text-slate-900 uppercase leading-none">{appName}</h1>
+            <p className="text-[9px] text-primary-600 font-bold uppercase tracking-widest mt-0.5">Unified Ledger</p>
           </div>
+        </div>
 
-          <div className="relative z-10 animate-in slide-in-from-top-4 fade-in duration-500 delay-150 fill-mode-both text-center lg:text-left">
+        {/* Form Container (Translucent floating card on mobile, transparent layout on PC) */}
+        <div className="my-auto w-full max-w-sm mx-auto bg-white/80 backdrop-blur-xl border border-slate-200/50 lg:border-none lg:bg-transparent lg:shadow-none rounded-[2rem] p-6 sm:p-8 shadow-xl shadow-slate-200/10 space-y-6 flex flex-col justify-center shrink-0 relative z-30">
+          
+          {/* Header Title describing each step */}
+          <div className="space-y-1.5 animate-in slide-in-from-top-4 duration-500">
             {step === 'IDENTIFIER' && (
               <>
-                <h1 className="text-4xl font-black text-zinc-900 tracking-tighter mb-3">Welcome</h1>
-                <p className="text-zinc-500 font-medium text-sm">Enter your credentials to access the ecosystem.</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">Sign in</h2>
+                <p className="text-slate-500 font-semibold text-xs">Enter credentials to access your terminal.</p>
               </>
             )}
             {step === 'LOGIN' && (
               <>
-                <h1 className="text-4xl font-black text-zinc-900 tracking-tighter mb-3">Welcome Back</h1>
-                <p className="text-zinc-500 font-medium text-sm">Sign in securely as <span className="text-[#fe7d02] font-black">{identifier}</span></p>
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">Verify password</h2>
+                <p className="text-slate-500 font-semibold text-xs">Verify your password for <span className="text-primary-650 font-black">{identifier}</span></p>
               </>
             )}
             {step === 'OTP' && (
               <>
-                <h1 className="text-4xl font-black text-zinc-900 tracking-tighter mb-3">Verify OTP</h1>
-                <p className="text-zinc-500 font-medium text-sm">We've sent a 6-digit secure code to <span className="text-[#fe7d02] font-black">{identifier}</span></p>
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">Enter OTP</h2>
+                <p className="text-slate-500 font-semibold text-xs">Verification code sent to <span className="text-primary-650 font-black">{identifier}</span></p>
               </>
             )}
             {step === 'SET_PASSWORD' && (
               <>
-                <h1 className="text-4xl font-black text-zinc-900 tracking-tighter mb-3">Secure Account</h1>
-                <p className="text-zinc-500 font-medium text-sm">Create a strong password to protect your data.</p>
+                <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-none">Setup password</h2>
+                <p className="text-slate-500 font-semibold text-xs">Set a strong password for account safety.</p>
               </>
             )}
           </div>
 
-          <div className="relative z-10 py-2">
+          {/* Form component step */}
+          <div className="relative z-10">
             {step === 'IDENTIFIER' && (
               <IdentifierForm onNext={setStep} setIdentifier={setIdentifier} />
             )}
@@ -150,17 +167,18 @@ export default function LoginPage() {
             )}
           </div>
 
-          <p className="relative z-10 text-center text-zinc-500 pt-6 border-t border-black/5 text-sm font-medium animate-in fade-in duration-500 delay-[1200ms] fill-mode-both">
-            Interested in our partner program?{' '}
-            <Link to="/partner/register" className="text-[#fe7d02] font-black hover:text-[#e67002] transition-colors hover:underline decoration-2 underline-offset-4">
-              Register here
-            </Link>
-          </p>
-
         </div>
+
+        {/* Footer Login/Register text */}
+        <p className="text-center text-slate-500 text-xs font-semibold select-none pt-4 border-t border-slate-100/50 relative z-30">
+          Interested in our partner program?{' '}
+          <Link to="/partner/register" className="text-primary-600 font-black hover:text-primary-750 transition-colors">
+            Register here
+          </Link>
+        </p>
+
       </div>
+
     </div>
   );
 }
-
-
