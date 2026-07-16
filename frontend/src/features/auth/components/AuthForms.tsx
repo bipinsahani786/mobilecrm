@@ -9,7 +9,6 @@ import { useCheckUser, useSendOtp, useLogin, useVerifyOtp, useSetPassword } from
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
-// Skeleton removed for smoother transition
 
 // --- IDENTIFIER FORM ---
 export const IdentifierForm = ({ onNext, setIdentifier }: any) => {
@@ -43,19 +42,19 @@ export const IdentifierForm = ({ onNext, setIdentifier }: any) => {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-300 fill-mode-both">
-        <label htmlFor="identifier" className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 cursor-pointer select-none">Identity</label>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-full mx-auto">
+      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-200 fill-mode-both">
+        <label htmlFor="identifier" className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 cursor-pointer select-none">Identity</label>
         <Input 
           id="identifier"
           icon={<User size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl focus:ring-0 focus:border-[#fe7d02]/50 text-zinc-950 placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('identifier')} 
-          placeholder="Email or 10-digit Phone"
+          placeholder="Email or Phone"
           error={form.formState.errors.identifier?.message as string}
         />
       </div>
-      <Button type="submit" isLoading={checkUserMutation.isPending || sendOtpMutation.isPending} loadingText="Processing" className="w-full mt-2 bg-[#fe7d02] hover:bg-[#e67002] text-white shadow-neu-btn active:shadow-neu-btn-inset active:translate-y-0.5 hover:scale-[1.01] transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-500 fill-mode-both">
+      <Button type="submit" isLoading={checkUserMutation.isPending || sendOtpMutation.isPending} loadingText="Processing" className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-md shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300 fill-mode-both">
         <span>Continue</span>
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
       </Button>
@@ -87,40 +86,40 @@ export const LoginForm = ({ identifier, goBack }: any) => {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2 animate-in slide-in-from-right-4 fade-in duration-500 delay-300 fill-mode-both">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-full mx-auto">
+      <div className="space-y-2 animate-in slide-in-from-right-4 fade-in duration-500 delay-200 fill-mode-both">
         <div className="flex justify-between items-center px-1">
-          <label htmlFor="password" className="text-xs font-bold text-zinc-500 uppercase tracking-widest cursor-pointer select-none">Secret</label>
-          <a href="#" className="text-xs font-bold text-[#fe7d02] hover:text-[#e67002] transition-colors">Forgot Password?</a>
+          <label htmlFor="password" className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest cursor-pointer select-none">Secret</label>
+          <a href="#" className="text-xs font-bold text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">Forgot Password?</a>
         </div>
         <Input 
           id="password"
           type="password"
           icon={<Lock size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl focus:ring-0 focus:border-[#fe7d02]/50 text-zinc-950 placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('password')} 
           placeholder="••••••••"
           error={form.formState.errors.password?.message as string}
         />
       </div>
-      <div className="flex items-center px-1 justify-between animate-in slide-in-from-left-4 fade-in duration-500 delay-400 fill-mode-both">
+      <div className="flex items-center px-1 justify-between animate-in slide-in-from-left-4 fade-in duration-500 delay-300 fill-mode-both">
         <label className="flex items-center gap-3 cursor-pointer group select-none">
           <div className="relative flex items-center">
             <input type="checkbox" className="peer hidden" />
-            <div className="w-5.5 h-5.5 bg-[#f5f5f4] shadow-neu-light-inset rounded-lg border border-black/5 transition-all peer-checked:border-[#fe7d02]/40"></div>
-            <svg className="absolute w-3.5 h-3.5 text-[#fe7d02] opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100 transition-all duration-300 left-[4px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+            <div className="w-5 h-5 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-lg transition-all peer-checked:border-primary-500 peer-checked:bg-primary-500/10"></div>
+            <svg className="absolute w-3.5 h-3.5 text-primary-500 opacity-0 scale-50 peer-checked:opacity-100 peer-checked:scale-100 transition-all duration-300 left-[3px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <span className="text-sm font-semibold text-zinc-500 group-hover:text-zinc-700 transition-colors">Remember my account</span>
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">Remember my account</span>
         </label>
       </div>
-      <Button type="submit" isLoading={loginMutation.isPending} loadingText="Authenticating" className="w-full mt-2 bg-[#fe7d02] hover:bg-[#e67002] text-white shadow-neu-btn active:shadow-neu-btn-inset active:translate-y-0.5 hover:scale-[1.01] transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-500 fill-mode-both">
+      <Button type="submit" isLoading={loginMutation.isPending} loadingText="Authenticating" className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-lg shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-400 fill-mode-both">
         <span>Sign into Dashboard</span>
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
       </Button>
-      <div className="pt-6 text-center animate-in fade-in duration-500 delay-700 fill-mode-both">
-        <button type="button" onClick={goBack} className="text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors">Not your account? Go back</button>
+      <div className="pt-3 text-center animate-in fade-in duration-500 delay-500 fill-mode-both">
+        <button type="button" onClick={goBack} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Not your account? Go back</button>
       </div>
     </form>
   );
@@ -148,26 +147,26 @@ export const OtpForm = ({ identifier, onNext, goBack, setOtpToken }: any) => {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300 fill-mode-both">
-        <label htmlFor="otp" className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 cursor-pointer select-none">Secure Code</label>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-full mx-auto">
+      <div className="space-y-2 animate-in slide-in-from-bottom-4 fade-in duration-500 delay-200 fill-mode-both">
+        <label htmlFor="otp" className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest ml-1 cursor-pointer select-none">Secure Code</label>
         <Input 
           id="otp"
           type="text"
           icon={<KeyRound size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl text-center text-lg tracking-widest font-bold focus:ring-0 focus:border-[#fe7d02]/50 text-[#fe7d02] placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl text-center text-base tracking-widest font-black focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-primary-500 dark:text-primary-400 placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('otp')} 
           placeholder="123456"
           maxLength={6}
           error={form.formState.errors.otp?.message as string}
         />
       </div>
-      <Button type="submit" isLoading={verifyOtpMutation.isPending} loadingText="Verifying" className="w-full mt-2 bg-[#fe7d02] hover:bg-[#e67002] text-white shadow-neu-btn active:shadow-neu-btn-inset active:translate-y-0.5 hover:scale-[1.01] transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-500 fill-mode-both">
+      <Button type="submit" isLoading={verifyOtpMutation.isPending} loadingText="Verifying" className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white rounded-xl text-sm font-black uppercase tracking-wider shadow-lg shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none animate-in slide-in-from-bottom-4 fade-in duration-500 delay-300 fill-mode-both">
         <span>Verify OTP</span>
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
       </Button>
-      <div className="pt-6 text-center animate-in fade-in duration-500 delay-700 fill-mode-both">
-        <button type="button" onClick={goBack} className="text-xs font-bold text-zinc-500 hover:text-zinc-700 transition-colors">Wrong email/mobile? Go back</button>
+      <div className="pt-3 text-center animate-in fade-in duration-500 delay-400 fill-mode-both">
+        <button type="button" onClick={goBack} className="text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">Wrong email/mobile? Go back</button>
       </div>
     </form>
   );
@@ -198,48 +197,47 @@ export const SetPasswordForm = ({ otpToken }: any) => {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-300 fill-mode-both">
-        <label htmlFor="name" className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 cursor-pointer select-none">Full Name</label>
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 w-full mx-auto">
+      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-200 fill-mode-both">
+        <label htmlFor="name" className="text-xs font-black text-slate-550 dark:text-slate-400 uppercase tracking-widest ml-1 cursor-pointer select-none">Full Name</label>
         <Input 
           id="name"
           type="text"
           icon={<User size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl focus:ring-0 focus:border-[#fe7d02]/50 text-zinc-950 placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('name')} 
           placeholder="Your Name"
           error={form.formState.errors.name?.message as string}
         />
       </div>
-      <div className="space-y-2 animate-in slide-in-from-right-4 fade-in duration-500 delay-400 fill-mode-both">
-        <label htmlFor="new_password" className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 cursor-pointer select-none">New Password</label>
+      <div className="space-y-2 animate-in slide-in-from-right-4 fade-in duration-500 delay-300 fill-mode-both">
+        <label htmlFor="new_password" className="text-xs font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest ml-1 cursor-pointer select-none">New Password</label>
         <Input 
           id="new_password"
           type="password"
           icon={<Lock size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl focus:ring-0 focus:border-[#fe7d02]/50 text-zinc-950 placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('password')} 
           placeholder="••••••••"
           error={form.formState.errors.password?.message as string}
         />
       </div>
-      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-500 fill-mode-both">
-        <label htmlFor="password_confirmation" className="text-xs font-bold text-zinc-500 uppercase tracking-widest ml-1 cursor-pointer select-none">Confirm Password</label>
+      <div className="space-y-2 animate-in slide-in-from-left-4 fade-in duration-500 delay-400 fill-mode-both">
+        <label htmlFor="password_confirmation" className="text-xs font-black text-slate-555 dark:text-slate-400 uppercase tracking-widest ml-1 cursor-pointer select-none">Confirm Password</label>
         <Input 
           id="password_confirmation"
           type="password"
           icon={<Lock size={20} />}
-          className="py-4 bg-[#f5f5f4] border border-black/5 shadow-neu-light-inset rounded-2xl focus:ring-0 focus:border-[#fe7d02]/50 text-zinc-950 placeholder-zinc-400 transition-all duration-300"
+          className="h-12 bg-white dark:bg-[#151726] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-base font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 transition-all duration-300"
           {...form.register('password_confirmation')} 
           placeholder="••••••••"
           error={form.formState.errors.password_confirmation?.message as string}
         />
       </div>
-      <Button type="submit" isLoading={setPasswordMutation.isPending} loadingText="Processing" className="w-full mt-6 bg-[#fe7d02] hover:bg-[#e67002] text-white shadow-neu-btn active:shadow-neu-btn-inset active:translate-y-0.5 hover:scale-[1.01] transition-all duration-200 border-none animate-in slide-in-from-bottom-6 fade-in duration-500 delay-700 fill-mode-both">
+      <Button type="submit" isLoading={setPasswordMutation.isPending} loadingText="Processing" className="w-full h-12 bg-gradient-to-r from-primary-500 to-indigo-600 hover:from-primary-600 hover:to-indigo-700 text-white shadow-lg shadow-primary-500/15 active:translate-y-0.5 transition-all duration-200 border-none animate-in slide-in-from-bottom-6 fade-in duration-500 delay-500 fill-mode-both">
         <span>Complete Setup</span>
         <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
       </Button>
     </form>
   );
 };
-
