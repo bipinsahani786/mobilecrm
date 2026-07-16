@@ -167,11 +167,20 @@ class PayrollController extends BaseController
         try {
             $query = SalaryAdvance::with('user')->orderByDesc('given_date');
 
-            if ($request->has('user_id')) {
+            $user = $request->user();
+            $isManager = $user->hasRole(['admin', 'manager', 'Business Admin', 'Superadmin']);
+            
+            if (!$isManager) {
+                $query->where('user_id', $user->id);
+            } else if ($request->has('user_id')) {
                 $query->where('user_id', $request->input('user_id'));
             }
 
-            return $this->success($query->paginate(15), 'Salary advances retrieved');
+            if ($request->has('status')) {
+                $query->where('status', $request->input('status'));
+            }
+
+            return $this->success($query->get(), 'Salary advances retrieved');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -188,10 +197,33 @@ class PayrollController extends BaseController
         ]);
 
         try {
-            $advance = SalaryAdvance::create($request->only([
+            $data = $request->only([
                 'user_id', 'amount', 'given_date', 'deduct_in_month', 'notes'
-            ]));
+            ]);
+            $data['status'] = 'pending';
+
+            if (empty($data['deduct_in_month']) && !empty($data['given_date'])) {
+                $data['deduct_in_month'] = date('Y-m', strtotime($data['given_date']));
+            }
+
+            $advance = SalaryAdvance::create($data);
             return $this->success($advance, 'Salary advance recorded', 201);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 422);
+        }
+    }
+
+    public function updateSalaryAdvanceStatus(Request $request, SalaryAdvance $salaryAdvance)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,rejected'
+        ]);
+
+        try {
+            $salaryAdvance->update([
+                'status' => $request->status,
+            ]);
+            return $this->success($salaryAdvance->fresh(), 'Salary advance status updated');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 422);
         }

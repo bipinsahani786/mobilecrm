@@ -16,7 +16,7 @@ class LeaveRequestController extends Controller
 
         // If the user is just a regular staff member, only show their own leave requests
         $user = $request->user();
-        $isManager = $user->hasRole(['admin', 'manager'], app('current_business_id'));
+        $isManager = $user->hasRole(['admin', 'manager', 'Business Admin', 'Superadmin']);
         
         if (!$isManager) {
             $query->where('user_id', $user->id);
@@ -118,7 +118,7 @@ class LeaveRequestController extends Controller
         ]);
 
         $user = $request->user();
-        $isManager = $user->hasRole(['admin', 'manager'], app('current_business_id'));
+        $isManager = $user->hasRole(['admin', 'manager', 'Business Admin', 'Superadmin']);
 
         if (!$isManager) {
             return response()->json(['message' => 'Unauthorized. Only managers can approve leaves.'], 403);

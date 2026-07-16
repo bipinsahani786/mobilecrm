@@ -76,4 +76,59 @@ class DashboardController extends Controller
             ]
         ]);
     }
+
+    public function staffEarnings(Request $request)
+    {
+        $user = $request->user();
+        $businessId = app('current_business_id');
+        $month = Carbon::now()->format('Y-m');
+
+        // Use PayrollService to calculate the draft payroll for this month
+        $payrollService = app(\App\Services\Business\PayrollService::class);
+        $draftPayroll = $payrollService->generateForEmployee($user->id, $month);
+
+        $today = Carbon::today();
+        
+        // 1. Today's Earnings
+        $todayAttendance = Attendance::where('user_id', $user->id)
+            ->whereDate('date', $today)
+            ->first();
+            
+        $todayCommission = \App\Models\SaleCommission::where('user_id', $user->id)
+            ->whereDate('created_at', $today)
+            ->sum('commission_amount');
+
+        $todayEarnings = 0;
+        if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day', 'holiday'])) { // assuming holiday is paid, but let's just use per_day_salary
+            $multiplier = ($todayAttendance->status === 'half_day') ? 0.5 : 1;
+            $todayEarnings = ($draftPayroll->per_day_salary * $multiplier);
+        }
+        $todayEarnings += $todayCommission;
+
+        // 2. This Month's Earnings (Earnings before advance deductions)
+        $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+
+        // 3. Advance Taken This Month
+        $advanceTaken = $draftPayroll->advance_deduction;
+
+        // 4. Total Unpaid Dues
+        // Sum of all Confirmed payrolls that are NOT paid
+        $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)
+            ->where('status', 'confirmed')
+            ->sum('final_salary');
+
+        // Add current month's calculated earnings
+        // final_salary already subtracts advances for the current month!
+        $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'today_earnings' => round($todayEarnings, 2),
+                'monthly_earnings' => round($monthlyEarnings, 2),
+                'advance_taken' => round($advanceTaken, 2),
+                'total_dues' => round($totalDues, 2),
+            ]
+        ]);
+    }
 }

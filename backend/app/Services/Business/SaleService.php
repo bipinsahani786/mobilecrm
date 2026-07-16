@@ -48,7 +48,22 @@ class SaleService
             });
         }
 
-        return $query->paginate($perPage);
+        $aggregatesQuery = clone $query;
+        
+        $totalRevenue = (clone $aggregatesQuery)->sum('final_amount');
+        
+        // Sum of all Udhar payments for these sales
+        $totalUdhar = \App\Models\Payment::whereIn('sale_id', (clone $aggregatesQuery)->select('id'))
+            ->where('payment_mode', 'Udhar')
+            ->sum('amount');
+
+        return [
+            'paginator' => $query->paginate($perPage),
+            'aggregates' => [
+                'total_revenue' => $totalRevenue,
+                'total_udhar' => $totalUdhar,
+            ]
+        ];
     }
 
     public function createSale(array $data)

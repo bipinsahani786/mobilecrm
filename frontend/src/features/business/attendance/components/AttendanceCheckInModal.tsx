@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useCheckIn, useCheckOut, useTodayAttendance } from '../api/useAttendance';
+import api from '@/lib/api';
+import axios from 'axios';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { Camera, MapPin, Loader2, CheckCircle } from 'lucide-react';
@@ -20,6 +22,7 @@ export const AttendanceCheckInModal = ({ isOpen, onClose }: AttendanceCheckInMod
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isCameraOn, setIsCameraOn] = useState(false);
@@ -90,29 +93,52 @@ export const AttendanceCheckInModal = ({ isOpen, onClose }: AttendanceCheckInMod
     );
   };
 
-  const handleAction = () => {
+  const handleAction = async () => {
     if (!photo) {
       toast.error('Please take a photo first');
       return;
     }
 
-    const formData = new FormData();
-    formData.append('photo', photo);
-    if (location) {
-      formData.append('latitude', location.lat.toString());
-      formData.append('longitude', location.lng.toString());
-    }
+    try {
+      setIsUploading(true);
+      
+      // 1. Get Presigned URL
+      const { data: presignData } = await api.post('/upload/presigned-url', {
+        extension: 'jpg',
+        folder: 'attendance/checks'
+      });
+      
+      const { upload_url, path } = presignData.data;
 
-    const isCheckedIn = todayStatus && todayStatus.check_in_time;
-    const mutation = isCheckedIn ? checkOutMutation : checkInMutation;
+      // 2. Upload to S3/R2 directly
+      await axios.put(upload_url, photo, {
+        headers: {
+          'Content-Type': photo.type
+        }
+      });
 
-    mutation.mutate(formData, {
-      onSuccess: () => {
-        onClose();
-        setPhoto(null);
-        setPhotoPreview(null);
+      // 3. Complete check-in/out
+      const payload: any = { photo: path };
+      if (location) {
+        payload.latitude = location.lat;
+        payload.longitude = location.lng;
       }
-    });
+
+      const isCheckedIn = todayStatus && todayStatus.check_in_time;
+      const mutation = isCheckedIn ? checkOutMutation : checkInMutation;
+
+      mutation.mutate(payload, {
+        onSuccess: () => {
+          onClose();
+          setPhoto(null);
+          setPhotoPreview(null);
+        }
+      });
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to process attendance');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // Clean up camera on close
@@ -208,10 +234,16 @@ export const AttendanceCheckInModal = ({ isOpen, onClose }: AttendanceCheckInMod
             <Button 
               className="w-full h-12 text-lg" 
               onClick={handleAction}
-              disabled={!photo || checkInMutation.isPending || checkOutMutation.isPending}
-              isLoading={checkInMutation.isPending || checkOutMutation.isPending}
+              disabled={!photo || isUploading || checkInMutation.isPending || checkOutMutation.isPending}
             >
-              {isCheckedIn ? 'Check Out' : 'Check In'}
+              {(isUploading || checkInMutation.isPending || checkOutMutation.isPending) ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {isUploading ? 'Uploading Photo...' : 'Processing...'}
+                </>
+              ) : (
+                isCheckedIn ? 'Check Out' : 'Check In'
+              )}
             </Button>
           </>
         )}

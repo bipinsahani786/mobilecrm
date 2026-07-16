@@ -182,7 +182,6 @@ export function Sidebar({ className }: { className?: string }) {
   const location = useLocation();
   const { isSidebarCollapsed, setSidebarCollapsed } = useLayoutStore();
   const user = useAuthStore((state) => state.user);
-  const isProfileLoading = useAuthStore((state) => state.isProfileLoading);
   const { appName, appLogo } = useAppStore();
   const { activeBusiness } = useTenantStore();
   const { hasPermission } = usePermissions();
@@ -213,18 +212,64 @@ export function Sidebar({ className }: { className?: string }) {
 
   const filteredStaffGroups = [];
 
-  if (hasPermission('manage_sales') || hasPermission('manage_inventory')) {
+  if (hasPermission('view_dashboard')) {
+    filteredStaffGroups.push({
+      title: "MAIN",
+      items: [
+        { name: "BUSINESS DASHBOARD", href: "/dashboard", icon: LayoutDashboard }
+      ]
+    });
+  }
+
+  if (hasPermission('manage_sales') || hasPermission('manage_inventory') || hasPermission('manage_expenses')) {
     const operationsItems = [];
     if (hasPermission('manage_sales')) {
       operationsItems.push({ name: "POS & BILLING", href: "/pos", icon: Calculator });
       operationsItems.push({ name: "INVOICES", href: "/invoices", icon: FileText });
     }
     if (hasPermission('manage_inventory')) {
-      operationsItems.push({ name: "INVENTORY", href: "/items", icon: Package });
+      operationsItems.push({ name: "ITEMS", href: "/items", icon: Package });
+      operationsItems.push({ name: "CATEGORIES", href: "/categories", icon: Building2 });
+      operationsItems.push({ name: "BRANDS", href: "/brands", icon: FileStack });
+    }
+    if (hasPermission('manage_expenses')) {
+      operationsItems.push({ name: "FINANCE LEDGER", href: "/finance", icon: Wallet });
+      operationsItems.push({ name: "EXPENSES", href: "/expenses", icon: Receipt });
     }
     filteredStaffGroups.push({
       title: "OPERATIONS",
       items: operationsItems
+    });
+  }
+
+  if (hasPermission('manage_customers') || hasPermission('manage_suppliers')) {
+    const relationshipItems = [];
+    if (hasPermission('manage_customers')) {
+      relationshipItems.push({ name: "CUSTOMERS", href: "/customers", icon: Users });
+    }
+    if (hasPermission('manage_suppliers')) {
+      relationshipItems.push({ name: "SUPPLIERS", href: "/suppliers", icon: UserPlus });
+    }
+    filteredStaffGroups.push({
+      title: "RELATIONSHIPS",
+      items: relationshipItems
+    });
+  }
+
+  if (hasPermission('manage_staff') || hasPermission('manage_payroll') || hasPermission('view_attendance')) {
+    const hrItems = [];
+    if (hasPermission('manage_staff')) {
+      hrItems.push({ name: "STAFF", href: "/staff", icon: Users });
+    }
+    if (hasPermission('view_attendance')) {
+      hrItems.push({ name: "ATTENDANCE", href: "/attendance", icon: ClipboardList });
+    }
+    if (hasPermission('manage_payroll')) {
+      hrItems.push({ name: "PAYROLL", href: "/payroll", icon: Wallet });
+    }
+    filteredStaffGroups.push({
+      title: "STAFF & HR (MANAGEMENT)",
+      items: hrItems
     });
   }
 
@@ -282,38 +327,7 @@ export function Sidebar({ className }: { className?: string }) {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar py-4 space-y-6">
-          {isProfileLoading ? (
-            Array.from({ length: 3 }).map((_, idx) => (
-              <div key={idx} className="px-3 space-y-3 animate-pulse">
-                {!isSidebarCollapsed ? (
-                  <div className="flex items-center gap-2 mb-2 px-2">
-                    <div className="h-2.5 w-16 bg-slate-200 dark:bg-zinc-800 rounded" />
-                    <div className="flex-1 h-px bg-slate-100 dark:bg-white/5" />
-                  </div>
-                ) : (
-                  idx > 0 && <div className="w-6 h-px bg-slate-200 dark:bg-white/10 mx-auto mb-3" />
-                )}
-                
-                <div className="space-y-1.5">
-                  {Array.from({ length: idx === 0 ? 2 : 3 }).map((_, itemIdx) => (
-                    <div 
-                      key={itemIdx} 
-                      className={cn(
-                        "flex items-center rounded-xl",
-                        isSidebarCollapsed ? "justify-center h-10 w-10 mx-auto" : "py-2.5 px-3"
-                      )}
-                    >
-                      <div className="h-4 w-4 rounded bg-slate-200 dark:bg-zinc-800 shrink-0" />
-                      {!isSidebarCollapsed && (
-                        <div className="h-3.5 w-24 ml-3 rounded bg-slate-100 dark:bg-zinc-850" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))
-          ) : (
-            activeMenuGroups.map((group, idx) => (
+            {activeMenuGroups.map((group, idx) => (
               <div key={idx} className="px-3">
                 {/* Group Header */}
                 {!isSidebarCollapsed ? (
@@ -387,8 +401,7 @@ export function Sidebar({ className }: { className?: string }) {
                   })}
                 </div>
               </div>
-            ))
-          )}
+            ))}
         </nav>
 
         {/* Logout Button */}

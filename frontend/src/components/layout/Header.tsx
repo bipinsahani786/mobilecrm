@@ -398,6 +398,27 @@ export function Header({ className }: { className?: string }) {
             {currentHeaderTitle}
           </span>
         </div>
+
+        {/* Impersonation Banner */}
+        {useAuthStore((state) => !!state.originalToken) && (
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-300 shadow-sm ml-1 sm:ml-2">
+            <User className="h-4 w-4 shrink-0" />
+            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest leading-none">
+              Impersonating {user?.name}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                useAuthStore.getState().leaveImpersonation();
+                window.location.href = '/staff'; 
+              }}
+              className="h-6 px-2 sm:ml-1 text-[9px] bg-white hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold uppercase tracking-widest rounded-full transition-colors"
+            >
+              Leave
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1 sm:gap-2 shrink-0">

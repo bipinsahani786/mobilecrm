@@ -118,4 +118,89 @@ class StaffController extends BaseController
             return $this->error($e->getMessage(), 500);
         }
     }
+
+    public function earnings($id)
+    {
+        try {
+            $user = \App\Models\User::findOrFail($id);
+            $businessId = app('current_business_id');
+            $month = \Carbon\Carbon::now()->format('Y-m');
+
+            $payrollService = app(\App\Services\Business\PayrollService::class);
+            $draftPayroll = $payrollService->generateForEmployee($user->id, $month);
+
+            $today = \Carbon\Carbon::today();
+            
+            $todayAttendance = \App\Models\Attendance::where('user_id', $user->id)
+                ->whereDate('date', $today)
+                ->first();
+                
+            $todayCommission = \App\Models\SaleCommission::where('user_id', $user->id)
+                ->whereDate('created_at', $today)
+                ->sum('commission_amount');
+
+            $todayEarnings = 0;
+            if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day', 'holiday'])) {
+                $multiplier = ($todayAttendance->status === 'half_day') ? 0.5 : 1;
+                $todayEarnings = ($draftPayroll->per_day_salary * $multiplier);
+            }
+            $todayEarnings += $todayCommission;
+
+            $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+            $advanceTaken = $draftPayroll->advance_deduction;
+
+            $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)
+                ->where('status', 'confirmed')
+                ->sum('final_salary');
+
+            $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'today_earnings' => round($todayEarnings, 2),
+                    'monthly_earnings' => round($monthlyEarnings, 2),
+                    'advance_taken' => round($advanceTaken, 2),
+                    'total_dues' => round($totalDues, 2),
+                ]
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+    public function impersonate($id)
+    {
+        try {
+            $staffUser = \App\Models\User::findOrFail($id);
+            $currentUser = request()->user();
+            
+            if ($currentUser->hasRole(['staff', 'manager'])) {
+                return $this->error('You do not have permission to impersonate.', 403);
+            }
+
+            $businessId = app('current_business_id');
+            $exists = $staffUser->businesses()->where('business_id', $businessId)->exists();
+            
+            if (!$exists) {
+                return $this->error('Staff does not belong to this business.', 403);
+            }
+
+            $token = $staffUser->createToken('impersonation-token')->plainTextToken;
+
+            $staffUser->load('roles', 'businesses');
+            
+            $userData = $staffUser->toArray();
+            $userData['permissions'] = $staffUser->getAllPermissions()->pluck('name');
+
+            return response()->json([
+                'success' => true,
+                'token' => $token,
+                'user' => $userData,
+                'message' => 'Successfully impersonated staff.'
+            ]);
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
 }

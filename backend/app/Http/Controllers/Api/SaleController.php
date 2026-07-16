@@ -39,8 +39,27 @@ class SaleController extends BaseController
             $endDate = $request->input('end_date');
             $hasUdhar = $request->input('has_udhar');
 
-            $paginator = $this->saleService->getSales($perPage, $search, $paymentMode, $startDate, $endDate, $hasUdhar);
-            return $this->paginated($paginator, 'Sales retrieved successfully');
+            $result = $this->saleService->getSales($perPage, $search, $paymentMode, $startDate, $endDate, $hasUdhar);
+            $paginator = $result['paginator'];
+            $aggregates = $result['aggregates'];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sales retrieved successfully',
+                'data' => $paginator->items(),
+                'meta' => array_merge([
+                    'current_page' => $paginator->currentPage(),
+                    'last_page' => $paginator->lastPage(),
+                    'per_page' => $paginator->perPage(),
+                    'total' => $paginator->total(),
+                ], $aggregates),
+                'links' => [
+                    'first' => $paginator->url(1),
+                    'last' => $paginator->url($paginator->lastPage()),
+                    'prev' => $paginator->previousPageUrl(),
+                    'next' => $paginator->nextPageUrl(),
+                ],
+            ]);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }

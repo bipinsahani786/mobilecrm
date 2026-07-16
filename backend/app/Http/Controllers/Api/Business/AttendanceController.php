@@ -50,7 +50,7 @@ class AttendanceController extends BaseController
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'photo' => 'required|image|max:5120', // 5MB max
+            'photo' => 'required|string',
         ]);
 
         try {
@@ -66,7 +66,7 @@ class AttendanceController extends BaseController
         $request->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'photo' => 'required|image|max:5120',
+            'photo' => 'required|string',
         ]);
 
         try {
@@ -128,6 +128,16 @@ class AttendanceController extends BaseController
         try {
             $attendance = $this->attendanceService->approveAttendance($id);
             return $this->success($attendance, 'Attendance approved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+    public function unapprove(int $id)
+    {
+        try {
+            $attendance = $this->attendanceService->unapproveAttendance($id);
+            return $this->success($attendance, 'Attendance unapproved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }

@@ -54,24 +54,22 @@ export const getLeaveColumns = ({
         if (row.status !== 'pending') return null;
         return (
           <div className="flex items-center gap-2 justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+            <button
               onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ id: row.id, status: 'approved' }); }}
-              isLoading={updateStatusMutation.isPending}
+              disabled={updateStatusMutation.isPending}
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
             >
-              <Check className="w-4 h-4 mr-1" /> Approve
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+              <Check className="w-3.5 h-3.5" />
+              <span>Approve</span>
+            </button>
+            <button
               onClick={(e) => { e.stopPropagation(); updateStatusMutation.mutate({ id: row.id, status: 'rejected' }); }}
-              isLoading={updateStatusMutation.isPending}
+              disabled={updateStatusMutation.isPending}
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-lg transition-colors active:scale-95 disabled:opacity-50"
             >
-              <X className="w-4 h-4 mr-1" /> Reject
-            </Button>
+              <X className="w-3.5 h-3.5" />
+              <span>Reject</span>
+            </button>
           </div>
         );
       }
