@@ -152,6 +152,7 @@ export default function InvoicesPage() {
                   { value: 'Cash', label: 'Cash' },
                   { value: 'Split', label: 'Split' },
                   { value: 'EMI', label: 'EMI / Finance' },
+                  { value: 'Udhar', label: 'Udhar (Credit)' },
                 ]}
               />
             </div>
