@@ -97,18 +97,29 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex w-full items-center justify-between border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all text-left shadow-sm font-medium",
+          "flex w-full items-center justify-between border select-none transition-all duration-200 text-left shadow-sm cursor-pointer",
           controlSize === 'sm' 
-            ? "h-9 px-3 py-1.5 text-xs rounded-xl" 
-            : "h-11 px-4 py-2.5 text-sm rounded-xl",
+            ? "h-9 px-3 text-xs rounded-xl font-medium" 
+            : "h-11 px-4 text-sm rounded-xl font-medium",
+          isOpen
+            ? "border-primary-500 ring-2 ring-primary-500/20 bg-white dark:bg-zinc-900"
+            : "border-slate-300 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-primary-400 dark:hover:border-primary-500/60",
           error && "border-rose-500 focus:ring-rose-500/10 focus:border-rose-500",
           className
         )}
       >
-        <span className={cn("truncate", !selectedOption && !value && "text-slate-400 dark:text-zinc-500")}>
-          {selectedOption ? selectedOption.label : (value ? String(value) : placeholder)}
+        <span className={cn(
+          "truncate",
+          selectedOption && selectedOption.value !== ''
+            ? "text-black dark:text-white font-bold"
+            : "text-slate-700 dark:text-zinc-300 font-semibold"
+        )}>
+          {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={cn("h-4 w-4 text-slate-400 shrink-0 transition-transform duration-200", isOpen && "rotate-180")} />
+        <ChevronDown className={cn(
+          "h-4 w-4 text-slate-500 shrink-0 transition-transform duration-200", 
+          isOpen && "rotate-180 text-primary-500"
+        )} />
       </button>
 
       {isOpen && (
