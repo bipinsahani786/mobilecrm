@@ -3,6 +3,7 @@ import { useForm, useFieldArray, type SubmitHandler, Controller } from 'react-ho
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { SearchableSelect } from '@/components/ui/searchable-select';
 import { useCreateSupplierPurchase, useSupplier } from '../api/useSuppliers';
 import { useInventory } from '@/features/business/inventory/api/useInventory';
@@ -265,14 +266,20 @@ export default function AddPurchasePage() {
                   {errors.paid_amount && <span className="text-red-500 text-xs">{errors.paid_amount.message}</span>}
                 </div>
                 
-                <div className="space-y-2">
+                 <div className="space-y-2">
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Purchase Date *
                   </label>
-                  <Input 
-                    type="date"
-                    {...register('purchase_date')}
-                    className="h-11 rounded-xl bg-slate-50/50 dark:bg-white/[0.02]"
+                  <Controller
+                    name="purchase_date"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        className="w-full"
+                      />
+                    )}
                   />
                   {errors.purchase_date && <span className="text-red-500 text-xs">{errors.purchase_date.message}</span>}
                 </div>
@@ -281,10 +288,16 @@ export default function AddPurchasePage() {
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Due Date
                   </label>
-                  <Input 
-                    type="date"
-                    {...register('due_date')}
-                    className="h-11 rounded-xl bg-slate-50/50 dark:bg-white/[0.02]"
+                  <Controller
+                    name="due_date"
+                    control={control}
+                    render={({ field }) => (
+                      <DatePicker
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                        className="w-full"
+                      />
+                    )}
                   />
                   {errors.due_date && <span className="text-red-500 text-xs">{errors.due_date.message}</span>}
                 </div>

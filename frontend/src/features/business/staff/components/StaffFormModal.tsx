@@ -6,6 +6,7 @@ import { useCreateStaff, useUpdateStaff } from '../api/useStaff';
 import { useGetPayrollComponents } from '../../payroll/api/usePayrollComponents';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Button } from '@/components/ui/button';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import { InfoTooltip } from '@/components/ui/info-tooltip';
@@ -233,7 +234,22 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
                 <label className="block text-sm font-medium">Join Date</label>
                 <InfoTooltip text="Official date the employee started working at this business." />
               </div>
-              <Input {...register('join_date')} type="date" error={errors.join_date?.message} />
+              <Controller
+                name="join_date"
+                control={control}
+                render={({ field }) => (
+                  <DatePicker
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    className="w-full"
+                  />
+                )}
+              />
+              {errors.join_date && (
+                <p className="text-xs text-red-500 mt-1 ml-1 font-medium">
+                  {errors.join_date.message}
+                </p>
+              )}
             </div>
 
             {(!availableComponents || availableComponents.length === 0) && (

@@ -159,43 +159,56 @@ export default function StaffPage() {
         {/* Search & Filter Bar */}
         <div className="relative z-30">
           <FilterContainer className="w-full flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
-            <div className="flex flex-col sm:flex-row gap-3 flex-1">
-              <FilterSearch
-                value={search}
-                onChange={(val) => setSearch(val)}
-                placeholder="Search staff by name or phone..."
-                wrapperClassName="flex-1 min-w-[200px] h-10 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02]"
-              />
+            <div className="flex flex-col md:flex-row md:items-center gap-3 flex-grow">
+              {/* Row 1: Search + Export on mobile, or normal search on desktop */}
+              <div className="flex items-center gap-2 w-full md:w-auto flex-grow">
+                <FilterSearch
+                  value={search}
+                  onChange={(val) => setSearch(val)}
+                  placeholder="Search staff by name or phone..."
+                  wrapperClassName="flex-grow h-10 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02]"
+                />
+                <button
+                  onClick={handleExport}
+                  className="inline-flex md:hidden items-center justify-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 shrink-0 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-primary-500" />
+                  <span>Export</span>
+                </button>
+              </div>
 
-              <FilterSelect
-                value={roleFilter}
-                onChange={setRoleFilter}
-                placeholder="All Roles"
-                options={[
-                  { value: 'staff', label: 'Staff (Sales)' },
-                  { value: 'manager', label: 'Manager' }
-                ]}
-                wrapperClassName="w-full sm:w-44 shrink-0"
-              />
+              {/* Row 2: both filter dropdowns side-by-side on mobile, or next to search on desktop */}
+              <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+                <FilterSelect
+                  value={roleFilter}
+                  onChange={setRoleFilter}
+                  placeholder="All Roles"
+                  options={[
+                    { value: 'staff', label: 'Staff (Sales)' },
+                    { value: 'manager', label: 'Manager' }
+                  ]}
+                  wrapperClassName="flex-grow md:flex-none w-1/2 md:w-44 shrink-0"
+                />
 
-              <FilterSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                placeholder="All Statuses"
-                options={[
-                  { value: 'active', label: 'Active' },
-                  { value: 'inactive', label: 'Inactive' }
-                ]}
-                wrapperClassName="w-full sm:w-44 shrink-0"
-              />
+                <FilterSelect
+                  value={statusFilter}
+                  onChange={setStatusFilter}
+                  placeholder="All Statuses"
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' }
+                  ]}
+                  wrapperClassName="flex-grow md:flex-none w-1/2 md:w-44 shrink-0"
+                />
 
-              <button
-                onClick={handleExport}
-                className="inline-flex items-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 shrink-0 cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5 text-primary-500" />
-                <span>Export</span>
-              </button>
+                <button
+                  onClick={handleExport}
+                  className="hidden md:inline-flex items-center gap-2 h-10 px-4 text-xs font-black uppercase tracking-widest bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 active:scale-95 shrink-0 cursor-pointer"
+                >
+                  <Download className="w-3.5 h-3.5 text-primary-500" />
+                  <span>Export</span>
+                </button>
+              </div>
             </div>
 
             {(search || roleFilter || statusFilter) && (

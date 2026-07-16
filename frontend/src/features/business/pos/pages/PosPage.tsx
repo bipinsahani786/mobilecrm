@@ -7,6 +7,7 @@ import { ProductSearchPane } from '../components/ProductSearchPane';
 import { CartPane } from '../components/CartPane';
 import type { CartItem } from '../schemas/saleSchema';
 import { toast } from 'sonner';
+import { Search, ShoppingBag } from 'lucide-react';
 
 export default function PosPage() {
   const [searchParams] = useSearchParams();
@@ -22,6 +23,7 @@ export default function PosPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCheckoutActive, setIsCheckoutActive] = useState(false);
+  const [activeTab, setActiveTab] = useState<'products' | 'cart'>('products');
 
   // Debounce search
   useEffect(() => {
@@ -212,6 +214,7 @@ export default function PosPage() {
       {/* Main split pane */}
       <div className="flex-1 flex overflow-hidden">
         <ProductSearchPane
+          className={`${activeTab === 'products' ? 'flex' : 'hidden'} lg:flex`}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           searchResults={searchResults}
@@ -220,6 +223,7 @@ export default function PosPage() {
         />
 
         <CartPane
+          className={`${activeTab === 'cart' ? 'flex' : 'hidden'} lg:flex`}
           cart={cart}
           cartTotal={cartTotal}
           updateQuantity={updateQuantity}
@@ -227,6 +231,31 @@ export default function PosPage() {
           removeFromCart={removeFromCart}
           onCheckout={() => setIsCheckoutActive(true)}
         />
+      </div>
+
+      {/* Floating Mobile Tab Bar */}
+      <div className="lg:hidden h-14 border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#111118] flex items-center justify-around px-4 relative z-30 shrink-0 select-none">
+        <button
+          onClick={() => setActiveTab('products')}
+          className={`flex flex-col items-center gap-0.5 text-[10px] font-black uppercase tracking-wider transition-colors ${activeTab === 'products' ? 'text-primary-500' : 'text-slate-400 dark:text-slate-500'}`}
+        >
+          <Search className="w-5 h-5" />
+          <span>Products</span>
+        </button>
+        <button
+          onClick={() => setActiveTab('cart')}
+          className={`flex flex-col items-center gap-0.5 text-[10px] font-black uppercase tracking-wider transition-colors relative ${activeTab === 'cart' ? 'text-primary-500' : 'text-slate-400 dark:text-slate-500'}`}
+        >
+          <div className="relative">
+            <ShoppingBag className="w-5 h-5" />
+            {cart.length > 0 && (
+              <span className="absolute -top-1.5 -right-2 text-[9px] font-black text-white bg-primary-500 w-4 h-4 rounded-full flex items-center justify-center border border-white dark:border-[#111118] shadow-sm scale-90 animate-bounce">
+                {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              </span>
+            )}
+          </div>
+          <span>Cart (₹{cartTotal.toLocaleString('en-IN')})</span>
+        </button>
       </div>
     </div>
   );

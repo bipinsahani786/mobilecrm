@@ -10,13 +10,14 @@ interface CartPaneProps {
   updatePrice: (id: string, price: number) => void;
   removeFromCart: (id: string) => void;
   onCheckout: () => void;
+  className?: string;
 }
 
-export function CartPane({ cart, cartTotal, updateQuantity, updatePrice, removeFromCart, onCheckout }: CartPaneProps) {
+export function CartPane({ className, cart, cartTotal, updateQuantity, updatePrice, removeFromCart, onCheckout }: CartPaneProps) {
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="w-1/3 flex flex-col bg-white dark:bg-[#111118] border-l border-slate-200 dark:border-white/5">
+    <div className={`w-full lg:w-1/3 flex flex-col bg-white dark:bg-[#111118] border-l border-slate-200 dark:border-white/5 ${className || ''}`}>
 
       {/* Header */}
       <div className="px-4 py-3 border-b border-slate-200 dark:border-white/5 flex items-center justify-between">

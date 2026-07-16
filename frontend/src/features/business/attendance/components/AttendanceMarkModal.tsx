@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { useMarkAttendance, useImportAttendance } from '../api/useAttendance';
 import { Modal } from '@/components/ui/modal';
 import { Input } from '@/components/ui/input';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { FilterSelect } from '@/components/ui/filter-controls';
@@ -85,7 +86,17 @@ export const AttendanceMarkModal = ({ isOpen, onClose, staffList }: AttendanceMa
 
         <div>
           <label className="block text-sm font-medium mb-1">Date</label>
-          <Input {...register('date', { required: true })} type="date" />
+          <Controller
+            name="date"
+            control={control}
+            render={({ field }) => (
+              <DatePicker
+                value={field.value}
+                onChange={field.onChange}
+                className="w-full"
+              />
+            )}
+          />
         </div>
 
         <div>

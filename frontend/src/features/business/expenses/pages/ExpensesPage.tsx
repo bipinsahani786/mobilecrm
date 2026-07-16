@@ -9,6 +9,7 @@ import { useExpenses, useCreateExpense, useUpdateExpense, useDeleteExpense, useE
 import type { Expense } from '../schemas';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { CustomSelect } from '@/components/ui/CustomSelect';
+import { DatePicker } from '@/components/ui/DatePicker';
 const ExpensesPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -144,9 +145,8 @@ const ExpensesPage = () => {
 
         <ExpenseAnalytics onRecordExpense={() => handleOpenModal()} dateFilter={dateFilter} />
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1 items-center">
+        <div className="flex flex-col md:flex-row gap-4 justify-start md:gap-8 lg:gap-12 items-stretch md:items-center bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1 md:flex-initial md:items-center">
             {/* Search - Small Width */}
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -173,23 +173,23 @@ const ExpensesPage = () => {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center md:flex-initial">
             {/* Manual Date Range */}
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
+            <div className="flex items-center gap-1.5 justify-start">
+              <DatePicker
                 value={startDate}
-                onChange={(e) => { setStartDate(e.target.value); setDateFilter('all'); }}
-                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-                title="Start Date"
+                onChange={(val) => { setStartDate(val); setDateFilter('all'); }}
+                placeholder="Start Date"
+                className="w-[155px]"
+                align="left-0 md:right-0 md:left-auto"
               />
-              <span className="text-slate-400 text-xs">to</span>
-              <input
-                type="date"
+              <span className="text-slate-400 text-xs shrink-0">to</span>
+              <DatePicker
                 value={endDate}
-                onChange={(e) => { setEndDate(e.target.value); setDateFilter('all'); }}
-                className="h-10 px-3 text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all cursor-pointer"
-                title="End Date"
+                onChange={(val) => { setEndDate(val); setDateFilter('all'); }}
+                placeholder="End Date"
+                className="w-[155px]"
+                align="right"
               />
             </div>
 

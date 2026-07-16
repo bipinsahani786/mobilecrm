@@ -19,6 +19,8 @@ import { getAttendanceColumns } from '../constants/attendanceColumns';
 import { useApproveAttendance } from '../api/useAttendance';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { FilterContainer, FilterSelect, FilterReset } from '@/components/ui/filter-controls';
+import { DatePicker } from '@/components/ui/DatePicker';
+import { MonthPicker } from '@/components/ui/MonthPicker';
 
 export default function AttendancePage() {
   const [dateRange, setDateRange] = useState({
@@ -267,22 +269,21 @@ export default function AttendancePage() {
                   <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
                     From Date
                   </label>
-                  <input 
-                    type="date" 
+                  <DatePicker 
                     value={dateRange.from} 
-                    onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
+                    onChange={(val) => setDateRange(prev => ({ ...prev, from: val }))}
+                    className="w-full"
                   />
                 </div>
                 <div className="w-full sm:w-48 shrink-0">
                   <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
                     To Date
                   </label>
-                  <input 
-                    type="date" 
+                  <DatePicker 
                     value={dateRange.to} 
-                    onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                    className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
+                    onChange={(val) => setDateRange(prev => ({ ...prev, to: val }))}
+                    className="w-full"
+                    align="right"
                   />
                 </div>
               </div>
@@ -291,11 +292,10 @@ export default function AttendancePage() {
                 <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
                   Month
                 </label>
-                <input 
-                  type="month" 
+                <MonthPicker 
                   value={selectedMonth} 
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#111115] text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm placeholder:font-medium placeholder:text-slate-400"
+                  onChange={setSelectedMonth}
+                  className="w-full"
                 />
               </div>
             )}

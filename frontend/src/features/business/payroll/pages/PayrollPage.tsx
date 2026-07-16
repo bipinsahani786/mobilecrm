@@ -14,6 +14,7 @@ import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { FilterContainer, FilterSelect, FilterReset } from '@/components/ui/filter-controls';
 import { useStaff } from '../../staff/api/useStaff';
 import { formatCurrency } from '@/lib/formatters';
+import { MonthPicker } from '@/components/ui/MonthPicker';
 
 export default function PayrollPage() {
   const navigate = useNavigate();
@@ -128,11 +129,10 @@ export default function PayrollPage() {
               <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
                 Select Month
               </label>
-              <input 
-                type="month" 
+              <MonthPicker 
                 value={selectedMonth} 
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="w-full h-10 px-3 text-xs font-bold rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all shadow-sm"
+                onChange={setSelectedMonth}
+                className="w-full"
               />
             </div>
 
