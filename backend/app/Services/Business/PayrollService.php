@@ -122,6 +122,7 @@ class PayrollService
         $advanceDeduction = SalaryAdvance::where('user_id', $userId)
             ->where('deduct_in_month', $month)
             ->where('is_deducted', false)
+            ->where('status', 'approved')
             ->sum('amount');
 
         // Final salary

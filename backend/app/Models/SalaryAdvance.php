@@ -16,6 +16,7 @@ class SalaryAdvance extends Model
         'given_date',
         'deduct_in_month',
         'is_deducted',
+        'status',
         'notes',
     ];
 
@@ -23,6 +24,7 @@ class SalaryAdvance extends Model
         'amount' => 'float',
         'given_date' => 'date',
         'is_deducted' => 'boolean',
+        'status' => 'string',
     ];
 
     public function user()

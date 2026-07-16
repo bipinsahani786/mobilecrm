@@ -45,11 +45,9 @@ class AttendanceService
             throw new \Exception('You are outside the shop\'s allowed geofence radius. Please mark attendance from the shop.');
         }
 
-        // Handle photo upload
-        $photoPath = null;
-        if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
-            $photoPath = $data['photo']->store('attendance/check-in', 's3');
-        }
+        $photoPath = $data['photo'] ?? null;
+
+        $ownerId = \Illuminate\Support\Facades\DB::table('businesses')->where('id', $businessId)->value('owner_id');
 
         if ($existing) {
             // Update existing record (maybe manually created by owner)
@@ -61,6 +59,7 @@ class AttendanceService
                 'check_in_longitude' => $data['longitude'] ?? null,
                 'is_within_geofence' => $isWithinFence,
                 'location_id' => $locationId,
+                'approved_by' => $isWithinFence ? $ownerId : null,
             ]);
             return $existing->fresh();
         }
@@ -76,6 +75,7 @@ class AttendanceService
             'check_in_longitude' => $data['longitude'] ?? null,
             'is_within_geofence' => $isWithinFence,
             'location_id' => $locationId,
+            'approved_by' => $isWithinFence ? $ownerId : null,
         ]);
     }
 
@@ -114,11 +114,7 @@ class AttendanceService
             throw new \Exception('You are outside the shop\'s allowed geofence radius. Please mark attendance from the shop.');
         }
 
-        // Handle photo upload
-        $photoPath = null;
-        if (isset($data['photo']) && $data['photo'] instanceof \Illuminate\Http\UploadedFile) {
-            $photoPath = $data['photo']->store('attendance/check-out', 's3');
-        }
+        $photoPath = $data['photo'] ?? null;
 
         $attendance->update([
             'check_out_time' => now()->toTimeString(),
@@ -283,6 +279,20 @@ class AttendanceService
         
         $attendance->update([
             'approved_by' => auth()->id(),
+        ]);
+
+        return $attendance->fresh();
+    }
+
+    /**
+     * Unapprove an attendance record.
+     */
+    public function unapproveAttendance(int $id): Attendance
+    {
+        $attendance = Attendance::findOrFail($id);
+        
+        $attendance->update([
+            'approved_by' => null,
         ]);
 
         return $attendance->fresh();

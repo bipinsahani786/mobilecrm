@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function () {
         // CRM Routes (Scoped to Business via TenantMiddleware)
         Route::middleware(['tenant'])->prefix('business')->group(function () {
             Route::get('/dashboard/stats', [\App\Http\Controllers\Api\Business\DashboardController::class, 'stats']);
+            Route::get('/dashboard/staff-earnings', [\App\Http\Controllers\Api\Business\DashboardController::class, 'staffEarnings']);
 
             Route::apiResource('categories', \App\Http\Controllers\Api\Business\CategoryController::class);
             Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
@@ -69,6 +70,8 @@ Route::prefix('v1')->group(function () {
             Route::get('staff/{id}/sales', [\App\Http\Controllers\Api\Business\StaffController::class, 'salesReport']);
             Route::get('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'getPermissions']);
             Route::put('staff/{id}/permissions', [\App\Http\Controllers\Api\Business\StaffController::class, 'updatePermissions']);
+            Route::get('staff/{id}/earnings', [\App\Http\Controllers\Api\Business\StaffController::class, 'earnings']);
+            Route::post('staff/{id}/impersonate', [\App\Http\Controllers\Api\Business\StaffController::class, 'impersonate']);
             Route::apiResource('staff', \App\Http\Controllers\Api\Business\StaffController::class);
 
             // Business Locations (Geo-fence)
@@ -82,6 +85,7 @@ Route::prefix('v1')->group(function () {
             Route::post('attendance/mark', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'markManual']);
             Route::get('attendance/report', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'monthlyReport']);
             Route::put('attendance/{id}/approve', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'approve']);
+            Route::put('attendance/{id}/unapprove', [\App\Http\Controllers\Api\Business\AttendanceController::class, 'unapprove']);
             Route::apiResource('attendance', \App\Http\Controllers\Api\Business\AttendanceController::class)->only(['index']);
 
             // Payroll Routes
@@ -102,6 +106,7 @@ Route::prefix('v1')->group(function () {
             // Salary Advances
             Route::get('salary-advances', [\App\Http\Controllers\Api\Business\PayrollController::class, 'salaryAdvances']);
             Route::post('salary-advances', [\App\Http\Controllers\Api\Business\PayrollController::class, 'storeSalaryAdvance']);
+            Route::patch('salary-advances/{salaryAdvance}/status', [\App\Http\Controllers\Api\Business\PayrollController::class, 'updateSalaryAdvanceStatus']);
             
             // Leave Requests
             Route::apiResource('leave-requests', \App\Http\Controllers\Api\Business\LeaveRequestController::class);

@@ -297,7 +297,7 @@ class StaffService
                 ->where('business_id', $businessId)
                 ->whereBetween('date', [$fromDate, $toDate])
                 ->where('status', 'completed')
-                ->with('items.productBatch')
+                ->with('items.batch')
                 ->get();
 
             $totalSalesAmount = 0;
@@ -308,7 +308,7 @@ class StaffService
                 $totalSalesAmount += $sale->final_amount;
 
                 foreach ($sale->items as $item) {
-                    $purchasePrice = $item->productBatch ? $item->productBatch->purchase_price : 0;
+                    $purchasePrice = $item->batch ? $item->batch->purchase_price : 0;
                     $itemProfit = ($item->unit_price - $purchasePrice) * $item->quantity;
                     $totalProfit += $itemProfit;
 

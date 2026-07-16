@@ -156,3 +156,29 @@ export const useUpdateStaffPermissions = (id: number) => {
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update permissions'),
   });
 };
+
+export const useStaffEarningsById = (id: number) => {
+  return useQuery({
+    queryKey: ['staff_earnings', id],
+    queryFn: async () => {
+      const { data } = await api.get(`/business/staff/${id}/earnings`);
+      return data.data;
+    },
+    enabled: !!id,
+  });
+};
+
+export const useImpersonateStaff = () => {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.post(`/business/staff/${id}/impersonate`);
+      return data;
+    },
+    onSuccess: () => {
+      toast.success('Impersonating staff member');
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.message || 'Failed to impersonate');
+    },
+  });
+};

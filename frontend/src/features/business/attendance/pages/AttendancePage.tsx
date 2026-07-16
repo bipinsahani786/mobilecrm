@@ -10,13 +10,14 @@ import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { AttendanceCheckInModal } from '../components/AttendanceCheckInModal';
 import { AttendanceMarkModal } from '../components/AttendanceMarkModal';
+import { AttendanceDayStatusModal } from '../components/AttendanceDayStatusModal';
 import { AttendanceImportModal } from '../components/AttendanceImportModal';
 import { Modal } from '@/components/ui/modal';
 import { exportToCsv } from '@/utils/exportToCsv';
 import { useAuthStore } from '@/store/authStore';
 import { AttendanceMonthlyGrid } from '../components/AttendanceMonthlyGrid';
 import { getAttendanceColumns } from '../constants/attendanceColumns';
-import { useApproveAttendance } from '../api/useAttendance';
+import { useApproveAttendance, useUnapproveAttendance, useTodayAttendance } from '../api/useAttendance';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { FilterContainer, FilterSelect, FilterReset } from '@/components/ui/filter-controls';
 import { DatePicker } from '@/components/ui/DatePicker';
@@ -28,9 +29,10 @@ export default function AttendancePage() {
     to: format(endOfMonth(new Date()), 'yyyy-MM-dd'),
   });
   
-  const [selectedStaff, setSelectedStaff] = useState<string>('all');
+  const [selectedStaff, setSelectedStaff] = useState<string>('');
   const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const [isMarkOpen, setIsMarkOpen] = useState(false);
+  const [isDayStatusOpen, setIsDayStatusOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   
@@ -39,7 +41,12 @@ export default function AttendancePage() {
 
   const { data: staffList, isLoading: isStaffLoading } = useStaff();
   const approveMutation = useApproveAttendance();
+  const unapproveMutation = useUnapproveAttendance();
+  const { data: todayStatus } = useTodayAttendance();
   const user = useAuthStore(state => state.user);
+
+  const isCheckedIn = !!todayStatus?.check_in_time;
+  const isCheckedOut = !!todayStatus?.check_out_time;
 
   const isManager = (() => {
     if (!user || !staffList) return false;
@@ -57,6 +64,10 @@ export default function AttendancePage() {
     approveMutation.mutate(id);
   };
 
+  const handleUnapprove = (id: number) => {
+    unapproveMutation.mutate(id);
+  };
+
   const handleViewPhoto = (row: any) => {
     const url = row.check_in_photo.startsWith('http') 
       ? row.check_in_photo 
@@ -64,23 +75,25 @@ export default function AttendancePage() {
     setPhotoUrl(url);
   };
 
-  const columns = getAttendanceColumns({ handleApprove, handleViewPhoto, isManager });
+  const columns = getAttendanceColumns({ handleApprove, handleUnapprove, handleViewPhoto, isManager });
+
+  const effectiveStaffId = isManager ? selectedStaff : user?.id?.toString();
 
   const filters: any = {
     from_date: dateRange.from,
     to_date: dateRange.to,
   };
   
-  if (selectedStaff !== 'all') {
-    filters.user_id = selectedStaff;
+  if (effectiveStaffId !== '' && effectiveStaffId) {
+    filters.user_id = effectiveStaffId;
   }
 
   const gridFilters: any = {
     month: selectedMonth,
     per_page: 1000,
   };
-  if (selectedStaff !== 'all') {
-    gridFilters.user_id = selectedStaff;
+  if (effectiveStaffId !== '' && effectiveStaffId) {
+    gridFilters.user_id = effectiveStaffId;
   }
 
   const { data: attendanceData, isLoading } = useAttendance(viewMode === 'grid' ? gridFilters : filters);
@@ -88,7 +101,7 @@ export default function AttendancePage() {
   const staffToDisplay = staffList?.filter((s: any) => s.role !== 'Business Admin' && s.role !== 'Superadmin') || [];
 
   const filteredStaffList = staffToDisplay.filter((s: any) => 
-    selectedStaff === 'all' ? true : s.id.toString() === selectedStaff
+    effectiveStaffId === '' ? true : s.id.toString() === effectiveStaffId
   );
 
   // Compute local attendance statistics
@@ -246,21 +259,21 @@ export default function AttendancePage() {
           {/* Row 1: Filters */}
           <div className="flex flex-wrap items-end gap-4 w-full">
             {/* Staff Selector */}
-            <div className="w-full sm:w-60 shrink-0">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
-                Staff Member
-              </label>
-              <FilterSelect
-                value={selectedStaff}
-                onChange={setSelectedStaff}
-                placeholder="All Staff"
-                options={[
-                  { value: 'all', label: 'All Staff' },
-                  ...(staffList?.map((s: any) => ({ value: s.id.toString(), label: s.name })) || [])
-                ]}
-                wrapperClassName="w-full"
-              />
-            </div>
+            {isManager && (
+              <div className="w-full sm:w-60 shrink-0">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+                  Staff Member
+                </label>
+                <FilterSelect
+                  value={selectedStaff}
+                  onChange={setSelectedStaff}
+                  placeholder="All Staff"
+                  searchable={true}
+                  options={staffList?.map((s: any) => ({ value: s.id.toString(), label: s.name })) || []}
+                  wrapperClassName="w-full"
+                />
+              </div>
+            )}
             
             {/* View-specific date filter inputs */}
             {viewMode === 'list' ? (
@@ -308,30 +321,44 @@ export default function AttendancePage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             {/* Actions on Left */}
             <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={handleExport}
-                className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5 text-primary-500" />
-                <span>Export</span>
-              </button>
+              {isManager && (
+                <>
+                  <button 
+                    onClick={handleExport}
+                    className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5 text-primary-500" />
+                    <span>Export</span>
+                  </button>
 
-              <button 
-                onClick={() => setIsImportOpen(true)}
-                className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
-              >
-                <Upload className="w-3.5 h-3.5 text-primary-500" />
-                <span>Import</span>
-              </button>
+                  <button 
+                    onClick={() => setIsImportOpen(true)}
+                    className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                  >
+                    <Upload className="w-3.5 h-3.5 text-primary-500" />
+                    <span>Import</span>
+                  </button>
+                </>
+              )}
 
               {isManager && (
-                <button 
-                  onClick={() => setIsMarkOpen(true)}
-                  className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
-                >
-                  <UserCheck className="w-3.5 h-3.5 text-primary-500" />
-                  <span>Mark Manual</span>
-                </button>
+                <>
+                  <button 
+                    onClick={() => setIsDayStatusOpen(true)}
+                    className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                  >
+                    <Calendar className="w-3.5 h-3.5 text-primary-500" />
+                    <span>Set Day Status</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setIsMarkOpen(true)}
+                    className="inline-flex items-center gap-2 h-10 px-4 text-[10px] font-black uppercase tracking-widest bg-white dark:bg-[#111115] hover:bg-slate-50 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-800 text-slate-700 dark:text-zinc-300 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 cursor-pointer"
+                  >
+                    <UserCheck className="w-3.5 h-3.5 text-primary-500" />
+                    <span>Mark Manual</span>
+                  </button>
+                </>
               )}
 
               <button 
@@ -339,11 +366,11 @@ export default function AttendancePage() {
                 className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer"
               >
                 <Clock className="w-3.5 h-3.5 text-white" />
-                <span>Self Check In</span>
+                <span>{isCheckedOut ? 'Done for Today' : isCheckedIn ? 'Self Check Out' : 'Self Check In'}</span>
               </button>
 
               {/* Reset Button */}
-              {(selectedStaff !== 'all' || selectedMonth !== format(new Date(), 'yyyy-MM') || dateRange.from !== format(startOfMonth(new Date()), 'yyyy-MM-dd')) && (
+              {(selectedStaff !== '' || selectedMonth !== format(new Date(), 'yyyy-MM') || dateRange.from !== format(startOfMonth(new Date()), 'yyyy-MM-dd')) && (
                 <FilterReset
                   onClick={handleClearFilters}
                   className="ml-0 h-10 rounded-xl shadow-sm border border-slate-200 dark:border-zinc-800"
@@ -396,10 +423,16 @@ export default function AttendancePage() {
         onClose={() => setIsCheckInOpen(false)}
       />
 
+      <AttendanceDayStatusModal 
+        isOpen={isDayStatusOpen}
+        onClose={() => setIsDayStatusOpen(false)}
+        staffList={staffToDisplay}
+      />
+
       <AttendanceMarkModal
         isOpen={isMarkOpen}
         onClose={() => setIsMarkOpen(false)}
-        staffList={staffList || []}
+        staffList={staffToDisplay}
       />
 
       <AttendanceImportModal

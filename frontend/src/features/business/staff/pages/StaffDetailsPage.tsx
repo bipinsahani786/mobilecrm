@@ -1,9 +1,11 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useStaffDetail, useStaffSales } from '../api/useStaff';
+import { useStaffDetail, useStaffSales, useStaffEarningsById, useImpersonateStaff } from '../api/useStaff';
 import { usePayrolls } from '../../payroll/api/usePayroll';
+import { useAuthStore } from '@/store/authStore';
+import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { ArrowLeft, User, Mail, Phone, Calendar, IndianRupee, TrendingUp, Percent, Award, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, Calendar, IndianRupee, TrendingUp, Percent, Award, ShieldAlert, LogIn, Clock, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DataTable } from '@/components/ui/data-table';
@@ -18,6 +20,17 @@ export default function StaffDetailsPage() {
   const { data, isLoading } = useStaffDetail(Number(id));
   const { data: salesData, isLoading: isSalesLoading } = useStaffSales(Number(id));
   const { data: payrollData, isLoading: isPayrollLoading } = usePayrolls({ user_id: Number(id) });
+  const { data: staffEarnings } = useStaffEarningsById(Number(id));
+  const impersonateMutation = useImpersonateStaff();
+
+  const handleImpersonate = () => {
+    impersonateMutation.mutate(Number(id), {
+      onSuccess: (res: any) => {
+        useAuthStore.getState().impersonate(res.user, res.token);
+        window.location.href = '/dashboard';
+      }
+    });
+  };
 
   if (isLoading) {
     return (
@@ -156,20 +169,66 @@ export default function StaffDetailsPage() {
       <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary-500/10 blur-[100px] pointer-events-none" />
 
       {/* Top Banner & Header Navigation */}
-      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-5 relative z-10">
+      <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-5 relative z-10 flex items-center justify-between mb-3">
         <button
           onClick={() => navigate('/staff')}
-          className="group flex items-center gap-2 mb-3 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors w-fit"
+          className="group flex items-center gap-2 text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors w-fit"
         >
           <div className="w-7 h-7 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
             <ArrowLeft size={14} />
           </div>
           <span className="text-[10px] font-black uppercase tracking-widest">Back to Staff</span>
         </button>
+
+        {!useAuthStore.getState().user?.roles?.some(r => r.name === 'staff' || r.name === 'manager') && (
+          <Button 
+            variant="outline" 
+            className="h-9 px-4 text-[10px] uppercase font-black tracking-widest gap-2 bg-white hover:bg-slate-50 dark:bg-[#111115] dark:hover:bg-white/5 border-slate-200 dark:border-white/10 shadow-sm transition-all"
+            onClick={handleImpersonate}
+            disabled={impersonateMutation.isPending}
+          >
+            <LogIn size={14} className="text-primary-500" />
+            {impersonateMutation.isPending ? 'Logging in...' : 'Login as Staff'}
+          </Button>
+        )}
       </div>
 
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pb-8 space-y-5 relative z-10">
         
+        {/* Earnings KPI Cards */}
+        {staffEarnings && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <CustomKpiCard
+              title="Today's Earnings"
+              value={`₹${(staffEarnings?.today_earnings ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Earned today (Attendance + Commission)"
+              icon={<IndianRupee />}
+              glowColor="emerald"
+            />
+            <CustomKpiCard
+              title="This Month's Earnings"
+              value={`₹${(staffEarnings?.monthly_earnings ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Calculated till date"
+              icon={<TrendingUp />}
+              glowColor="indigo"
+            />
+            <CustomKpiCard
+              title="Advance Taken"
+              value={`₹${(staffEarnings?.advance_taken ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Approved advances this month"
+              icon={<IndianRupee />}
+              glowColor="rose"
+            />
+            <CustomKpiCard
+              title="Total Dues (Unpaid)"
+              value={`₹${(staffEarnings?.total_dues ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Total pending payment from owner"
+              icon={<Wallet />}
+              glowColor="amber"
+            />
+          </div>
+        )}
+
         {/* Main Grid Layout */}
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
           

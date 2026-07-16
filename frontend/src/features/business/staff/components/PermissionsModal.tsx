@@ -16,6 +16,7 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'manage_sales', label: 'Manage Sales', description: 'Can create and edit invoices' },
   { id: 'manage_inventory', label: 'Manage Inventory', description: 'Can add products and update stock' },
   { id: 'manage_customers', label: 'Manage Customers', description: 'Can add and edit customer details' },
+  { id: 'manage_suppliers', label: 'Manage Suppliers', description: 'Can add and edit supplier details' },
   { id: 'manage_expenses', label: 'Manage Expenses', description: 'Can record business expenses' },
   { id: 'manage_staff', label: 'Manage Staff', description: 'Can add staff and manage roles' },
   { id: 'manage_payroll', label: 'Manage Payroll', description: 'Can generate and confirm salary slips' },

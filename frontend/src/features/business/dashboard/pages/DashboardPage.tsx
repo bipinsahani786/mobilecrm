@@ -3,7 +3,7 @@ import { DashboardSkeleton } from "./../components/DashboardSkeleton";
 import { useTenantStore } from "@/store/tenantStore";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useDashboardStats } from "../api/useDashboard";
+import { useDashboardStats, useStaffEarnings } from "../api/useDashboard";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { CustomKpiCard } from "@/components/ui/CustomKpiCard";
 import { useAuthStore } from "@/store/authStore";
@@ -17,9 +17,12 @@ export default function DashboardPage() {
   const user = useAuthStore((state) => state.user);
   const { hasPermission } = usePermissions();
 
-  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
+  const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin' || r.name === 'Superadmin');
+  const canViewBusinessDashboard = isBusinessManager || hasPermission('view_dashboard');
+  const showStaffDashboard = !isBusinessManager;
 
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
+  const { data: staffEarnings } = useStaffEarnings();
 
   const today = new Date();
   const from_date = format(startOfMonth(today), 'yyyy-MM-dd');
@@ -134,8 +137,10 @@ export default function DashboardPage() {
       <div className="relative z-10 max-w-[1600px] mx-auto px-4 md:px-8 -mt-10 pb-8 space-y-4">
 
         {/* ── KPI Cards — floating over banner ─────────────────────── */}
-        {isBusinessManager ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {canViewBusinessDashboard && (
+          <div className="mb-8">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-3 ml-1 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-xl p-2 rounded-xl inline-block shadow-sm">Business Overview</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <CustomKpiCard
               title="Today's Sales"
               value={`₹${(stats?.today_sales ?? 0).toLocaleString('en-IN')}`}
@@ -179,30 +184,40 @@ export default function DashboardPage() {
               onClick={() => navigate('/invoices')}
             />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          </div>
+        )}
+        
+        {showStaffDashboard && (
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-3 ml-1 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-xl p-2 rounded-xl inline-block shadow-sm">My Staff Dashboard</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             <CustomKpiCard
-              title="My Sales Revenue"
-              value={`₹${(myPerformance?.total_sales_amount ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
-              subtitle="This month's sales revenue"
-              icon={<TrendingUp />}
-              glowColor="indigo"
-              onClick={() => navigate('/invoices')}
-            />
-            <CustomKpiCard
-              title="My Commission"
-              value={`₹${(myPerformance?.calculated_commission ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
-              subtitle={`Accrued at ${myPerformance?.commission_rate ?? 0}%`}
+              title="Today's Earnings"
+              value={`₹${(staffEarnings?.today_earnings ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Earned today (Attendance + Commission)"
               icon={<IndianRupee />}
               glowColor="emerald"
             />
             <CustomKpiCard
-              title="Invoices Billed"
-              value={`${myPerformance?.total_sales ?? 0} invoices`}
-              subtitle="Completed transactions"
-              icon={<Receipt />}
+              title="This Month's Earnings"
+              value={`₹${(staffEarnings?.monthly_earnings ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Calculated till date"
+              icon={<TrendingUp />}
+              glowColor="indigo"
+            />
+            <CustomKpiCard
+              title="Advance Taken"
+              value={`₹${(staffEarnings?.advance_taken ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Approved advances this month"
+              icon={<IndianRupee />}
+              glowColor="rose"
+            />
+            <CustomKpiCard
+              title="Total Dues (Unpaid)"
+              value={`₹${(staffEarnings?.total_dues ?? 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+              subtitle="Total pending payment from owner"
+              icon={<Wallet />}
               glowColor="amber"
-              onClick={() => navigate('/invoices')}
             />
             <CustomKpiCard
               title="Attendance Status"
@@ -212,6 +227,7 @@ export default function DashboardPage() {
               glowColor={todayAttendance ? 'emerald' : 'rose'}
               onClick={() => navigate('/attendance')}
             />
+          </div>
           </div>
         )}
 

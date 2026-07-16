@@ -42,10 +42,8 @@ export const useTodayAttendance = () => {
 export const useCheckIn = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const { data } = await api.post('/business/attendance/check-in', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    mutationFn: async (payload: { photo: string; latitude?: number; longitude?: number }) => {
+      const { data } = await api.post('/business/attendance/check-in', payload);
       return data.data;
     },
     onSuccess: () => {
@@ -59,10 +57,8 @@ export const useCheckIn = () => {
 export const useCheckOut = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (formData: FormData) => {
-      const { data } = await api.post('/business/attendance/check-out', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+    mutationFn: async (payload: { photo: string; latitude?: number; longitude?: number }) => {
+      const { data } = await api.post('/business/attendance/check-out', payload);
       return data.data;
     },
     onSuccess: () => {
@@ -111,6 +107,21 @@ export const useApproveAttendance = () => {
       qc.invalidateQueries({ queryKey: ['attendance'] });
     },
     onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to approve attendance'),
+  });
+};
+
+export const useUnapproveAttendance = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { data } = await api.put(`/business/attendance/${id}/unapprove`);
+      return data.data;
+    },
+    onSuccess: () => {
+      toast.success('Attendance unapproved!');
+      qc.invalidateQueries({ queryKey: ['attendance'] });
+    },
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to unapprove attendance'),
   });
 };
 

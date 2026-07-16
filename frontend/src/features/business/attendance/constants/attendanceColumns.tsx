@@ -7,11 +7,12 @@ import type { AttendanceRecord } from '../api/useAttendance';
 
 interface AttendanceColumnProps {
   handleApprove: (id: number) => void;
+  handleUnapprove: (id: number) => void;
   handleViewPhoto: (record: AttendanceRecord) => void;
   isManager: boolean;
 }
 
-export const getAttendanceColumns = ({ handleApprove, handleViewPhoto, isManager }: AttendanceColumnProps): any[] => [
+export const getAttendanceColumns = ({ handleApprove, handleUnapprove, handleViewPhoto, isManager }: AttendanceColumnProps): any[] => [
   {
     header: 'Date',
     accessorKey: 'date',
@@ -104,7 +105,20 @@ export const getAttendanceColumns = ({ handleApprove, handleViewPhoto, isManager
     header: 'Approval',
     cell: (row: AttendanceRecord & { approved_by?: number }) => {
       if (row.approved_by) {
-        return <Badge variant="success">Approved</Badge>;
+        return (
+          <div className="flex items-center gap-2">
+            <Badge variant="success">Approved</Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-slate-400 hover:text-rose-500 hover:bg-rose-50"
+              onClick={() => handleUnapprove(row.id)}
+              title="Revoke Approval"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </Button>
+          </div>
+        );
       }
       return (
         <Button

@@ -50,11 +50,8 @@ export default function InvoicesPage() {
   const meta = response?.meta;
 
   const totalInvoices = meta?.total || 0;
-  const totalRevenue = sales?.reduce((sum: number, sale: any) => sum + Number(sale.final_amount || 0), 0) || 0;
-  const totalUdhar = sales?.reduce((sum: number, sale: any) => {
-    const udharPayment = sale.payments?.find((p: any) => p.payment_mode === 'Udhar');
-    return sum + Number(udharPayment?.amount || 0);
-  }, 0) || 0;
+  const totalRevenue = meta?.total_revenue || 0;
+  const totalUdhar = meta?.total_udhar || 0;
 
   const columns = useMemo(() => getInvoiceColumns({
     onView: (sale) => navigate(`/invoices/${sale.id}`),
@@ -91,21 +88,21 @@ export default function InvoicesPage() {
                   value={totalInvoices}
                   icon={<FileText />}
                   glowColor="primary"
-                  subtitle="All time sales"
+                  subtitle="All time sales matching filter"
                 />
               </div>
               <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
                 <CustomKpiCard
-                  title="Revenue (This Page)"
+                  title="Total Revenue"
                   value={formatCurrency(totalRevenue)}
                   icon={<TrendingUp />}
                   glowColor="primary"
-                  subtitle="Total from current view"
+                  subtitle="Total of filtered sales"
                 />
               </div>
               <div className="flex-1 transition-transform hover:-translate-y-1 duration-300">
                 <CustomKpiCard
-                  title="Udhar (This Page)"
+                  title="Total Udhar"
                   value={formatCurrency(totalUdhar)}
                   icon={<DollarSign />}
                   glowColor={hasUdhar === 'yes' ? 'rose' : 'primary'}

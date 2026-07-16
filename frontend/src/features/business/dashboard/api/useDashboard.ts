@@ -23,3 +23,20 @@ export const useDashboardStats = () => {
     },
   });
 };
+
+export interface StaffEarnings {
+  today_earnings: number;
+  monthly_earnings: number;
+  advance_taken: number;
+  total_dues: number;
+}
+
+export const useStaffEarnings = () => {
+  return useQuery({
+    queryKey: ['dashboard', 'staff-earnings'],
+    queryFn: async () => {
+      const { data } = await api.get('/business/dashboard/staff-earnings');
+      return data.data as StaffEarnings;
+    },
+  });
+};
