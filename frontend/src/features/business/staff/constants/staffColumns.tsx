@@ -43,7 +43,7 @@ export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissi
     accessorKey: 'role',
     cell: (item: StaffMember) => (
       <Badge variant="outline" className="capitalize">
-        {item.role}
+        {item.is_owner ? 'Owner' : item.role}
       </Badge>
     )
   },
@@ -73,7 +73,7 @@ export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissi
     header: 'Actions',
     cell: (item: StaffMember) => {
       const isSelf = currentUser?.id === item.id;
-      const isAdmin = item.role === 'admin';
+      const isAdmin = item.role === 'admin' || item.is_owner;
       const disableToggle = isSelf || isAdmin;
 
       return (
@@ -107,18 +107,24 @@ export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissi
 
           <div 
             onClick={(e) => e.stopPropagation()}
-            className="flex flex-col items-center justify-center" 
+            className="flex items-center justify-center w-[70px]" 
             title={disableToggle ? "Cannot deactivate yourself or an admin" : "Toggle Active/Inactive"}
           >
-            <Toggle
-              label=""
-              checked={item.status === 'active'}
-              onChange={() => {
-                if (!disableToggle) {
-                  handleToggleStatus(item);
-                }
-              }}
-            />
+            {item.is_owner ? (
+              <Badge variant="secondary" className="text-[9px] leading-tight whitespace-nowrap bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-400 font-bold border-none px-1.5 py-0.5 shadow-none uppercase">
+                Sys Admin
+              </Badge>
+            ) : (
+              <Toggle
+                label=""
+                checked={item.status === 'active'}
+                onChange={() => {
+                  if (!disableToggle) {
+                    handleToggleStatus(item);
+                  }
+                }}
+              />
+            )}
           </div>
         </div>
       );

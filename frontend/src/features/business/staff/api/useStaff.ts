@@ -13,6 +13,7 @@ export interface StaffMember {
   commission_rate: number;
   join_date: string | null;
   status: string;
+  is_owner?: boolean;
 }
 
 export const useStaff = () => {

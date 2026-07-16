@@ -15,8 +15,10 @@ class StaffService
     public function getStaff()
     {
         $businessId = app('current_business_id');
+        $business = \App\Models\Business::find($businessId);
+        $ownerId = $business ? $business->owner_id : null;
 
-        return DB::table('business_user')
+        $staff = DB::table('business_user')
             ->join('users', 'business_user.user_id', '=', 'users.id')
             ->where('business_user.business_id', $businessId)
             ->whereNull('users.deleted_at')
@@ -35,6 +37,11 @@ class StaffService
             )
             ->orderBy('users.name')
             ->get();
+
+        return $staff->map(function ($member) use ($ownerId) {
+            $member->is_owner = $member->id === $ownerId;
+            return $member;
+        });
     }
 
     /**

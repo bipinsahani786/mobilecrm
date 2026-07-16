@@ -60,7 +60,7 @@ export const businessMenuGroups = [
       { name: "STAFF", href: "/staff", icon: Users },
       { name: "ATTENDANCE", href: "/attendance", icon: ClipboardList },
       { name: "PAYROLL", href: "/payroll", icon: Wallet },
-      { name: "SALARY COMPONENTS", href: "/payroll/components", icon: Settings },
+      // { name: "SALARY COMPONENTS", href: "/payroll/components", icon: Settings },
       { name: "LEAVE REQUESTS", href: "/hr/leave-requests", icon: Calendar },
       { name: "SALARY ADVANCES", href: "/hr/advances", icon: Coins },
     ]
