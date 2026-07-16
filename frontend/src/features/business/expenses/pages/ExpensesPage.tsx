@@ -10,6 +10,7 @@ import type { Expense } from '../schemas';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import { DatePicker } from '@/components/ui/DatePicker';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 const ExpensesPage = () => {
   const [page, setPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -160,11 +161,12 @@ const ExpensesPage = () => {
             </div>
 
             {/* Category Filter */}
-            <div className="w-full sm:w-48">
-              <CustomSelect
+            <div className="w-full sm:w-56">
+              <SearchableSelect
                 value={category}
-                onChange={(val) => setCategory(val)}
+                onChange={(val) => setCategory(String(val))}
                 placeholder="All Categories"
+                controlSize="sm"
                 options={[
                   { value: '', label: 'All Categories' },
                   ...categories.map((c: any) => ({ value: c.name, label: c.name }))
@@ -182,19 +184,21 @@ const ExpensesPage = () => {
                 placeholder="Start Date"
                 className="w-[155px]"
                 align="left-0 md:right-0 md:left-auto"
+                controlSize="sm"
               />
-              <span className="text-slate-400 text-xs shrink-0">to</span>
+              <span className="text-slate-500 dark:text-zinc-400 text-xs font-semibold shrink-0 select-none px-0.5">to</span>
               <DatePicker
                 value={endDate}
                 onChange={(val) => { setEndDate(val); setDateFilter('all'); }}
                 placeholder="End Date"
                 className="w-[155px]"
                 align="right"
+                controlSize="sm"
               />
             </div>
 
             {/* Date Filter Dropdown */}
-            <div className="w-full sm:w-40 z-10">
+            <div className="w-full sm:w-48 z-10">
               <CustomSelect
                 value={dateFilter}
                 onChange={(val) => {
