@@ -382,21 +382,21 @@ export function Header({ className }: { className?: string }) {
 
   return (
     <header className={cn("h-14 flex items-center justify-between px-4 bg-card dark:bg-slate-900 border-b border-border sticky top-0 z-30 shadow-sm transition-colors duration-300", className)}>
-      <div className="flex items-center flex-1 gap-3 min-w-0">
+      <div className="flex items-center flex-1 gap-2 sm:gap-3 min-w-0">
         <button onClick={toggleSidebar} className="p-2 -ml-2 text-slate-400 hover:text-primary-500 dark:hover:text-white transition-colors rounded-sm hover:bg-primary-50 dark:hover:bg-white/5 shrink-0">
           {isSidebarCollapsed ? <ArrowRight className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
 
         {/* Active Page Title Badge */}
-        <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-primary-100/60 dark:border-primary-500/30 bg-primary-50/50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 select-none shadow-sm animate-in fade-in slide-in-from-left-4 duration-300 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-3 py-1.5 rounded-full border border-primary-100/60 dark:border-primary-500/30 bg-primary-50/50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 select-none shadow-sm animate-in fade-in slide-in-from-left-4 duration-300 min-w-0">
           <ActiveIcon className="h-4 w-4 text-primary-500 dark:text-primary-400 shrink-0" />
-          <span className="text-xs font-black uppercase tracking-widest leading-none truncate max-w-[160px]">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest leading-none truncate max-w-[120px] sm:max-w-[200px]">
             {currentHeaderTitle}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {/* Branch Selector - business mode only */}
         {!isSuperadminMode && !isPartnerMode && (
           isBusinessManager ? (

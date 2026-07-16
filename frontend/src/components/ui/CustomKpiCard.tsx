@@ -108,8 +108,8 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor, onClick
       {/* Content */}
       <div className="relative z-10 flex flex-col gap-2 min-w-0">
         {/* Top row: label + icon */}
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.18em] text-white select-none truncate drop-shadow-sm">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.18em] text-white select-none drop-shadow-sm leading-snug break-words">
             {title}
           </span>
           <div
@@ -129,7 +129,7 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor, onClick
 
         {/* Value */}
         <span
-          className="text-lg sm:text-xl xl:text-2xl font-black text-white tracking-tight font-display truncate drop-shadow-md leading-none"
+          className="text-lg sm:text-xl xl:text-2xl font-black text-white tracking-tight font-display drop-shadow-md leading-none mt-1"
           title={value.toString()}
         >
           {value}
@@ -137,7 +137,7 @@ export function CustomKpiCard({ title, value, subtitle, icon, glowColor, onClick
 
         {/* Subtitle */}
         {subtitle && (
-          <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 truncate border-t border-white/20 pt-1.5 mt-0.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-white/90 border-t border-white/20 pt-1.5 mt-0.5 leading-snug break-words">
             {subtitle}
           </span>
         )}

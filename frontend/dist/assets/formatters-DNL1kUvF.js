@@ -1,0 +1,1 @@
+var e=e=>new Intl.NumberFormat(`en-IN`,{style:`currency`,currency:`INR`,maximumFractionDigits:0}).format(e),t=e=>{if(!e)return`N/A`;let t=new Date(e);return new Intl.DateTimeFormat(`en-IN`,{year:`numeric`,month:`short`,day:`numeric`}).format(t)};export{t as n,e as t};

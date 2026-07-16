@@ -51,12 +51,23 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // 6. This Month's Expenses
+        $monthlyExpenses = \App\Models\Expense::where('expense_date', '>=', $thisMonth)
+            ->sum('amount');
+
+        // 7. Total Invoices This Month
+        $totalInvoices = Sale::where('date', '>=', $thisMonth)
+            ->where('invoice_number', 'not like', 'UDH-%')
+            ->count();
+
         return response()->json([
             'success' => true,
             'data' => [
                 'today_sales' => $todaySales,
                 'monthly_revenue' => $monthlyRevenue,
+                'monthly_expenses' => $monthlyExpenses,
                 'pending_payments' => $pendingPayments,
+                'total_invoices' => $totalInvoices,
                 'staff' => [
                     'active' => $activeStaffCount,
                     'present_today' => $presentToday,

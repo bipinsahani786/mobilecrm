@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Loader2, Settings, UploadCloud } from 'lucide-react';
+import { Save, Loader2, Settings, UploadCloud, FileText, LayoutGrid, MapPin } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/layout/PageHeader';
@@ -11,24 +12,26 @@ import { useTenantStore } from '@/store/tenantStore';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import { Select } from '@/components/ui/select';
 import { useUpdateBusiness } from '../../profile/api/useBusinessMutations';
 
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import type { FormSectionConfig } from '@/components/ui/dynamic-form';
 import { BusinessLocationsSection } from '../../profile/components/BusinessLocationsSection';
+import { InvoicePatternBuilder } from '../components/InvoicePatternBuilder';
 
 const businessSettingsSchema = z.object({
   settings: z.object({
     commission_calculation_base: z.enum(['sales', 'profit']).default('sales'),
-    sale_invoice_prefix: z.string().default('INV-'),
-    purchase_invoice_prefix: z.string().default('PUR-'),
+    sale_invoice_prefix: z.string().default('INV-{YYYY}-{MM}-{SEQ:4}'),
+    purchase_invoice_prefix: z.string().default('PUR-{YYYY}-{MM}-{SEQ:4}'),
     whitelabel_name: z.string().nullable().optional(),
     whitelabel_logo: z.string().nullable().optional(),
     whitelabel_favicon: z.string().nullable().optional(),
   }).default({
     commission_calculation_base: 'sales',
-    sale_invoice_prefix: 'INV-',
-    purchase_invoice_prefix: 'PUR-'
+    sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
+    purchase_invoice_prefix: 'PUR-{YYYY}-{MM}-{SEQ:4}'
   })
 });
 
@@ -42,6 +45,14 @@ export default function BusinessSettingsPage() {
 
   const [isUploadingWlLogo, setIsUploadingWlLogo] = useState(false);
   const [isUploadingWlFavicon, setIsUploadingWlFavicon] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
+
+  const tabs = [
+    { id: 'general', label: 'General', icon: Settings },
+    { id: 'invoice', label: 'Invoice Settings', icon: FileText },
+    { id: 'config', label: 'Configurations', icon: LayoutGrid },
+    { id: 'locations', label: 'Business Locations', icon: MapPin },
+  ];
   const [wlLogoUrl, setWlLogoUrl] = useState<string | null>(activeBusiness?.settings?.whitelabel_logo || null);
   const [wlFaviconUrl, setWlFaviconUrl] = useState<string | null>(activeBusiness?.settings?.whitelabel_favicon || null);
   const [wlLogoPreview, setWlLogoPreview] = useState<string | null>(activeBusiness?.settings?.whitelabel_logo || null);
@@ -52,8 +63,8 @@ export default function BusinessSettingsPage() {
     defaultValues: activeBusiness ? {
       settings: activeBusiness.settings || {
         commission_calculation_base: 'sales',
-        sale_invoice_prefix: 'INV-',
-        purchase_invoice_prefix: 'PUR-',
+        sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
+        purchase_invoice_prefix: 'PUR-{YYYY}-{MM}-{SEQ:4}',
       }
     } : undefined
   });
@@ -73,8 +84,8 @@ export default function BusinessSettingsPage() {
       reset({
         settings: activeBusiness.settings || {
           commission_calculation_base: 'sales',
-          sale_invoice_prefix: 'INV-',
-          purchase_invoice_prefix: 'PUR-',
+          sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
+          purchase_invoice_prefix: 'PUR-{YYYY}-{MM}-{SEQ:4}',
         }
       });
       setWlLogoUrl(activeBusiness.settings?.whitelabel_logo || null);
@@ -136,6 +147,7 @@ export default function BusinessSettingsPage() {
   const settingsFormConfig: FormSectionConfig[] = [
     {
       title: 'Panel Whitelabeling',
+      className: activeTab === 'general' ? 'block' : 'hidden',
       fields: [
         {
           name: 'settings.whitelabel_name',
@@ -192,25 +204,39 @@ export default function BusinessSettingsPage() {
     },
     {
       title: 'Invoice Formatting',
+      className: activeTab === 'invoice' ? 'block' : 'hidden',
       fields: [
         {
           name: 'settings.sale_invoice_prefix',
-          label: 'Sales Invoice Prefix',
-          type: 'text',
-          tooltip: 'The prefix for all generated sales invoices. E.g., INV- will result in INV-0001, INV-0002.',
-          placeholder: 'INV-',
+          label: 'Sales Invoice Pattern',
+          type: 'custom',
+          colSpan: 2,
+          render: (form) => (
+            <InvoicePatternBuilder 
+              label="Sales Invoice Pattern" 
+              value={form.watch('settings.sale_invoice_prefix')} 
+              onChange={(val) => form.setValue('settings.sale_invoice_prefix', val, { shouldDirty: true })} 
+            />
+          )
         },
         {
           name: 'settings.purchase_invoice_prefix',
-          label: 'Purchase Invoice Prefix',
-          type: 'text',
-          tooltip: 'The prefix for purchase records internally generated by the system.',
-          placeholder: 'PUR-',
+          label: 'Purchase Invoice Pattern',
+          type: 'custom',
+          colSpan: 2,
+          render: (form) => (
+            <InvoicePatternBuilder 
+              label="Purchase Invoice Pattern" 
+              value={form.watch('settings.purchase_invoice_prefix')} 
+              onChange={(val) => form.setValue('settings.purchase_invoice_prefix', val, { shouldDirty: true })} 
+            />
+          )
         }
       ]
     },
     {
       title: 'Business Configurations',
+      className: activeTab === 'config' ? 'block' : 'hidden',
       fields: [
         {
           name: 'settings.commission_calculation_base',
@@ -240,25 +266,83 @@ export default function BusinessSettingsPage() {
         ]}
       />
 
-      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 py-3 sm:py-4 md:py-6 overflow-x-hidden min-w-0">
+      <div className="w-full px-3 sm:px-6 py-3 sm:py-4 md:py-6 overflow-x-hidden min-w-0">
         <div className="grid lg:grid-cols-12 gap-4 lg:gap-6 min-w-0">
           
-          <div className="lg:col-span-12 bg-white dark:bg-slate-900/50 p-4 sm:p-5 md:p-6 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none min-w-0 flex flex-col gap-6 max-w-4xl">
-            <DynamicForm 
-              id="settings-form"
-              form={form}
-              onSubmit={onSubmit}
-              sections={settingsFormConfig}
-            />
-
-            <BusinessLocationsSection />
-
-            <div className="pt-5 border-t border-slate-200 dark:border-white/5 flex justify-end">
-              <Button type="submit" form="settings-form" disabled={isSubmitting} className="bg-primary-500 hover:bg-primary-600 text-white shadow-md px-8 h-10 rounded-lg text-sm font-semibold tracking-wide w-full md:w-auto">
-                {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                Save Settings
-              </Button>
+          <div className="lg:col-span-12 min-w-0 flex flex-col gap-4">
+            
+            {/* Mobile Dropdown Navigation */}
+            <div className="block md:hidden mb-2">
+              <Select 
+                value={activeTab} 
+                onChange={(e) => setActiveTab(e.target.value)}
+                className="w-full h-12 rounded-xl shadow-sm text-sm font-semibold"
+              >
+                {tabs.map((tab) => (
+                  <option key={tab.id} value={tab.id} className="font-medium">
+                    {tab.label}
+                  </option>
+                ))}
+              </Select>
             </div>
+
+            {/* Desktop Tabs Navigation */}
+            <div className="hidden md:flex overflow-x-auto gap-2 p-1.5 bg-slate-200/50 dark:bg-slate-800/50 backdrop-blur-md rounded-2xl w-max scrollbar-hide mb-2 border border-slate-300/30 dark:border-white/5">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "flex items-center gap-2 px-5 py-2.5 font-semibold text-sm transition-all duration-300 rounded-xl whitespace-nowrap",
+                      isActive
+                        ? "text-primary-700 bg-white shadow-sm ring-1 ring-slate-200/50 dark:bg-slate-700 dark:text-primary-300 dark:ring-white/10"
+                        : "text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-300/30 dark:hover:bg-white/5"
+                    )}
+                  >
+                    <Icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary-600 dark:text-primary-400" : "")} />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="relative bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl p-6 sm:p-8 md:p-10 rounded-3xl border border-slate-200/80 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] min-w-0 flex flex-col gap-8 overflow-hidden">
+              
+              {/* Subtle gradient blobs for premium feel */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-primary-500/10 dark:bg-primary-500/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-3xl -ml-20 -mb-20 pointer-events-none" />
+
+              <div className="relative z-10 w-full space-y-6">
+                <div className={activeTab !== 'locations' ? 'block' : 'hidden'}>
+                  <DynamicForm 
+                    id="settings-form"
+                    form={form}
+                    onSubmit={onSubmit}
+                    sections={settingsFormConfig}
+                  />
+                </div>
+
+                <div className={activeTab === 'locations' ? 'block' : 'hidden'}>
+                  <BusinessLocationsSection />
+                </div>
+
+                <div className="pt-6 border-t border-slate-200/80 dark:border-white/10 flex justify-end mt-4">
+                  <Button 
+                    type="submit" 
+                    form="settings-form" 
+                    disabled={isSubmitting || activeTab === 'locations'} 
+                    className="bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-500/20 px-10 h-12 rounded-xl text-sm font-bold tracking-wide w-full md:w-auto transition-all hover:scale-[1.02]"
+                  >
+                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+                    Save Settings
+                  </Button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

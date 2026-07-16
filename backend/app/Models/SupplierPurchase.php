@@ -12,6 +12,8 @@ class SupplierPurchase extends Model
     use HasFactory;
 
     protected $fillable = [
+        'business_id',
+        'purchase_number',
         'supplier_id',
         'bill_amount',
         'paid_amount',
