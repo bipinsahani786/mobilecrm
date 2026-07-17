@@ -5,9 +5,10 @@ import { Select } from './select';
 import { Textarea } from './textarea';
 import { InfoTooltip } from './info-tooltip';
 import { SearchableSelect } from './searchable-select';
+import { DatePicker } from './DatePicker';
 import { cn } from '@/lib/utils';
 
-export type FormFieldType = 'text' | 'email' | 'number' | 'password' | 'select' | 'textarea' | 'checkbox' | 'custom';
+export type FormFieldType = 'text' | 'email' | 'number' | 'password' | 'select' | 'textarea' | 'checkbox' | 'date' | 'custom';
 
 export interface FormFieldOption {
   value: string | number;
@@ -86,6 +87,35 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children,
               )}
             </div>
           </label>
+        );
+
+      case 'date':
+        return (
+          <div className={cn(controlSize === 'sm' ? "space-y-1.5" : "space-y-2", field.colSpan === 2 && "md:col-span-2")}>
+            <div className="flex items-center">
+              <label className={cn("font-semibold text-slate-700 dark:text-slate-300", controlSize === 'sm' ? "text-xs" : "text-sm")}>
+                {field.label} {field.required && '*'}
+              </label>
+              {field.tooltip && <InfoTooltip text={field.tooltip} />}
+            </div>
+            <Controller
+              control={form.control}
+              name={field.name}
+              render={({ field: { value, onChange } }) => (
+                <DatePicker
+                  value={value || ''}
+                  onChange={(val) => {
+                    onChange(val);
+                    form.trigger(field.name);
+                  }}
+                  placeholder={field.placeholder}
+                  controlSize={controlSize}
+                />
+              )}
+            />
+            {field.description && <p className="text-xs text-slate-500">{field.description}</p>}
+            {errorMessage && <span className="text-red-500 text-xs">{errorMessage}</span>}
+          </div>
         );
 
       case 'select':

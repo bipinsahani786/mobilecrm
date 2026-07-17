@@ -70,17 +70,6 @@ export default function LeaveRequestsPage() {
         icon={Calendar}
         title="Leave Requests"
         subtitle="Manage employee time off and leave requests"
-        actions={
-          !isManager && (
-            <button 
-              onClick={() => setIsModalOpen(true)}
-              className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer w-fit"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Request Leave</span>
-            </button>
-          )
-        }
       />
 
       <div className="w-full max-w-[1600px] px-4 pt-0 pb-4 space-y-4 flex-1">
@@ -154,6 +143,18 @@ export default function LeaveRequestsPage() {
                 <FilterReset onClick={handleResetFilters} />
               )}
             </div>
+
+            {!isManager && (
+              <div className="shrink-0">
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer w-full sm:w-auto"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Request Leave</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
