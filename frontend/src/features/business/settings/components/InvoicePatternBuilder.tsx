@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Eye } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 interface InvoicePatternBuilderProps {
   value: string;
@@ -146,32 +146,44 @@ export function InvoicePatternBuilder({ value, onChange, label = "Invoice Number
           
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Separator</label>
-            <Select value={separator} onChange={(e) => handleSeparatorChange(e.target.value)} className="bg-slate-50 dark:bg-black/40">
-              <option value="-">Dash ( - )</option>
-              <option value="/">Slash ( / )</option>
-              <option value="none">None</option>
-            </Select>
+            <CustomSelect 
+              value={separator} 
+              onChange={handleSeparatorChange}
+              options={[
+                { value: '-', label: 'Dash ( - )' },
+                { value: '/', label: 'Slash ( / )' },
+                { value: 'none', label: 'None' }
+              ]}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Date Format</label>
-            <Select value={dateFormat} onChange={(e) => handleDateChange(e.target.value)} className="bg-slate-50 dark:bg-black/40">
-              <option value="YYMM">YYMM ({yy}{mm})</option>
-              <option value="YYYYMM">YYYYMM ({yyyy}{mm})</option>
-              <option value="YYYY">YYYY ({yyyy})</option>
-              <option value="YY">YY ({yy})</option>
-              <option value="none">None</option>
-            </Select>
+            <CustomSelect 
+              value={dateFormat} 
+              onChange={handleDateChange}
+              options={[
+                { value: 'YYMM', label: `YYMM (${yy}${mm})` },
+                { value: 'YYYYMM', label: `YYYYMM (${yyyy}${mm})` },
+                { value: 'YYYY', label: `YYYY (${yyyy})` },
+                { value: 'YY', label: `YY (${yy})` },
+                { value: 'none', label: 'None' }
+              ]}
+            />
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Counter Digits</label>
-            <Select value={counterDigits.toString()} onChange={(e) => handleCounterChange(e.target.value)} className="bg-slate-50 dark:bg-black/40">
-              <option value="3">3 digits (001)</option>
-              <option value="4">4 digits (0001)</option>
-              <option value="5">5 digits (00001)</option>
-              <option value="6">6 digits (000001)</option>
-            </Select>
+            <CustomSelect 
+              value={counterDigits.toString()} 
+              onChange={handleCounterChange}
+              options={[
+                { value: '3', label: '3 digits (001)' },
+                { value: '4', label: '4 digits (0001)' },
+                { value: '5', label: '5 digits (00001)' },
+                { value: '6', label: '6 digits (000001)' }
+              ]}
+            />
           </div>
           
           <div className="space-y-2 md:col-span-2">

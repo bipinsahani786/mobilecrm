@@ -23,8 +23,14 @@ return new class extends Migration
             $table->string('purchase_number')->nullable()->after('supplier_id');
         });
 
-        // Backfill business_id
-        \Illuminate\Support\Facades\DB::statement('UPDATE supplier_purchases sp JOIN suppliers s ON sp.supplier_id = s.id SET sp.business_id = s.business_id');
+x        // Backfill business_id (database-agnostic subquery)
+        \Illuminate\Support\Facades\DB::table('supplier_purchases')
+            ->update([
+                'business_id' => \Illuminate\Support\Facades\DB::table('suppliers')
+                    ->select('business_id')
+                    ->whereColumn('id', 'supplier_purchases.supplier_id')
+                    ->limit(1)
+            ]);
 
         Schema::table('supplier_purchases', function (Blueprint $table) {
             // We can't strictly enforce unique per business without business_id on this table.

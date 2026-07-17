@@ -12,7 +12,7 @@ import { useTenantStore } from '@/store/tenantStore';
 import { toast } from "sonner";
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import { useUpdateBusiness } from '../../profile/api/useBusinessMutations';
 
 import { DynamicForm } from '@/components/ui/dynamic-form';
@@ -273,17 +273,14 @@ export default function BusinessSettingsPage() {
             
             {/* Mobile Dropdown Navigation */}
             <div className="block md:hidden mb-2">
-              <Select 
+              <CustomSelect 
                 value={activeTab} 
-                onChange={(e) => setActiveTab(e.target.value)}
-                className="w-full h-12 rounded-xl shadow-sm text-sm font-semibold"
-              >
-                {tabs.map((tab) => (
-                  <option key={tab.id} value={tab.id} className="font-medium">
-                    {tab.label}
-                  </option>
-                ))}
-              </Select>
+                onChange={setActiveTab}
+                options={tabs.map((tab) => ({
+                  value: tab.id,
+                  label: tab.label
+                }))}
+              />
             </div>
 
             {/* Desktop Tabs Navigation */}

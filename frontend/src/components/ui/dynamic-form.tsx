@@ -6,6 +6,7 @@ import { Textarea } from './textarea';
 import { InfoTooltip } from './info-tooltip';
 import { SearchableSelect } from './searchable-select';
 import { DatePicker } from './DatePicker';
+import { CustomSelect } from './CustomSelect';
 import { cn } from '@/lib/utils';
 
 export type FormFieldType = 'text' | 'email' | 'number' | 'password' | 'select' | 'textarea' | 'checkbox' | 'date' | 'custom';
@@ -149,19 +150,24 @@ export function DynamicForm({ id, form, onSubmit, sections, className, children,
                 )}
               />
             ) : (
-              <Select {...register(field.name)} controlSize={controlSize}>
-                {field.placeholder && (
-                  <option value="">{field.placeholder}</option>
+              <Controller
+                control={form.control}
+                name={field.name}
+                render={({ field: { value, onChange } }) => (
+                  <CustomSelect
+                    options={field.options?.map(opt => ({ value: String(opt.value), label: opt.label })) || []}
+                    value={value}
+                    onChange={(val) => {
+                      onChange(val);
+                      form.trigger(field.name);
+                    }}
+                    placeholder={field.placeholder || "Select option"}
+                  />
                 )}
-                {field.options?.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
+              />
             )}
             {field.description && <p className="text-xs text-slate-500">{field.description}</p>}
-            {errorMessage && !field.searchable && <span className="text-red-500 text-xs">{errorMessage}</span>}
+            {errorMessage && <span className="text-red-500 text-xs">{errorMessage}</span>}
           </div>
         );
 

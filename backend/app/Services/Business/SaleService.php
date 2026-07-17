@@ -70,7 +70,7 @@ class SaleService
     {
         return DB::transaction(function () use ($data) {
             // Generate Invoice Number
-            $businessId = auth()->user()->business_id;
+            $businessId = app('current_business_id') ?? (auth()->check() ? (auth()->user()->business_id ?? auth()->user()->businesses()->first()?->id) : null);
             $business = \App\Models\Business::find($businessId);
             $pattern = $business->settings['sale_invoice_prefix'] ?? 'INV-{SEQ:4}';
             
@@ -140,7 +140,7 @@ class SaleService
 
             // Create Sale
             $sale = Sale::create([
-                'business_id' => auth()->user()->business_id,
+                'business_id' => $businessId,
                 'customer_id' => $data['customer_id'] ?? null,
                 'user_id' => auth()->id(),
                 'invoice_number' => $invoiceNumber,

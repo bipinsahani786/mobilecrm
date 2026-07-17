@@ -40,7 +40,7 @@ class SupplierService
     public function recordPurchase(Supplier $supplier, array $data, $invoicePath = null)
     {
         return DB::transaction(function () use ($supplier, $data, $invoicePath) {
-            $businessId = auth()->user()->business_id;
+            $businessId = app('current_business_id') ?? (auth()->check() ? (auth()->user()->business_id ?? auth()->user()->businesses()->first()?->id) : null);
             $business = \App\Models\Business::find($businessId);
             $pattern = $business->settings['purchase_invoice_prefix'] ?? 'PUR-{SEQ:4}';
             
