@@ -4,7 +4,7 @@ import { useStaff } from '../../staff/api/useStaff';
 import { Modal } from '@/components/ui/modal';
 import { Button } from '@/components/ui/button';
 import { MonthPicker } from '@/components/ui/MonthPicker';
-import { Select } from '@/components/ui/select';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 interface PayrollGenerateModalProps {
   isOpen: boolean;
@@ -18,6 +18,13 @@ export const PayrollGenerateModal = ({ isOpen, onClose, defaultMonth }: PayrollG
 
   const { data: staffList } = useStaff();
   const generateMutation = useGeneratePayroll();
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setMonth(defaultMonth);
+      setStaffId('all');
+    }
+  }, [isOpen, defaultMonth]);
 
   const handleGenerate = () => {
     generateMutation.mutate(
@@ -49,14 +56,18 @@ export const PayrollGenerateModal = ({ isOpen, onClose, defaultMonth }: PayrollG
 
         <div>
           <label className="block text-sm font-medium mb-1">Select Staff Member</label>
-          <Select value={staffId} onChange={(e: any) => setStaffId(e.target.value)}>
-            <option value="all">All Active Staff</option>
-            {staffList?.filter((s: any) => s.status === 'active').map((staff: any) => (
-              <option key={staff.id} value={staff.id.toString()}>
-                {staff.name}
-              </option>
-            ))}
-          </Select>
+          <CustomSelect
+            value={staffId}
+            onChange={(val) => setStaffId(val)}
+            menuPosition="fixed"
+            options={[
+              { value: 'all', label: 'All Active Staff' },
+              ...(staffList?.filter((s: any) => s.status === 'active').map((staff: any) => ({
+                value: staff.id.toString(),
+                label: staff.name,
+              })) || [])
+            ]}
+          />
         </div>
 
         <div className="flex justify-end gap-2 pt-4">

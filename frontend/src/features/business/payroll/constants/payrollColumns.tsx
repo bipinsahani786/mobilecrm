@@ -126,7 +126,7 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate,
                 markPaidMutation.mutate({ id: row.id });
               }}
               disabled={markPaidMutation.isPending}
-              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-50 dark:hover:bg-emerald-600 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-95"
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-50 hover:bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 rounded-xl transition-all duration-200 cursor-pointer shadow-sm active:scale-95"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>Mark Paid</span>
