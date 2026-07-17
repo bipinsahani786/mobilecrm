@@ -18,7 +18,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           className={cn(
-            "flex w-full items-center justify-between border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] text-slate-900 dark:text-slate-100 ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none",
+            "flex w-full items-center justify-between border border-slate-200 dark:border-white/10 bg-white dark:bg-[#111115] text-slate-900 dark:text-slate-100 ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none pr-10",
             controlSize === 'sm' 
               ? "h-9 px-3 py-1.5 text-xs rounded-xl" 
               : "h-10 px-3 py-2 text-sm rounded-md",
