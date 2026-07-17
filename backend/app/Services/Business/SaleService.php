@@ -53,7 +53,7 @@ class SaleService
         $totalRevenue = (clone $aggregatesQuery)->sum('final_amount');
         
         // Sum of all Udhar payments for these sales
-        $totalUdhar = \App\Models\Payment::whereIn('sale_id', (clone $aggregatesQuery)->select('id'))
+        $totalUdhar = \App\Models\SalePayment::whereIn('sale_id', (clone $aggregatesQuery)->select('id'))
             ->where('payment_mode', 'Udhar')
             ->sum('amount');
 
