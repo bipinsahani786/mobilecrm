@@ -13,7 +13,15 @@ class AttendanceController extends BaseController
     public function index(Request $request)
     {
         try {
-            $attendances = $this->attendanceService->getAttendance($request->all());
+            $user = $request->user();
+            $filters = $request->all();
+            
+            // If user is not manager/admin, they can only see their own attendance
+            if (!$user->hasRole(['Business Admin', 'admin', 'manager']) && !$user->hasRole('Superadmin')) {
+                $filters['user_id'] = $user->id;
+            }
+
+            $attendances = $this->attendanceService->getAttendance($filters);
             return $this->success($attendances, 'Attendance retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -106,7 +114,13 @@ class AttendanceController extends BaseController
         ]);
 
         try {
-            $report = $this->attendanceService->getMonthlyReport($request->input('month'));
+            $user = $request->user();
+            $isManager = $user->hasRole(['Business Admin', 'admin', 'manager']) || $user->hasRole('Superadmin');
+            
+            $report = $this->attendanceService->getMonthlyReport(
+                $request->input('month'), 
+                $isManager ? null : $user->id
+            );
             return $this->success($report, 'Monthly report retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -123,8 +137,13 @@ class AttendanceController extends BaseController
         }
     }
 
-    public function approve(int $id)
+    public function approve(Request $request, int $id)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['Business Admin', 'admin', 'manager']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to approve attendance');
+        }
+
         try {
             $attendance = $this->attendanceService->approveAttendance($id);
             return $this->success($attendance, 'Attendance approved successfully');
@@ -133,8 +152,13 @@ class AttendanceController extends BaseController
         }
     }
 
-    public function unapprove(int $id)
+    public function unapprove(Request $request, int $id)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['Business Admin', 'admin', 'manager']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to unapprove attendance');
+        }
+
         try {
             $attendance = $this->attendanceService->unapproveAttendance($id);
             return $this->success($attendance, 'Attendance unapproved successfully');

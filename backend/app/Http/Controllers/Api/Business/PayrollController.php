@@ -16,7 +16,15 @@ class PayrollController extends BaseController
     public function index(Request $request)
     {
         try {
-            $payrolls = $this->payrollService->getPayrolls($request->all());
+            $user = $request->user();
+            $filters = $request->all();
+            
+            // If user is not manager/admin, they can only view their own payroll records
+            if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+                $filters['user_id'] = $user->id;
+            }
+
+            $payrolls = $this->payrollService->getPayrolls($filters);
             return $this->success($payrolls, 'Payrolls retrieved successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
@@ -25,6 +33,11 @@ class PayrollController extends BaseController
 
     public function generate(Request $request)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to generate payroll.');
+        }
+
         $request->validate([
             'month' => 'required|date_format:Y-m',
             'user_id' => 'nullable|integer|exists:users,id',
@@ -46,9 +59,18 @@ class PayrollController extends BaseController
         }
     }
 
-    public function show(Payroll $payroll)
+    public function show(Request $request, Payroll $payroll)
     {
         try {
+            $user = $request->user();
+            
+            // If not manager/admin, user can only view their own payroll details
+            if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+                if ($payroll->user_id !== $user->id) {
+                    return $this->forbidden('Unauthorized to view this payroll record.');
+                }
+            }
+
             $payroll->load('user');
             return $this->success($payroll, 'Payroll detail retrieved successfully');
         } catch (\Throwable $e) {
@@ -58,6 +80,11 @@ class PayrollController extends BaseController
 
     public function update(Request $request, Payroll $payroll)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to update payroll.');
+        }
+
         $request->validate([
             'bonus' => 'nullable|numeric|min:0',
             'advance_deduction' => 'nullable|numeric|min:0',
@@ -86,8 +113,13 @@ class PayrollController extends BaseController
         }
     }
 
-    public function confirm(Payroll $payroll)
+    public function confirm(Request $request, Payroll $payroll)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to confirm payroll.');
+        }
+
         try {
             $result = $this->payrollService->confirmPayroll($payroll);
             return $this->success($result, 'Payroll confirmed successfully');
@@ -98,6 +130,11 @@ class PayrollController extends BaseController
 
     public function markPaid(Request $request, Payroll $payroll)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to mark payroll as paid.');
+        }
+
         try {
             $result = $this->payrollService->markPaid($payroll, $request->input('paid_date'));
             return $this->success($result, 'Payroll marked as paid');
@@ -120,6 +157,11 @@ class PayrollController extends BaseController
 
     public function storeLeavePolicy(Request $request)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to create leave policies.');
+        }
+
         $request->validate([
             'leave_type' => 'required|string|max:50',
             'monthly_quota' => 'required|numeric|min:0',
@@ -136,6 +178,11 @@ class PayrollController extends BaseController
 
     public function updateLeavePolicy(Request $request, LeavePolicy $leavePolicy)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to update leave policies.');
+        }
+
         $request->validate([
             'leave_type' => 'nullable|string|max:50',
             'monthly_quota' => 'nullable|numeric|min:0',
@@ -150,8 +197,13 @@ class PayrollController extends BaseController
         }
     }
 
-    public function deleteLeavePolicy(LeavePolicy $leavePolicy)
+    public function deleteLeavePolicy(Request $request, LeavePolicy $leavePolicy)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to delete leave policies.');
+        }
+
         try {
             $leavePolicy->delete();
             return $this->success(null, 'Leave policy deleted');
@@ -188,6 +240,9 @@ class PayrollController extends BaseController
 
     public function storeSalaryAdvance(Request $request)
     {
+        $user = $request->user();
+        $isManager = $user->hasRole(['admin', 'manager', 'Business Admin']) || $user->hasRole('Superadmin');
+
         $request->validate([
             'user_id' => 'required|integer|exists:users,id',
             'amount' => 'required|numeric|min:1',
@@ -195,6 +250,11 @@ class PayrollController extends BaseController
             'deduct_in_month' => 'nullable|date_format:Y-m',
             'notes' => 'nullable|string',
         ]);
+
+        // If not manager, user can only request salary advance for themselves
+        if (!$isManager && (int) $request->input('user_id') !== $user->id) {
+            return $this->forbidden('Unauthorized to request salary advance for another user.');
+        }
 
         try {
             $data = $request->only([
@@ -215,6 +275,11 @@ class PayrollController extends BaseController
 
     public function updateSalaryAdvanceStatus(Request $request, SalaryAdvance $salaryAdvance)
     {
+        $user = $request->user();
+        if (!$user->hasRole(['admin', 'manager', 'Business Admin']) && !$user->hasRole('Superadmin')) {
+            return $this->forbidden('Unauthorized to update salary advance status.');
+        }
+
         $request->validate([
             'status' => 'required|in:approved,rejected'
         ]);

@@ -7,9 +7,10 @@ interface PayrollColumnActions {
   confirmMutation: any;
   markPaidMutation: any;
   navigate: any;
+  isManager: boolean;
 }
 
-export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate }: PayrollColumnActions): any[] => [
+export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate, isManager }: PayrollColumnActions): any[] => [
   {
     header: 'Staff Member',
     accessorKey: 'user.name',
@@ -105,7 +106,7 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
     cell: (row: PayrollRecord) => {
       return (
         <div className="flex items-center gap-2 justify-end">
-          {row.status === 'draft' && (
+          {isManager && row.status === 'draft' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -118,14 +119,14 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate 
               <span>Confirm</span>
             </button>
           )}
-          {row.status === 'confirmed' && (
+          {isManager && row.status === 'confirmed' && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 markPaidMutation.mutate({ id: row.id });
               }}
               disabled={markPaidMutation.isPending}
-              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-500 dark:hover:bg-emerald-600 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-95"
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[10px] font-black uppercase tracking-widest bg-emerald-600 hover:bg-emerald-700 text-white dark:bg-emerald-50 dark:hover:bg-emerald-600 rounded-xl transition-all duration-200 cursor-pointer shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 active:scale-95"
             >
               <CheckCircle2 className="h-3.5 w-3.5" />
               <span>Mark Paid</span>

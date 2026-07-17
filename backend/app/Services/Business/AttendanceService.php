@@ -219,19 +219,24 @@ class AttendanceService
     }
 
     /**
-     * Get monthly attendance summary for all staff.
+     * Get monthly attendance summary for staff.
      */
-    public function getMonthlyReport(string $month): array
+    public function getMonthlyReport(string $month, ?int $userId = null): array
     {
         $businessId = app('current_business_id');
 
-        $staff = DB::table('business_user')
+        $staffQuery = DB::table('business_user')
             ->join('users', 'business_user.user_id', '=', 'users.id')
             ->where('business_user.business_id', $businessId)
             ->where('business_user.status', 'active')
             ->whereNull('users.deleted_at')
-            ->select('users.id', 'users.name')
-            ->get();
+            ->select('users.id', 'users.name');
+
+        if ($userId !== null) {
+            $staffQuery->where('users.id', $userId);
+        }
+
+        $staff = $staffQuery->get();
 
         $report = [];
 
