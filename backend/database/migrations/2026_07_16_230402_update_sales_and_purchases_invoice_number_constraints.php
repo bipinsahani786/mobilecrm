@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('purchase_number')->nullable()->after('supplier_id');
         });
 
-x        // Backfill business_id (database-agnostic subquery)
+        // Backfill business_id (database-agnostic subquery)
         \Illuminate\Support\Facades\DB::table('supplier_purchases')
             ->update([
                 'business_id' => \Illuminate\Support\Facades\DB::table('suppliers')
