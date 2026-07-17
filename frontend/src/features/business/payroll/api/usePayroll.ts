@@ -24,7 +24,8 @@ export interface PayrollRecord {
   notes: string | null;
   status: string;
   paid_date: string | null;
-  user?: { id: number; name: string };
+  created_at?: string;
+  user?: { id: number; name: string; role?: string; email?: string };
   salary_components?: any;
 }
 
