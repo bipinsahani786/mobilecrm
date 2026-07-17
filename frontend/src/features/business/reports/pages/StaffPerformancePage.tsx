@@ -47,31 +47,31 @@ export default function StaffPerformancePage() {
   const columns = [
     {
       header: 'Staff Name',
-      accessor: 'name',
+      accessorKey: 'name',
     },
     {
       header: 'Total Sales (Qty)',
-      accessor: (row: any) => row.total_sales.toString(),
+      cell: (row: any) => row.total_sales.toString(),
     },
     {
       header: 'Sales Amount (Revenue)',
-      accessor: (row: any) => `₹${row.total_sales_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+      cell: (row: any) => `₹${row.total_sales_amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
     },
     {
       header: 'Total Profit',
-      accessor: (row: any) => `₹${row.total_profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+      cell: (row: any) => `₹${row.total_profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
     },
     {
       header: 'Commission Base',
-      accessor: (row: any) => <span className="capitalize px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs">{row.commission_base}</span>,
+      cell: (row: any) => <span className="capitalize px-2 py-1 bg-slate-100 text-slate-700 rounded text-xs">{row.commission_base}</span>,
     },
     {
       header: 'Commission Rate',
-      accessor: (row: any) => `${row.commission_rate}%`,
+      cell: (row: any) => `${row.commission_rate}%`,
     },
     {
       header: 'Calculated Commission',
-      accessor: (row: any) => (
+      cell: (row: any) => (
         <span className="font-semibold text-emerald-600 dark:text-emerald-400">
           ₹{row.calculated_commission.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
         </span>
@@ -79,7 +79,7 @@ export default function StaffPerformancePage() {
     },
     {
       header: 'Details',
-      accessor: (row: any) => (
+      cell: (row: any) => (
         <Button variant="ghost" size="sm" onClick={() => setSelectedStaff(row)}>
           <Eye className="w-4 h-4 mr-2" /> View Products
         </Button>

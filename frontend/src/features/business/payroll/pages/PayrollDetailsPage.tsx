@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { format, parse } from 'date-fns';
+import { useAuthStore } from '@/store/authStore';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function PayrollDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +18,12 @@ export default function PayrollDetailsPage() {
   const updateMutation = useUpdatePayroll();
   const confirmMutation = useConfirmPayroll();
   const markPaidMutation = useMarkPayrollPaid();
+
+  const { hasPermission } = usePermissions();
+  const user = useAuthStore(state => state.user);
+  const isManager = React.useMemo(() => {
+    return user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin' || r.name === 'Superadmin') || hasPermission('manage_payroll');
+  }, [user, hasPermission]);
 
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
@@ -75,17 +83,17 @@ export default function PayrollDetailsPage() {
               <Button variant="outline" size="sm" onClick={() => window.print()}>
                 <Printer size={14} className="mr-2" /> Print
               </Button>
-              {isDraft && !editMode && (
+              {isManager && isDraft && !editMode && (
                 <Button variant="outline" size="sm" onClick={() => setEditMode(true)}>
                   Edit Details
                 </Button>
               )}
-              {isDraft && editMode && (
+              {isManager && isDraft && editMode && (
                 <Button size="sm" onClick={handleSave} isLoading={updateMutation.isPending}>
                   <Save size={14} className="mr-2" /> Save Changes
                 </Button>
               )}
-              {isDraft && !editMode && (
+              {isManager && isDraft && !editMode && (
                 <Button 
                   size="sm" 
                   onClick={() => confirmMutation.mutate(payroll.id)}
@@ -94,7 +102,7 @@ export default function PayrollDetailsPage() {
                   <CheckCircle size={14} className="mr-2" /> Confirm Payroll
                 </Button>
               )}
-              {isConfirmed && (
+              {isManager && isConfirmed && (
                 <Button 
                   size="sm" 
                   onClick={() => markPaidMutation.mutate({ id: payroll.id })}

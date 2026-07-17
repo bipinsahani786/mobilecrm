@@ -15,6 +15,8 @@ import { FilterContainer, FilterSelect, FilterReset } from '@/components/ui/filt
 import { useStaff } from '../../staff/api/useStaff';
 import { formatCurrency } from '@/lib/formatters';
 import { MonthPicker } from '@/components/ui/MonthPicker';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useAuthStore } from '@/store/authStore';
 
 export default function PayrollPage() {
   const navigate = useNavigate();
@@ -28,9 +30,19 @@ export default function PayrollPage() {
 
   const { data: staffList } = useStaff();
 
+  const { hasPermission } = usePermissions();
+  const user = useAuthStore(state => state.user);
+  const isManager = useMemo(() => {
+    return user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin' || r.name === 'Superadmin') || hasPermission('manage_payroll');
+  }, [user, hasPermission]);
+
   const queryFilters: any = { month: selectedMonth };
-  if (selectedStaff !== 'all') {
-    queryFilters.user_id = selectedStaff;
+  if (isManager) {
+    if (selectedStaff !== 'all') {
+      queryFilters.user_id = selectedStaff;
+    }
+  } else {
+    queryFilters.user_id = user?.id?.toString();
   }
   if (selectedStatus !== 'all') {
     queryFilters.status = selectedStatus;
@@ -40,7 +52,7 @@ export default function PayrollPage() {
   const confirmMutation = useConfirmPayroll();
   const markPaidMutation = useMarkPayrollPaid();
 
-  const columns = getPayrollColumns({ confirmMutation, markPaidMutation, navigate });
+  const columns = getPayrollColumns({ confirmMutation, markPaidMutation, navigate, isManager });
 
   // Compute local KPI statistics based on current month's payrolls
   const stats = useMemo(() => {
@@ -69,54 +81,56 @@ export default function PayrollPage() {
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
       <PageHeader 
         icon={IndianRupee}
-        title="Payroll Processing" 
-        subtitle="Manage employee salaries, commissions, and deductions"
+        title={isManager ? "Payroll Processing" : "My Salary Slips"} 
+        subtitle={isManager ? "Manage employee salaries, commissions, and deductions" : "View your monthly salary slips and earnings"}
       />
 
       <div className="w-full max-w-[1600px] px-4 pt-0 pb-4 space-y-4">
         
         {/* Analytics Section (Full Width Grid) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Total Payroll Cost"
-              value={formatCurrency(stats.totalExpense)}
-              icon={<BadgeDollarSign size={18} />}
-              glowColor="primary"
-              subtitle="Sum of final salaries"
-            />
-          </div>
+        {isManager && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Total Payroll Cost"
+                value={formatCurrency(stats.totalExpense)}
+                icon={<BadgeDollarSign size={18} />}
+                glowColor="primary"
+                subtitle="Sum of final salaries"
+              />
+            </div>
 
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Paid Payrolls"
-              value={stats.paidCount}
-              icon={<CheckCircle size={18} />}
-              glowColor="primary"
-              subtitle="Successfully disbursed"
-            />
-          </div>
+            <div className="transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Paid Payrolls"
+                value={stats.paidCount}
+                icon={<CheckCircle size={18} />}
+                glowColor="primary"
+                subtitle="Successfully disbursed"
+              />
+            </div>
 
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Awaiting Confirmation"
-              value={stats.draftCount}
-              icon={<Clock size={18} />}
-              glowColor="primary"
-              subtitle="Draft status records"
-            />
-          </div>
+            <div className="transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Awaiting Confirmation"
+                value={stats.draftCount}
+                icon={<Clock size={18} />}
+                glowColor="primary"
+                subtitle="Draft status records"
+              />
+            </div>
 
-          <div className="transition-transform hover:-translate-y-1 duration-300">
-            <CustomKpiCard
-              title="Pending Payment"
-              value={stats.confirmedCount}
-              icon={<ShieldAlert size={18} />}
-              glowColor="primary"
-              subtitle="Confirmed, unpaid records"
-            />
+            <div className="transition-transform hover:-translate-y-1 duration-300">
+              <CustomKpiCard
+                title="Pending Payment"
+                value={stats.confirmedCount}
+                icon={<ShieldAlert size={18} />}
+                glowColor="primary"
+                subtitle="Confirmed, unpaid records"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Action Controls & Filters Bar */}
         <div className="w-full bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm flex flex-col gap-4">
@@ -153,21 +167,23 @@ export default function PayrollPage() {
             </div>
 
             {/* Staff Selector */}
-            <div className="w-full sm:w-56 shrink-0">
-              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
-                Staff Member
-              </label>
-              <FilterSelect
-                value={selectedStaff}
-                onChange={setSelectedStaff}
-                placeholder="All Staff"
-                options={[
-                  { value: 'all', label: 'All Staff' },
-                  ...(staffList?.map((s: any) => ({ value: s.id.toString(), label: s.name })) || [])
-                ]}
-                wrapperClassName="w-full"
-              />
-            </div>
+            {isManager && (
+              <div className="w-full sm:w-56 shrink-0">
+                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+                  Staff Member
+                </label>
+                <FilterSelect
+                  value={selectedStaff}
+                  onChange={setSelectedStaff}
+                  placeholder="All Staff"
+                  options={[
+                    { value: 'all', label: 'All Staff' },
+                    ...(staffList?.map((s: any) => ({ value: s.id.toString(), label: s.name })) || [])
+                  ]}
+                  wrapperClassName="w-full"
+                />
+              </div>
+            )}
 
             {/* Status Selector */}
             <div className="w-full sm:w-48 shrink-0">
@@ -196,13 +212,15 @@ export default function PayrollPage() {
           {/* Row 2: Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setIsGenerateOpen(true)}
-                className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer"
-              >
-                <Clock className="w-3.5 h-3.5 text-white animate-pulse" />
-                <span>Generate Payroll</span>
-              </button>
+              {isManager && (
+                <button 
+                  onClick={() => setIsGenerateOpen(true)}
+                  className="group relative flex items-center gap-2 h-10 px-5 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/20 hover:shadow-primary-500/35 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 overflow-hidden cursor-pointer"
+                >
+                  <Clock className="w-3.5 h-3.5 text-white animate-pulse" />
+                  <span>Generate Payroll</span>
+                </button>
+              )}
 
               {/* Reset Button */}
               {(selectedStaff !== 'all' || selectedStatus !== 'all' || selectedMonth !== currentMonth) && (
@@ -214,7 +232,7 @@ export default function PayrollPage() {
             </div>
 
             <div className="text-xs font-bold text-slate-400 dark:text-slate-500">
-              {stats.totalCount} Payroll records retrieved
+              {isManager ? `${stats.totalCount} Payroll records retrieved` : ''}
             </div>
           </div>
 
