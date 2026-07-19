@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 
 class StaffController extends BaseController
 {
-    public function __construct(private StaffService $staffService) {}
+    public function __construct(private StaffService $staffService)
+    {
+    }
 
     public function index()
     {
@@ -162,11 +164,11 @@ class StaffController extends BaseController
             $draftPayroll = $payrollService->generateForEmployee($user->id, $month);
 
             $today = \Carbon\Carbon::today();
-            
+
             $todayAttendance = \App\Models\Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
                 ->first();
-                
+
             $todayCommission = \App\Models\SaleCommission::where('user_id', $user->id)
                 ->whereDate('created_at', $today)
                 ->sum('commission_amount');
@@ -178,21 +180,25 @@ class StaffController extends BaseController
             }
             $todayEarnings += $todayCommission;
 
-            if ($salaryType === 'daily') {
-                // Daily staff: monthly earnings = base_salary (already = present_days × daily_rate) + commission
-                $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
-            } else {
-                // Monthly staff: earnings before advance deductions
-                $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
-            }
-
             $advanceTaken = $draftPayroll->advance_deduction;
+
+            if ($salaryType === 'daily') {
+                // Daily staff: base_salary IS exactly the earned amount
+                $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
+                $draftDues = $monthlyEarnings - $advanceTaken;
+            } else {
+                // Monthly staff: calculate EXACT earned amount till date (excluding future days)
+                $effectivePresent = $draftPayroll->present_days + ($draftPayroll->half_days * 0.5) + $draftPayroll->paid_leaves;
+                $earnedBaseTillDate = $effectivePresent * $draftPayroll->per_day_salary;
+                $monthlyEarnings = $earnedBaseTillDate + $draftPayroll->total_commission;
+                $draftDues = $monthlyEarnings - $advanceTaken;
+            }
 
             $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)
                 ->where('status', 'confirmed')
                 ->sum('final_salary');
 
-            $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
+            $totalDues = $unpaidPayrolls + $draftDues;
 
             return response()->json([
                 'success' => true,
@@ -213,14 +219,14 @@ class StaffController extends BaseController
         try {
             $staffUser = \App\Models\User::findOrFail($id);
             $currentUser = request()->user();
-            
+
             if ($currentUser->hasRole(['staff', 'manager'])) {
                 return $this->error('You do not have permission to impersonate.', 403);
             }
 
             $businessId = app('current_business_id');
             $exists = $staffUser->businesses()->where('business_id', $businessId)->exists();
-            
+
             if (!$exists) {
                 return $this->error('Staff does not belong to this business.', 403);
             }
@@ -228,7 +234,7 @@ class StaffController extends BaseController
             $token = $staffUser->createToken('impersonation-token')->plainTextToken;
 
             $staffUser->load('roles', 'businesses');
-            
+
             $userData = $staffUser->toArray();
             $userData['permissions'] = $staffUser->getAllPermissions()->pluck('name');
 

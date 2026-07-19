@@ -117,9 +117,13 @@ class DashboardController extends Controller
         if ($salaryType === 'daily') {
             // Daily staff: base_salary already = present_days × daily_rate
             $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
+            $draftDues = $monthlyEarnings - $draftPayroll->advance_deduction;
         } else {
-            // Monthly staff: earnings before advance deductions
-            $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+            // Monthly staff: calculate EXACT earned amount till date
+            $effectivePresent = $draftPayroll->present_days + ($draftPayroll->half_days * 0.5) + $draftPayroll->paid_leaves;
+            $earnedBaseTillDate = $effectivePresent * $draftPayroll->per_day_salary;
+            $monthlyEarnings = $earnedBaseTillDate + $draftPayroll->total_commission;
+            $draftDues = $monthlyEarnings - $draftPayroll->advance_deduction;
         }
 
         // 3. Advance Taken This Month
@@ -130,7 +134,7 @@ class DashboardController extends Controller
             ->where('status', 'confirmed')
             ->sum('final_salary');
 
-        $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
+        $totalDues = $unpaidPayrolls + $draftDues;
 
         return response()->json([
             'success' => true,

@@ -200,6 +200,7 @@ export function CollectPaymentModal({ isOpen, onClose, customer }: CollectPaymen
                       <CustomSelect
                         value={row.mode}
                         onChange={(val) => handleRowChange(index, 'mode', val)}
+                        menuPosition="fixed"
                         options={[
                           { value: 'Cash', label: 'Cash' },
                           { value: 'UPI', label: 'UPI' },

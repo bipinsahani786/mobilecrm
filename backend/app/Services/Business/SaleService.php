@@ -306,41 +306,46 @@ class SaleService
 
             $isDraftRevert = $sale->status === 'Draft';
 
-            // 1. Revert Old Items & Inventory
-            foreach ($sale->items as $item) {
-                if (!$isDraftRevert) {
-                    if ($item->product_batch_id) {
-                    $batch = ProductBatch::find($item->product_batch_id);
-                    if ($batch) {
-                        $batch->increment('remaining_quantity', $item->quantity);
-                        $batch->product->increment('quantity', $item->quantity);
-                        
-                        InventoryMovement::create([
-                            'product_id' => $batch->product_id,
-                            'type' => 'in',
-                            'quantity' => $item->quantity,
-                            'reference_type' => 'sale_edit_revert',
-                            'reference_id' => $sale->id,
-                        ]);
-                    }
-                } else {
-                    $product = \App\Models\Product::find($item->product_id);
-                    if ($product) {
-                        $product->increment('quantity', $item->quantity);
-                        InventoryMovement::create([
-                            'product_id' => $product->id,
-                            'type' => 'in',
-                            'quantity' => $item->quantity,
-                            'reference_type' => 'sale_edit_revert',
-                            'reference_id' => $sale->id,
-                        ]);
-                    }
+            $hasItems = !empty($data['items']);
+
+            // 1. Revert Old Items & Inventory (only if items are provided)
+            if ($hasItems) {
+                foreach ($sale->items as $item) {
+                    if (!$isDraftRevert) {
+                        if ($item->product_batch_id) {
+                        $batch = ProductBatch::find($item->product_batch_id);
+                        if ($batch) {
+                            $batch->increment('remaining_quantity', $item->quantity);
+                            $batch->product->increment('quantity', $item->quantity);
+                            
+                            InventoryMovement::create([
+                                'product_id' => $batch->product_id,
+                                'type' => 'in',
+                                'quantity' => $item->quantity,
+                                'reference_type' => 'sale_edit_revert',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
+                    } else {
+                        $product = \App\Models\Product::find($item->product_id);
+                        if ($product) {
+                            $product->increment('quantity', $item->quantity);
+                            InventoryMovement::create([
+                                'product_id' => $product->id,
+                                'type' => 'in',
+                                'quantity' => $item->quantity,
+                                'reference_type' => 'sale_edit_revert',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
+                        }
                     }
                 }
+                // Delete old items
+                $sale->items()->delete();
             }
 
             // Delete old related records
-            $sale->items()->delete();
             $sale->payments()->delete();
             Sale::where('notes', 'like', "%(Invoice: {$sale->invoice_number})%")->delete();
             if ($sale->emiDetail) {
@@ -349,14 +354,22 @@ class SaleService
             }
 
             // 2. Apply New Data
-            $totalAmount = 0;
-            foreach ($data['items'] as $item) {
-                $totalAmount += ($item['quantity'] * $item['unit_price']);
+            $totalAmount = $sale->total_amount;
+            if ($hasItems) {
+                $totalAmount = 0;
+                foreach ($data['items'] as $item) {
+                    $totalAmount += ($item['quantity'] * $item['unit_price']);
+                }
             }
 
-            $discount = $data['discount'] ?? 0;
-            $roundOff = $data['round_off'] ?? 0;
-            $finalAmount = $totalAmount - $discount + $roundOff;
+            $discount = $data['discount'] ?? $sale->discount;
+            $roundOff = $data['round_off'] ?? $sale->round_off;
+            
+            if ($hasItems || isset($data['discount']) || isset($data['round_off'])) {
+                $finalAmount = $totalAmount - $discount + $roundOff;
+            } else {
+                $finalAmount = $sale->final_amount;
+            }
 
             $paidAmount = 0;
             if (!empty($data['payments'])) {
@@ -380,46 +393,50 @@ class SaleService
             ]);
 
             // 3. Create New Items & Deduct Stock
-            foreach ($data['items'] as $item) {
-                $subtotal = $item['quantity'] * $item['unit_price'];
+            if ($hasItems) {
+                foreach ($data['items'] as $item) {
+                    $subtotal = $item['quantity'] * $item['unit_price'];
 
-                $saleItem = $sale->items()->create([
-                    'product_id' => $item['product_id'],
-                    'product_batch_id' => $item['product_batch_id'] ?? null,
-                    'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'subtotal' => $subtotal,
-                    'imei_1' => $item['imei_1'] ?? null,
-                    'imei_2' => $item['imei_2'] ?? null,
-                    'serial_no' => $item['serial_no'] ?? null,
-                ]);
+                    $saleItem = $sale->items()->create([
+                        'product_id' => $item['product_id'],
+                        'product_batch_id' => $item['product_batch_id'] ?? null,
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'subtotal' => $subtotal,
+                        'imei_1' => $item['imei_1'] ?? null,
+                        'imei_2' => $item['imei_2'] ?? null,
+                        'serial_no' => $item['serial_no'] ?? null,
+                    ]);
 
-                if (($data['status'] ?? 'completed') !== 'Draft') {
-                    if (!empty($item['product_batch_id'])) {
-                        $batch = ProductBatch::find($item['product_batch_id']);
-                        if ($batch) {
-                            $batch->decrement('remaining_quantity', $item['quantity']);
-                            $batch->product->decrement('quantity', $item['quantity']);
-    
-                            InventoryMovement::create([
-                                'product_id' => $batch->product_id,
-                                'type' => 'out',
-                                'quantity' => $item['quantity'],
-                                'reference_type' => 'sale',
-                                'reference_id' => $sale->id,
-                            ]);
-                        }
-                    } else {
-                        $product = \App\Models\Product::find($item['product_id']);
-                        if ($product) {
-                            $product->decrement('quantity', $item['quantity']);
-                            InventoryMovement::create([
-                                'product_id' => $product->id,
-                                'type' => 'out',
-                                'quantity' => $item['quantity'],
-                                'reference_type' => 'sale',
-                                'reference_id' => $sale->id,
-                            ]);
+                    if (($data['status'] ?? 'completed') !== 'Draft') {
+                        if (!empty($item['product_batch_id'])) {
+                            $batch = ProductBatch::find($item['product_batch_id']);
+                            if ($batch) {
+                                $batch->decrement('remaining_quantity', $item['quantity']);
+                                
+                                $product = $batch->product;
+                                $product->decrement('quantity', $item['quantity']);
+        
+                                InventoryMovement::create([
+                                    'product_id' => $product->id,
+                                    'type' => 'out',
+                                    'quantity' => $item['quantity'],
+                                    'reference_type' => 'sale_edit',
+                                    'reference_id' => $sale->id,
+                                ]);
+                            }
+                        } else {
+                            $product = \App\Models\Product::find($item['product_id']);
+                            if ($product) {
+                                $product->decrement('quantity', $item->quantity);
+                                InventoryMovement::create([
+                                    'product_id' => $product->id,
+                                    'type' => 'out',
+                                    'quantity' => $item->quantity,
+                                    'reference_type' => 'sale_edit',
+                                    'reference_id' => $sale->id,
+                                ]);
+                            }
                         }
                     }
                 }
