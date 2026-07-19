@@ -173,7 +173,9 @@ function ProfileMenu() {
   const ref = useRef<HTMLDivElement>(null);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
-  const { activeBusiness, clearActiveBusiness } = useTenantStore();
+  const { activeBusiness, clearActiveBusiness, businesses } = useTenantStore();
+  const { getMaxLimit, planName } = useFeatureAccess();
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -238,9 +240,16 @@ function ProfileMenu() {
           <div className="min-w-0">
             <p className="text-sm font-extrabold text-slate-800 dark:text-white truncate tracking-tight">{user?.name || "User"}</p>
             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email || ""}</p>
-            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
-              {displayRole}
-            </span>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
+                {displayRole}
+              </span>
+              {!isSuperadmin && !isPartner && (
+                <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
+                  {planName}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -260,15 +269,34 @@ function ProfileMenu() {
                   <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Edit Branch
                 </button>
                 <button
-                  onClick={() => { clearActiveBusiness(); setIsOpen(false); navigate('/setup/profile'); }}
+                  onClick={() => { 
+                    const maxLocations = getMaxLimit('max_locations');
+                    if (businesses.length >= maxLocations) {
+                      setIsOpen(false);
+                      setIsLockModalOpen(true);
+                    } else {
+                      clearActiveBusiness(); 
+                      setIsOpen(false); 
+                      navigate('/setup/profile');
+                    }
+                  }}
                   className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
                 >
-                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Branch
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> 
+                  <span className="flex-1 text-left">Add New Branch</span>
+                  <span className="text-[10px] font-bold text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 rounded ml-2">
+                    {businesses.length}/{getMaxLimit('max_locations')}
+                  </span>
+                  {businesses.length >= getMaxLimit('max_locations') && (
+                    <Crown className="w-3.5 h-3.5 text-yellow-500 ml-1.5 flex-shrink-0" />
+                  )}
                 </button>
               </>
             )}
           </div>
         )}
+
+        <FeatureLockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} featureName="max_locations" />
 
         {/* User Options */}
         <div className="p-2 space-y-0.5">

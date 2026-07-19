@@ -97,6 +97,38 @@ export default function BusinessProfilePage() {
       setSignatureUrl(activeBusiness.signature_path);
       setLogoPreview(activeBusiness.logo_path);
       setSigPreview(activeBusiness.signature_path);
+    } else {
+      // Adding new branch - Reset form to blank
+      reset({
+        name: '',
+        email: '',
+        phone: '',
+        phone_2: '',
+        gst_number: '',
+        address: '',
+        pincode: '',
+        state: '',
+        description: '',
+        business_type: '',
+        business_category: '',
+        books_opening_date: '',
+        card_preferences: {
+          show_address: true,
+          show_email: true,
+          show_phone_2: true,
+          show_gst: true,
+          theme: 'primary',
+        },
+        settings: {
+          commission_calculation_base: 'sales',
+          sale_invoice_prefix: 'INV-',
+          purchase_invoice_prefix: 'PUR-',
+        }
+      });
+      setLogoUrl(null);
+      setSignatureUrl(null);
+      setLogoPreview(null);
+      setSigPreview(null);
     }
   }, [activeBusiness, reset]);
 

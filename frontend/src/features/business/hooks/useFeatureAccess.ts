@@ -14,6 +14,12 @@ export function useFeatureAccess() {
   };
 
   const getMaxLimit = (key: 'max_locations' | 'max_staff') => {
+    if (key === 'max_locations') {
+      const { businesses } = useTenantStore.getState();
+      if (businesses && businesses.length > 0) {
+        return Math.max(...businesses.map(b => ((b.plan?.features as any)?.[key] as number) || 1));
+      }
+    }
     return (features[key] as number) || 1;
   };
 

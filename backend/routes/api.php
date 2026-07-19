@@ -186,6 +186,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/users/roles', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'roles']);
             Route::get('/users/stats', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'stats']);
             Route::get('/users', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'index']);
+            Route::post('/users', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'store']);
             Route::get('/users/{id}', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'show']);
             Route::patch('/users/{id}', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'update']);
             Route::patch('/users/{id}/status', [\App\Http\Controllers\Api\Superadmin\UserController::class, 'updateStatus']);
