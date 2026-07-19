@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToBusiness;
 
 class PayrollComponent extends Model
 {
+    use BelongsToBusiness;
     protected $fillable = [
         'business_id',
         'name',

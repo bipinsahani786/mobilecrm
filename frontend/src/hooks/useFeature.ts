@@ -12,15 +12,23 @@ export function useFeature() {
       return Boolean(customFeatures[featureKey]);
     }
 
-    // Fallback to plan features array
-    const planFeatures = activeBusiness.plan?.features || [];
-    if (Array.isArray(planFeatures) && planFeatures.includes(featureKey)) {
-      return true;
+    // Fallback to plan features object
+    const planFeatures = activeBusiness.plan?.features;
+    if (planFeatures && typeof planFeatures === 'object' && !Array.isArray(planFeatures)) {
+      return Boolean((planFeatures as Record<string, any>)[featureKey]);
     }
 
-    // Default to false if not explicitly granted
     return false;
   };
 
-  return { hasFeature };
+  const getFeatureLimit = (featureKey: string, defaultValue: number = 1): number => {
+    if (!activeBusiness) return defaultValue;
+    const planFeatures = activeBusiness.plan?.features;
+    if (planFeatures && typeof planFeatures === 'object' && !Array.isArray(planFeatures)) {
+      return Number((planFeatures as Record<string, any>)[featureKey]) || defaultValue;
+    }
+    return defaultValue;
+  };
+
+  return { hasFeature, getFeatureLimit };
 }

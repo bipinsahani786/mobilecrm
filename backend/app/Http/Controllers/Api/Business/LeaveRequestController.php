@@ -44,7 +44,6 @@ class LeaveRequestController extends Controller
         ]);
 
         $leave = LeaveRequest::create([
-            'business_id' => app('current_business_id'),
             'user_id' => $request->user()->id,
             'leave_type' => $validated['leave_type'],
             'from_date' => $validated['from_date'],

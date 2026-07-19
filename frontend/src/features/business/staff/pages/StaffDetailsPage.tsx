@@ -284,24 +284,35 @@ export default function StaffDetailsPage() {
             </div>
 
             {/* Compensation Mini-Card */}
-            <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-5 shadow-lg shadow-slate-200/50 dark:shadow-none flex items-center justify-between group hover:-translate-y-0.5 transition-transform duration-300">
-              <div className="flex flex-col gap-1">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <IndianRupee size={9} className="text-primary-500" />
-                  Total Base Salary
-                </span>
-                <span className="text-xl font-black text-slate-900 dark:text-white font-display tracking-tight">
-                  {formatCurrency(staff.monthly_salary)}
-                </span>
-              </div>
-              <div className="flex flex-col items-end gap-1 text-right">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Percent size={9} className="text-emerald-500" />
-                  Commission
-                </span>
-                <span className="text-lg font-black text-emerald-500 dark:text-emerald-400">
-                  {staff.commission_rate}%
-                </span>
+            <div className="bg-white/80 dark:bg-[#111115]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-2xl p-5 shadow-lg shadow-slate-200/50 dark:shadow-none group hover:-translate-y-0.5 transition-transform duration-300">
+              <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <IndianRupee size={9} className="text-primary-500" />
+                    {staff.salary_type === 'daily' ? 'Daily Rate' : 'Monthly Salary'}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl font-black text-slate-900 dark:text-white font-display tracking-tight">
+                      {formatCurrency(staff.salary_type === 'daily' ? staff.daily_salary : staff.monthly_salary)}
+                    </span>
+                    <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md ${
+                      staff.salary_type === 'daily'
+                        ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                        : 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
+                    }`}>
+                      {staff.salary_type === 'daily' ? 'Per Day' : 'Monthly'}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-1 text-right">
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <Percent size={9} className="text-emerald-500" />
+                    Commission
+                  </span>
+                  <span className="text-lg font-black text-emerald-500 dark:text-emerald-400">
+                    {staff.commission_rate}%
+                  </span>
+                </div>
               </div>
             </div>
           </div>

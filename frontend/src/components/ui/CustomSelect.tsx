@@ -37,13 +37,20 @@ export function CustomSelect({
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const portalRef = useRef<HTMLDivElement>(null);
 
   const selected = options.find(o => o.value === value);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (
+        ref.current && 
+        !ref.current.contains(e.target as Node) &&
+        (!portalRef.current || !portalRef.current.contains(e.target as Node))
+      ) {
+        setOpen(false);
+      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -114,6 +121,7 @@ export function CustomSelect({
         menuPosition === 'fixed' 
           ? createPortal(
               <div 
+                ref={portalRef}
                 style={dropdownStyle}
                 className={cn(
                 'z-[9999]',

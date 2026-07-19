@@ -79,7 +79,7 @@ class Business extends Model
 
         // Fallback to plan features
         if ($this->plan && is_array($this->plan->features)) {
-            return in_array($featureKey, $this->plan->features);
+            return !empty($this->plan->features[$featureKey]);
         }
 
         return false;

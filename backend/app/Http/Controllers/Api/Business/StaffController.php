@@ -28,11 +28,33 @@ class StaffController extends BaseController
             'email' => 'nullable|email',
             'password' => 'nullable|string|min:6',
             'role' => 'nullable|string|in:staff,manager',
+            'salary_type' => 'nullable|string|in:monthly,daily',
             'monthly_salary' => 'nullable|numeric|min:0',
+            'daily_salary' => 'nullable|numeric|min:0',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'join_date' => 'nullable|date',
             'salary_components' => 'nullable|array',
         ]);
+
+        // Check if phone or email already exists as staff in this business
+        $businessId = app('current_business_id');
+        $existingByPhone = \App\Models\User::where('phone', $request->phone)
+            ->whereHas('businesses', fn($q) => $q->where('business_id', $businessId))
+            ->first();
+
+        if ($existingByPhone) {
+            return $this->error("Phone number '{$request->phone}' is already registered as staff in this business ({$existingByPhone->name}).", 422);
+        }
+
+        if ($request->email) {
+            $existingByEmail = \App\Models\User::where('email', $request->email)
+                ->whereHas('businesses', fn($q) => $q->where('business_id', $businessId))
+                ->first();
+
+            if ($existingByEmail) {
+                return $this->error("Email '{$request->email}' is already registered as staff in this business ({$existingByEmail->name}).", 422);
+            }
+        }
 
         try {
             $staff = $this->staffService->addStaff($request->all());
@@ -59,7 +81,9 @@ class StaffController extends BaseController
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email',
             'role' => 'nullable|string|in:staff,manager',
+            'salary_type' => 'nullable|string|in:monthly,daily',
             'monthly_salary' => 'nullable|numeric|min:0',
+            'daily_salary' => 'nullable|numeric|min:0',
             'commission_rate' => 'nullable|numeric|min:0|max:100',
             'join_date' => 'nullable|date',
             'status' => 'nullable|string|in:active,inactive',
@@ -126,6 +150,14 @@ class StaffController extends BaseController
             $businessId = app('current_business_id');
             $month = \Carbon\Carbon::now()->format('Y-m');
 
+            // Get staff salary type from pivot
+            $staffData = \Illuminate\Support\Facades\DB::table('business_user')
+                ->where('business_id', $businessId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $salaryType = $staffData->salary_type ?? 'monthly';
+
             $payrollService = app(\App\Services\Business\PayrollService::class);
             $draftPayroll = $payrollService->generateForEmployee($user->id, $month);
 
@@ -140,13 +172,20 @@ class StaffController extends BaseController
                 ->sum('commission_amount');
 
             $todayEarnings = 0;
-            if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day', 'holiday'])) {
+            if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day'])) {
                 $multiplier = ($todayAttendance->status === 'half_day') ? 0.5 : 1;
                 $todayEarnings = ($draftPayroll->per_day_salary * $multiplier);
             }
             $todayEarnings += $todayCommission;
 
-            $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+            if ($salaryType === 'daily') {
+                // Daily staff: monthly earnings = base_salary (already = present_days × daily_rate) + commission
+                $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
+            } else {
+                // Monthly staff: earnings before advance deductions
+                $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+            }
+
             $advanceTaken = $draftPayroll->advance_deduction;
 
             $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)

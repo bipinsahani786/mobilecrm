@@ -10,6 +10,7 @@ import { useAuthStore } from "@/store/authStore";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useStaffPerformance } from "../../reports/api/useStaffPerformance";
 import { useTodayAttendance } from "../../attendance/api/useAttendance";
+import { useFeature } from "@/hooks/useFeature";
 
 export default function DashboardPage() {
   const { activeBusiness, isLoading: isTenantLoading } = useTenantStore();
@@ -28,8 +29,11 @@ export default function DashboardPage() {
   const from_date = format(startOfMonth(today), 'yyyy-MM-dd');
   const to_date = format(endOfMonth(today), 'yyyy-MM-dd');
 
-  const { data: performanceData } = useStaffPerformance({ from_date, to_date });
-  const { data: todayAttendance } = useTodayAttendance();
+  const { hasFeature } = useFeature();
+  const hasHr = hasFeature('has_hr');
+
+  const { data: performanceData } = useStaffPerformance({ from_date, to_date }, { enabled: hasHr });
+  const { data: todayAttendance } = useTodayAttendance({ enabled: hasHr });
 
   const myPerformance = performanceData?.find((p: any) => p.user_id === user?.id);
 

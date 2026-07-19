@@ -41,11 +41,8 @@ class TenantMiddleware
         // Simplest check: is the user the owner? 
         // Later we can check business_user table if staff roles are implemented
         if ($business->owner_id !== $user->id) {
-            // Check business_user table for staff
-            $isStaff = \DB::table('business_user')
-                ->where('business_id', $business->id)
-                ->where('user_id', $user->id)
-                ->exists();
+            // Check business_user table for staff using eloquent relationship
+            $isStaff = $user->businesses()->where('businesses.id', $business->id)->exists();
                 
             if (!$isStaff && !$user->hasRole('Superadmin')) {
                  return response()->json(['message' => 'Unauthorized access to this tenant.'], 403);

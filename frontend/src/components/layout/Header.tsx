@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Menu, Expand, Shrink, Moon, Sun, Palette, Paintbrush, Settings, ArrowRight, Monitor, User, LogOut, CreditCard, Building2, Store } from "lucide-react";
+import { Menu, Expand, Shrink, Moon, Sun, Palette, Paintbrush, Settings, ArrowRight, Monitor, User, LogOut, CreditCard, Building2, Store, HelpCircle, Crown, Lock } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useThemeStore, type LayoutTheme, type PrimaryColor, type FontFamily } from "@/store/themeStore";
@@ -10,7 +10,8 @@ import { ModeToggle } from "@/components/ui/mode-toggle";
 import { businessMenuGroups, superadminMenuGroups, isRouteActive } from "./Sidebar";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-
+import { useFeatureAccess } from "@/features/business/hooks/useFeatureAccess";
+import { FeatureLockModal } from "@/features/business/components/FeatureLockModal";
 // Theme dropdown component inside Header.tsx
 function ThemeCustomizer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -256,13 +257,13 @@ function ProfileMenu() {
                   onClick={() => { setIsOpen(false); navigate('/setup/profile'); }}
                   className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
                 >
-                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Edit Business
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Edit Branch
                 </button>
                 <button
                   onClick={() => { clearActiveBusiness(); setIsOpen(false); navigate('/setup/profile'); }}
                   className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
                 >
-                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Business
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Branch
                 </button>
               </>
             )}
@@ -326,8 +327,11 @@ export function Header({ className }: { className?: string }) {
   const user = useAuthStore(state => state.user);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
+  const branchDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { getMaxLimit } = useFeatureAccess();
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const isSuperadminMode = user?.roles?.some(r => r.name === 'Superadmin') || location.pathname.startsWith('/superadmin');
   const isPartnerMode = location.pathname.startsWith('/partner');
   const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
@@ -340,6 +344,22 @@ export function Header({ className }: { className?: string }) {
       fetchBusinesses();
     }
   }, [fetchBusinesses, isSuperadminMode, isPartnerMode]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target as Node)) {
+        setIsBranchDropdownOpen(false);
+      }
+    };
+    if (isBranchDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isBranchDropdownOpen]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
@@ -425,7 +445,7 @@ export function Header({ className }: { className?: string }) {
         {/* Branch Selector - business mode only */}
         {!isSuperadminMode && !isPartnerMode && (
           isBusinessManager ? (
-            <div className="relative">
+            <div className="relative" ref={branchDropdownRef}>
               <button
                 onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-primary-200 dark:border-primary-500/20 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors"
@@ -446,10 +466,19 @@ export function Header({ className }: { className?: string }) {
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Branch</p>
                   </div>
                   <div className="max-h-60 overflow-y-auto">
-                    {businesses.map((b) => (
+                    {businesses.map((b, index) => {
+                      const maxLocations = getMaxLimit('max_locations');
+                      const isLocked = index >= maxLocations;
+                      
+                      return (
                       <button
                         key={b.id}
                         onClick={() => {
+                          if (isLocked) {
+                            setIsBranchDropdownOpen(false);
+                            setIsLockModalOpen(true);
+                            return;
+                          }
                           if (activeBusiness?.id !== b.id) {
                             setActiveBusiness(b);
                             setIsBranchDropdownOpen(false);
@@ -462,27 +491,42 @@ export function Header({ className }: { className?: string }) {
                           "w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-3 transition-colors",
                           activeBusiness?.id === b.id
                             ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500"
-                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                            : isLocked 
+                              ? "text-slate-400 dark:text-slate-500 opacity-70 cursor-not-allowed bg-slate-50/50 dark:bg-white/[0.02]" 
+                              : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                         )}
                       >
                         {b.logo_path ? (
-                          <img src={b.logo_path} alt="Logo" className="w-5 h-5 object-contain rounded-sm bg-white/10" />
+                          <img src={b.logo_path} alt="Logo" className={cn("w-5 h-5 object-contain rounded-sm bg-white/10", isLocked && "grayscale")} />
                         ) : (
                           <Building2 className="w-4 h-4 opacity-70" />
                         )}
-                        <span className="truncate">{b.name}</span>
+                        <span className="truncate flex-1">{b.name}</span>
+                        {isLocked && <Lock className="w-3 h-3 text-slate-400 shrink-0" />}
                       </button>
-                    ))}
+                    )})}
                     {businesses.length === 0 && (
                       <div className="px-4 py-3 text-xs text-slate-400 text-center">No branches found</div>
                     )}
                   </div>
                   <div className="border-t border-slate-100 dark:border-white/5 mt-1 pt-1 px-2">
                     <button
-                      onClick={() => { setIsBranchDropdownOpen(false); navigate('/setup/profile'); }}
+                      onClick={() => {
+                        const maxLocations = getMaxLimit('max_locations');
+                        if (businesses.length >= maxLocations) {
+                          setIsBranchDropdownOpen(false);
+                          setIsLockModalOpen(true);
+                        } else {
+                          setIsBranchDropdownOpen(false);
+                          navigate('/setup/profile');
+                        }
+                      }}
                       className="w-full flex items-center justify-center py-2 text-xs font-bold text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-sm transition-colors"
                     >
-                      + Add New Branch
+                      <span className="flex-1 text-center">+ Add New Branch ({businesses.length}/{getMaxLimit('max_locations')})</span>
+                      {businesses.length >= getMaxLimit('max_locations') && (
+                        <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0 ml-1" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -500,6 +544,25 @@ export function Header({ className }: { className?: string }) {
               </span>
             </div>
           )
+        )}
+
+        {/* Plan Info Badge */}
+        {!isSuperadminMode && !isPartnerMode && activeBusiness?.plan && (
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border border-yellow-200/60 dark:border-yellow-700/30 rounded-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/setup/profile')}>
+            <div className="w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-800/50 flex items-center justify-center shrink-0">
+              <Crown className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-[10px] font-extrabold text-yellow-700 dark:text-yellow-500 uppercase tracking-widest leading-none">
+                {activeBusiness.plan.name}
+              </span>
+              {activeBusiness.plan_expires_at && (
+                <span className="text-[9px] text-yellow-600/80 dark:text-yellow-500/80 font-bold leading-none mt-1">
+                  {Math.max(0, Math.ceil((new Date(activeBusiness.plan_expires_at).getTime() - new Date().getTime()) / (1000 * 3600 * 24)))} Days Left
+                </span>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Real-time DateTime Display */}
@@ -521,6 +584,15 @@ export function Header({ className }: { className?: string }) {
         {/* Animated Theme Toggle */}
         <ModeToggle />
 
+        {/* Help & Docs */}
+        <button
+          onClick={() => navigate('/docs')}
+          className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+          title="Help & Docs"
+        >
+          <HelpCircle className="w-5 h-5" />
+        </button>
+
         {/* Advanced Theme Customizer */}
         <ThemeCustomizer />
 
@@ -528,6 +600,12 @@ export function Header({ className }: { className?: string }) {
         <ProfileMenu />
 
       </div>
+      {/* Feature Lock Modal for Add Branch */}
+      <FeatureLockModal
+        isOpen={isLockModalOpen}
+        onClose={() => setIsLockModalOpen(false)}
+        featureName="Multi-Branch"
+      />
     </header>
   );
 }

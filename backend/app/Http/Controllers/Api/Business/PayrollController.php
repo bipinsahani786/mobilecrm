@@ -261,6 +261,7 @@ class PayrollController extends BaseController
                 'user_id', 'amount', 'given_date', 'deduct_in_month', 'notes'
             ]);
             $data['status'] = 'pending';
+            $data['business_id'] = app('current_business_id'); // explicit safety
 
             if (empty($data['deduct_in_month']) && !empty($data['given_date'])) {
                 $data['deduct_in_month'] = date('Y-m', strtotime($data['given_date']));

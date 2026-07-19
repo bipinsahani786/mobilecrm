@@ -12,7 +12,7 @@ import { InfoTooltip } from '@/components/ui/info-tooltip';
 import { usePlans } from '../../plans/api/usePlans';
 import { usePartners } from '../../partners/api/usePartners';
 import { useUpdateTenant, useResetTenantPassword } from '../api/useSuperadminTenants';
-import { AVAILABLE_FEATURES } from '../../plans/components/PlanFormModal';
+import { PREMIUM_FEATURES } from '../../plans/components/PlanFormModal';
 import { DynamicForm } from '@/components/ui/dynamic-form';
 import { getTenantProfileFormConfig } from '../constants/tenantProfileForm';
 import { tenantSecurityFormConfig } from '../constants/tenantSecurityForm';
@@ -211,8 +211,8 @@ export function EditTenantModal({ isOpen, onClose, tenant }: EditTenantModalProp
                 <InfoTooltip text="Grant or deny specific features regardless of the assigned plan" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {AVAILABLE_FEATURES.map(feature => {
-                  const isPlanFeature = selectedPlan?.features?.includes(feature.id) || false;
+                {PREMIUM_FEATURES.map((feature: any) => {
+                  const isPlanFeature = !!selectedPlan?.features?.[feature.id];
                   const overrideVal = selectedFeatures[feature.id];
                   
                   return (

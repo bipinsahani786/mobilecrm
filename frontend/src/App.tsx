@@ -43,6 +43,7 @@ const LeaveRequestsPage = lazy(() => import('@/features/business/hr/pages/LeaveR
 const SalaryAdvancesPage = lazy(() => import('@/features/business/hr/pages/SalaryAdvancesPage'));
 const AuditLogsPage = lazy(() => import('@/features/business/reports/pages/AuditLogsPage'));
 const StaffPerformancePage = lazy(() => import('@/features/business/reports/pages/StaffPerformancePage'));
+const DocsPage = lazy(() => import('@/features/docs/pages/DocsPage'));
 
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
 const TenantsPage = lazy(() => import('@/features/superadmin/tenants/pages/TenantsPage'));
@@ -227,6 +228,7 @@ function App() {
             <Route path="/invoices/:id" element={<BusinessRoute><InvoiceDetailsPage /></BusinessRoute>} />
             <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
             <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
+            <Route path="/docs" element={<BusinessRoute><DocsPage /></BusinessRoute>} />
 
             {/* Staff & HR Routes */}
             <Route path="/staff" element={<BusinessRoute><StaffPage /></BusinessRoute>} />

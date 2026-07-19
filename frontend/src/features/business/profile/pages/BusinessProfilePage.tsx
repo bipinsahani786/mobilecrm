@@ -43,12 +43,13 @@ export default function BusinessProfilePage() {
         theme: activeBusiness.card_preferences?.theme ?? 'primary',
       },
       settings: {
-        commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
-        sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
-        purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
-        whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
-        whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
-        whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
+        commission_calculation_base: activeBusiness?.settings?.commission_calculation_base ?? 'sales',
+        sale_invoice_prefix: activeBusiness?.settings?.sale_invoice_prefix ?? 'INV-',
+        purchase_invoice_prefix: activeBusiness?.settings?.purchase_invoice_prefix ?? 'PUR-',
+        whitelabel_name: activeBusiness?.settings?.whitelabel_name ?? null,
+        whitelabel_logo: activeBusiness?.settings?.whitelabel_logo ?? null,
+        whitelabel_favicon: activeBusiness?.settings?.whitelabel_favicon ?? null,
+        whatsapp_message_format: activeBusiness?.settings?.whatsapp_message_format ?? 'Hello {customer_name}! Here is your invoice {invoice_number} for Rs.{amount}.\n\nYou can view and download your original PDF receipt here:\n{link}'
       }
     } : {
       name: '',

@@ -29,13 +29,14 @@ export const useAttendance = (filters: Record<string, any> = {}) => {
   });
 };
 
-export const useTodayAttendance = () => {
+export const useTodayAttendance = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['attendance', 'today'],
     queryFn: async () => {
       const { data } = await api.get('/business/attendance/today');
       return data.data as AttendanceRecord | null;
     },
+    enabled: options?.enabled,
   });
 };
 

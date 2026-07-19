@@ -15,8 +15,15 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate,
     header: 'Staff Member',
     accessorKey: 'user.name',
     cell: (row: PayrollRecord) => (
-      <div className="font-bold text-xs text-slate-900 dark:text-white">
-        {row.user?.name}
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-xs text-slate-900 dark:text-white">
+          {row.user?.name}
+        </span>
+        {(row as any).salary_type === 'daily' && (
+          <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            Per Day
+          </span>
+        )}
       </div>
     )
   },
