@@ -449,9 +449,9 @@ export function Header({ className }: { className?: string }) {
 
         {/* Impersonation Banner */}
         {useAuthStore((state) => !!state.originalToken) && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-300 shadow-sm ml-1 sm:ml-2">
-            <User className="h-4 w-4 shrink-0" />
-            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest leading-none">
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-300 shadow-sm ml-1 sm:ml-2 shrink-0">
+            <User className="h-4 w-4 shrink-0 hidden sm:block" />
+            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest leading-none truncate max-w-[80px] xl:max-w-[150px]">
               Impersonating {user?.name}
             </span>
             <Button
@@ -461,7 +461,7 @@ export function Header({ className }: { className?: string }) {
                 useAuthStore.getState().leaveImpersonation();
                 window.location.href = '/staff'; 
               }}
-              className="h-6 px-2 sm:ml-1 text-[9px] bg-white hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold uppercase tracking-widest rounded-full transition-colors"
+              className="h-6 px-2 sm:ml-1 text-[9px] bg-white hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold uppercase tracking-widest rounded-full transition-colors shrink-0"
             >
               Leave
             </Button>
@@ -575,7 +575,7 @@ export function Header({ className }: { className?: string }) {
         )}
 
         {/* Plan Info Badge */}
-        {!isSuperadminMode && !isPartnerMode && activeBusiness?.plan && (
+        {!isSuperadminMode && !isPartnerMode && isBusinessManager && activeBusiness?.plan && (
           <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border border-yellow-200/60 dark:border-yellow-700/30 rounded-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/setup/profile')}>
             <div className="w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-800/50 flex items-center justify-center shrink-0">
               <Crown className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />

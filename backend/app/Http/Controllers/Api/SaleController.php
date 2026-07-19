@@ -217,7 +217,7 @@ class SaleController extends BaseController
             'status' => 'nullable|string|in:completed,Draft',
             
             // Items
-            'items' => 'required|array|min:1',
+            'items' => 'nullable|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_batch_id' => 'nullable|exists:product_batches,id',
             'items.*.quantity' => 'required|integer|min:1',

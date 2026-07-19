@@ -216,7 +216,6 @@ export function PaymentForms({
                           { value: 'Net Banking', label: 'Net Banking' },
                           { value: 'UPI', label: 'UPI' },
                           { value: 'Card', label: 'Card' },
-                          { value: 'EMI', label: 'EMI' },
                           { value: 'Udhar', label: 'Udhar (Credit)' },
                         ]}
                       />

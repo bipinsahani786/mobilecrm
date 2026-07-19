@@ -890,7 +890,6 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                                   { value: 'UPI', label: 'UPI' },
                                   { value: 'Card', label: 'Card' },
                                   { value: 'Net Banking', label: 'Net Banking' },
-                                  { value: 'EMI', label: 'EMI' },
                                   { value: 'Udhar', label: 'Udhar (Credit)' },
                                 ]}
                               />
