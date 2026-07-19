@@ -50,7 +50,23 @@ export const getStaffColumns = ({ handleEdit, handleToggleStatus, handlePermissi
   {
     header: 'Salary',
     accessorKey: 'monthly_salary',
-    cell: (item: StaffMember) => `₹${Number(item.monthly_salary).toLocaleString()}`
+    cell: (item: StaffMember) => {
+      const isDaily = (item as any).salary_type === 'daily';
+      return (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-800 dark:text-zinc-200">
+            ₹{Number(isDaily ? (item as any).daily_salary : item.monthly_salary).toLocaleString()}
+          </span>
+          <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md ${
+            isDaily 
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' 
+              : 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
+          }`}>
+            {isDaily ? '/day' : '/mo'}
+          </span>
+        </div>
+      );
+    }
   },
   {
     header: 'Commission',

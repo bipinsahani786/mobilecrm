@@ -36,7 +36,10 @@ export default function PayrollPage() {
     return user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin' || r.name === 'Superadmin') || hasPermission('manage_payroll');
   }, [user, hasPermission]);
 
-  const queryFilters: any = { month: selectedMonth };
+  const queryFilters: any = {};
+  if (selectedMonth && selectedMonth !== 'all') {
+    queryFilters.month = selectedMonth;
+  }
   if (isManager) {
     if (selectedStaff !== 'all') {
       queryFilters.user_id = selectedStaff;
@@ -163,6 +166,12 @@ export default function PayrollPage() {
                 className={`h-9 px-3 rounded-lg text-xs font-black uppercase tracking-widest border transition-all duration-250 cursor-pointer ${selectedMonth === lastMonth ? 'bg-primary-500/10 text-primary-500 border-primary-500/30' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/10'}`}
               >
                 Last Month
+              </button>
+              <button 
+                onClick={() => setSelectedMonth('')}
+                className={`h-9 px-3 rounded-lg text-xs font-black uppercase tracking-widest border transition-all duration-250 cursor-pointer ${!selectedMonth || selectedMonth === 'all' ? 'bg-primary-500/10 text-primary-500 border-primary-500/30' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/10'}`}
+              >
+                All Time
               </button>
             </div>
 

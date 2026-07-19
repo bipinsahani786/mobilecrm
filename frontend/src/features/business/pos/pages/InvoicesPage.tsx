@@ -11,8 +11,12 @@ import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { formatCurrency } from '@/lib/formatters';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import { DatePicker } from '@/components/ui/DatePicker';
+import api from '@/lib/api';
+import { toast } from 'sonner';
+import { useTenantStore } from '@/store/tenantStore';
 
 export default function InvoicesPage() {
+  const { activeBusiness } = useTenantStore();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
@@ -53,10 +57,63 @@ export default function InvoicesPage() {
   const totalRevenue = meta?.total_revenue || 0;
   const totalUdhar = meta?.total_udhar || 0;
 
+  const handleDownloadPdf = async (sale: any, withLetterhead: boolean) => {
+    try {
+      toast.loading('Generating PDF...', { id: 'pdf-download' });
+      const response = await api.get(`/business/sales/${sale.id}/invoice-pdf?header=${withLetterhead}&footer=${withLetterhead}`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `invoice-${sale.invoice_number}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('PDF downloaded successfully', { id: 'pdf-download' });
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      toast.error('Failed to generate PDF', { id: 'pdf-download' });
+    }
+  };
+
+  const handleWhatsAppShare = (sale: any) => {
+    try {
+      if (!sale?.customer?.phone) {
+        toast.error("Customer does not have a phone number saved.");
+        return;
+      }
+
+      let template = activeBusiness?.settings?.whatsapp_invoice_template || 
+        "Hello *[Customer Name]*,\n\nThank you for shopping with us! Your invoice *[Invoice Number]* for Rs.*[Amount]* has been generated.\n\nView or download your invoice here:\n[Invoice Link]\n\nRegards,\n*[Business Name]*";
+      
+      const invoiceLink = sale.public_url || `${window.location.origin}/invoices/${sale.id}`; 
+      
+      const message = template
+        .replace(/\[Customer Name\]/g, sale.customer?.name || 'Customer')
+        .replace(/\[Invoice Number\]/g, sale.invoice_number)
+        .replace(/\[Amount\]/g, sale.final_amount?.toString() || '0')
+        .replace(/\[Invoice Link\]/g, invoiceLink)
+        .replace(/\[Business Name\]/g, activeBusiness?.name || 'Our Store');
+        
+      const text = encodeURIComponent(message);
+      
+      let phone = sale.customer.phone.replace(/\D/g, ''); 
+      if (phone.length === 10) phone = '91' + phone;
+      
+      window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+    } catch (error) {
+      console.error('Failed to share:', error);
+      toast.error('Failed to share invoice');
+    }
+  };
+
   const columns = useMemo(() => getInvoiceColumns({
     onView: (sale) => navigate(`/invoices/${sale.id}`),
     onCustomerView: (customerId) => navigate(`/customers/${customerId}`),
-    onResumeDraft: (saleId) => navigate(`/pos?draft_id=${saleId}`)
+    onResumeDraft: (saleId) => navigate(`/pos?draft_id=${saleId}`),
+    onDownloadPdf: handleDownloadPdf,
+    onWhatsAppShare: handleWhatsAppShare
   }), [navigate]);
 
   const handleClearFilters = () => {

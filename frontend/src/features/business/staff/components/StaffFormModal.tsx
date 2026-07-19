@@ -31,13 +31,17 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
     resolver: zodResolver(staffSchema),
     defaultValues: {
       role: 'staff',
+      salary_type: 'monthly',
       monthly_salary: 0,
+      daily_salary: 0,
       commission_rate: 0,
       status: 'active',
       join_date: new Date().toISOString().split('T')[0],
       salary_components: [],
     }
   });
+
+  const watchedSalaryType = watch('salary_type');
 
   const { fields } = useFieldArray({
     control,
@@ -121,7 +125,9 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
         phone: staff?.phone || '',
         email: staff?.email || '',
         role: staff?.role || 'staff',
+        salary_type: staff?.salary_type || 'monthly',
         monthly_salary: staff ? (Number(staff.monthly_salary) || 0) : 0,
+        daily_salary: staff ? (Number(staff.daily_salary) || 0) : 0,
         commission_rate: staff ? (Number(staff.commission_rate) || 0) : 0,
         status: staff?.status || 'active',
         join_date: staff?.join_date || new Date().toISOString().split('T')[0],
@@ -252,15 +258,6 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
               )}
             </div>
 
-            {(!availableComponents || availableComponents.length === 0) && (
-              <div>
-                <div className="flex items-center mb-1">
-                  <label className="block text-sm font-medium">Total Salary</label>
-                  <InfoTooltip text="Fixed total monthly salary for this staff member." />
-                </div>
-                <Input {...register('monthly_salary', { valueAsNumber: true })} type="number" step="0.01" error={errors.monthly_salary?.message} />
-              </div>
-            )}
 
             {isEditing && (
               <div>
@@ -287,7 +284,75 @@ export const StaffFormModal = ({ isOpen, onClose, staff }: StaffFormModalProps) 
             )}
           </div>
 
-          {availableComponents && availableComponents.length > 0 && (
+          {/* Salary Type Toggle + Salary Input */}
+          <div className="border-t border-slate-200 dark:border-white/10 pt-5 space-y-4">
+            <div>
+              <div className="flex items-center mb-1">
+                <label className="block text-sm font-medium">Salary Type</label>
+                <InfoTooltip text="Monthly: Fixed monthly salary. Per Day: Staff gets paid per working day." />
+              </div>
+              <Controller
+                name="salary_type"
+                control={control}
+                render={({ field }) => (
+                  <div className="flex rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden w-fit">
+                    <button
+                      type="button"
+                      onClick={() => field.onChange('monthly')}
+                      className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-all duration-200 cursor-pointer ${
+                        field.value === 'monthly'
+                          ? 'bg-primary-500 text-white shadow-inner'
+                          : 'bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      Monthly Salary
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => field.onChange('daily')}
+                      className={`px-5 py-2.5 text-xs font-black uppercase tracking-widest transition-all duration-200 cursor-pointer ${
+                        field.value === 'daily'
+                          ? 'bg-primary-500 text-white shadow-inner'
+                          : 'bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
+                      }`}
+                    >
+                      Per Day
+                    </button>
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* Monthly Salary Input — directly below toggle */}
+            {watchedSalaryType === 'monthly' && (!availableComponents || availableComponents.length === 0) && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <label className="block text-sm font-medium">Monthly Salary (₹)</label>
+                    <InfoTooltip text="Fixed total monthly salary for this staff member." />
+                  </div>
+                  <Input {...register('monthly_salary', { valueAsNumber: true })} type="number" step="0.01" placeholder="e.g. 15000" error={errors.monthly_salary?.message} />
+                  <p className="text-xs text-slate-500 mt-1">Full month's fixed salary, deductions will apply for absences</p>
+                </div>
+              </div>
+            )}
+
+            {/* Daily Salary Input — directly below toggle */}
+            {watchedSalaryType === 'daily' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center mb-1">
+                    <label className="block text-sm font-medium">Daily Rate (₹)</label>
+                    <InfoTooltip text="Per day salary amount. Staff will be paid this rate for each day they are present." />
+                  </div>
+                  <Input {...register('daily_salary', { valueAsNumber: true })} type="number" step="0.01" placeholder="e.g. 500" error={errors.daily_salary?.message} />
+                  <p className="text-xs text-slate-500 mt-1">Staff will only be paid for days marked as Present or Half Day</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {watchedSalaryType === 'monthly' && availableComponents && availableComponents.length > 0 && (
           <div className="border-t border-slate-200 dark:border-white/10 pt-5">
             <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4">Salary Breakdown</h3>
             

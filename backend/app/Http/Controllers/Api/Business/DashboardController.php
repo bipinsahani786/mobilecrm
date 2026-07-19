@@ -83,6 +83,14 @@ class DashboardController extends Controller
         $businessId = app('current_business_id');
         $month = Carbon::now()->format('Y-m');
 
+        // Get staff salary type from pivot
+        $staffData = \Illuminate\Support\Facades\DB::table('business_user')
+            ->where('business_id', $businessId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $salaryType = $staffData->salary_type ?? 'monthly';
+
         // Use PayrollService to calculate the draft payroll for this month
         $payrollService = app(\App\Services\Business\PayrollService::class);
         $draftPayroll = $payrollService->generateForEmployee($user->id, $month);
@@ -99,26 +107,29 @@ class DashboardController extends Controller
             ->sum('commission_amount');
 
         $todayEarnings = 0;
-        if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day', 'holiday'])) { // assuming holiday is paid, but let's just use per_day_salary
+        if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day'])) {
             $multiplier = ($todayAttendance->status === 'half_day') ? 0.5 : 1;
             $todayEarnings = ($draftPayroll->per_day_salary * $multiplier);
         }
         $todayEarnings += $todayCommission;
 
-        // 2. This Month's Earnings (Earnings before advance deductions)
-        $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+        // 2. This Month's Earnings
+        if ($salaryType === 'daily') {
+            // Daily staff: base_salary already = present_days × daily_rate
+            $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
+        } else {
+            // Monthly staff: earnings before advance deductions
+            $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+        }
 
         // 3. Advance Taken This Month
         $advanceTaken = $draftPayroll->advance_deduction;
 
         // 4. Total Unpaid Dues
-        // Sum of all Confirmed payrolls that are NOT paid
         $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)
             ->where('status', 'confirmed')
             ->sum('final_salary');
 
-        // Add current month's calculated earnings
-        // final_salary already subtracts advances for the current month!
         $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
 
         return response()->json([

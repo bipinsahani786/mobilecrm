@@ -18,10 +18,8 @@ class EmiController extends BaseController
     {
         $businessId = app('current_business_id');
 
-        // Fetch EMI details for sales belonging to this customer and business
-        $emis = EmiDetail::whereHas('sale', function ($q) use ($customerId, $businessId) {
-            $q->where('customer_id', $customerId)
-              ->where('business_id', $businessId);
+        $emis = EmiDetail::whereHas('sale', function ($q) use ($customerId) {
+            $q->where('customer_id', $customerId);
         })
         ->with(['sale:id,invoice_number,date,final_amount', 'installments' => function($q) {
             $q->orderBy('installment_number');
@@ -91,9 +89,7 @@ class EmiController extends BaseController
             'payout_date' => 'nullable|date',
         ]);
 
-        $emiDetail = EmiDetail::whereHas('sale', function ($q) {
-            $q->where('business_id', app('current_business_id'));
-        })->findOrFail($emiDetailId);
+        $emiDetail = EmiDetail::whereHas('sale')->findOrFail($emiDetailId);
 
         if ($emiDetail->is_payout_received) {
             return $this->error('Payout already marked as received.', 400);

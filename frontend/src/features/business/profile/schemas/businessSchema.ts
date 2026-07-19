@@ -26,13 +26,15 @@ export const businessSchema = z.object({
     show_gst: true,
     theme: 'primary'
   }),
-  settings: z.object({
+    settings: z.object({
     commission_calculation_base: z.enum(['sales', 'profit']).default('sales'),
     sale_invoice_prefix: z.string().default('INV-'),
     purchase_invoice_prefix: z.string().default('PUR-'),
     whitelabel_name: z.string().nullable().optional(),
     whitelabel_logo: z.string().nullable().optional(),
     whitelabel_favicon: z.string().nullable().optional(),
+    invoice_header_image: z.string().nullable().optional(),
+    invoice_footer_image: z.string().nullable().optional(),
   }).default({
     commission_calculation_base: 'sales',
     sale_invoice_prefix: 'INV-',

@@ -33,6 +33,13 @@ class Sale extends Model
         'draft_data' => 'array',
     ];
 
+    protected $appends = ['public_url'];
+
+    public function getPublicUrlAttribute()
+    {
+        return \Illuminate\Support\Facades\URL::signedRoute('invoice.verify', ['sale' => $this->id]);
+    }
+
     public function business()
     {
         return $this->belongsTo(Business::class);

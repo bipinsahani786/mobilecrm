@@ -39,7 +39,7 @@ class TestBusinessSeeder extends Seeder
         ]);
 
         // ─── 2. Create Business ─────────────────────────────────────────
-        $plan = Plan::first();
+        $plan = Plan::where('name', 'Enterprise Plan')->first();
         $business = Business::create([
             'name' => 'Demo Mobile Shop',
             'email' => 'test@demo.com',

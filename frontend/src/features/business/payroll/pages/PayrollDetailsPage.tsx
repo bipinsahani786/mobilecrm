@@ -216,7 +216,7 @@ export default function PayrollDetailsPage() {
                 Net Payable
               </span>
               <p className="text-[11px] font-bold text-slate-400 dark:text-zinc-400 tracking-wider">
-                FINAL MONTHLY SALARY
+                {(payroll as any).salary_type === 'daily' ? 'DAILY WAGE SALARY' : 'FINAL MONTHLY SALARY'}
               </p>
             </div>
 
@@ -315,7 +315,7 @@ export default function PayrollDetailsPage() {
           </div>
         </div>
 
-        {/* Section 3: Earnings & Deductions Split */}
+          {/* Section 3: Earnings & Deductions Split */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Earnings card */}
@@ -326,28 +326,75 @@ export default function PayrollDetailsPage() {
                   <TrendingUp className="w-4 h-4" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200 font-display">
-                  Monthly Earnings
+                  {(payroll as any).salary_type === 'daily' ? 'Daily Wage Earnings' : 'Monthly Earnings'}
                 </h4>
+                {(payroll as any).salary_type === 'daily' && (
+                  <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest ml-auto">
+                    Per Day
+                  </span>
+                )}
               </div>
 
               <div className="mt-4 space-y-4">
-                {/* Check Salary components */}
-                {Array.isArray(payroll.salary_components) && payroll.salary_components.filter((c: any) => c.type === 'earning').map((comp: any) => (
-                  <div key={comp.id || comp.name} className="flex justify-between items-center text-sm">
-                    <span className="text-slate-550 dark:text-zinc-400">{comp.name}</span>
-                    <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                      ₹{Number(comp.amount).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                
-                {(!payroll.salary_components || (Array.isArray(payroll.salary_components) && payroll.salary_components.length === 0)) && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-555 dark:text-zinc-400">Basic Salary</span>
-                    <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                      ₹{Number(payroll.base_salary).toLocaleString()}
-                    </span>
-                  </div>
+                {(payroll as any).salary_type === 'daily' ? (
+                  /* Daily wage breakdown */
+                  <>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-550 dark:text-zinc-400">Daily Rate</span>
+                      <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                        ₹{Number(payroll.per_day_salary).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-550 dark:text-zinc-400">Days Worked (Present)</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {payroll.present_days} days
+                      </span>
+                    </div>
+                    {Number(payroll.half_days) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">Half Days (×0.5)</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {payroll.half_days} days
+                        </span>
+                      </div>
+                    )}
+                    {Number(payroll.paid_leaves) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">Paid Leaves</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {payroll.paid_leaves} days
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-100 dark:border-white/5">
+                      <span className="text-slate-550 dark:text-zinc-400 font-medium">Earned from Attendance</span>
+                      <span className="font-bold text-slate-700 dark:text-zinc-200">
+                        ₹{Number(payroll.base_salary).toLocaleString()}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  /* Monthly salary breakdown */
+                  <>
+                    {Array.isArray(payroll.salary_components) && payroll.salary_components.filter((c: any) => c.type === 'earning').map((comp: any) => (
+                      <div key={comp.id || comp.name} className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">{comp.name}</span>
+                        <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                          ₹{Number(comp.amount).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    
+                    {(!payroll.salary_components || (Array.isArray(payroll.salary_components) && payroll.salary_components.length === 0)) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-555 dark:text-zinc-400">Basic Salary</span>
+                        <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                          ₹{Number(payroll.base_salary).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 {Number(payroll.total_commission) > 0 && (
@@ -389,9 +436,7 @@ export default function PayrollDetailsPage() {
             <div className="border-t border-slate-100 dark:border-white/5 mt-6 pt-4 flex justify-between items-center">
               <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Gross Earnings</span>
               <span className="text-base font-black text-slate-800 dark:text-zinc-200 font-display">
-                ₹{((!payroll.salary_components || payroll.salary_components.length === 0 
-                  ? Number(payroll.base_salary) 
-                  : payroll.salary_components.filter((c: any) => c.type === 'earning').reduce((acc: number, c: any) => acc + Number(c.amount), 0))
+                ₹{(Number(payroll.base_salary)
                   + Number(payroll.total_commission) 
                   + (editMode ? Number(formData.bonus) : Number(payroll.bonus))).toLocaleString()}
               </span>

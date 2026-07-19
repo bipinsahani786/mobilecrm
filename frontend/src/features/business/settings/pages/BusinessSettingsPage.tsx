@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, Loader2, Settings, UploadCloud, FileText, LayoutGrid, MapPin } from 'lucide-react';
+import { Save, Loader2, Settings, UploadCloud, FileText, LayoutGrid, MapPin, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +19,8 @@ import { DynamicForm } from '@/components/ui/dynamic-form';
 import type { FormSectionConfig } from '@/components/ui/dynamic-form';
 import { BusinessLocationsSection } from '../../profile/components/BusinessLocationsSection';
 import { InvoicePatternBuilder } from '../components/InvoicePatternBuilder';
+import { InvoicePrintSettings } from '../../profile/components/InvoicePrintSettings';
+import { WhatsAppSettings } from '../components/WhatsAppSettings';
 
 const businessSettingsSchema = z.object({
   settings: z.object({
@@ -28,6 +30,7 @@ const businessSettingsSchema = z.object({
     whitelabel_name: z.string().nullable().optional(),
     whitelabel_logo: z.string().nullable().optional(),
     whitelabel_favicon: z.string().nullable().optional(),
+    whatsapp_message_format: z.string().nullable().optional(),
   }).default({
     commission_calculation_base: 'sales',
     sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
@@ -50,6 +53,7 @@ export default function BusinessSettingsPage() {
   const tabs = [
     { id: 'general', label: 'General', icon: Settings },
     { id: 'invoice', label: 'Invoice Settings', icon: FileText },
+    { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle },
     { id: 'config', label: 'Configurations', icon: LayoutGrid },
     { id: 'locations', label: 'Business Locations', icon: MapPin },
   ];
@@ -58,13 +62,19 @@ export default function BusinessSettingsPage() {
   const [wlLogoPreview, setWlLogoPreview] = useState<string | null>(activeBusiness?.settings?.whitelabel_logo || null);
   const [wlFaviconPreview, setWlFaviconPreview] = useState<string | null>(activeBusiness?.settings?.whitelabel_favicon || null);
 
+  const [isUploadingInvoiceHeader, setIsUploadingInvoiceHeader] = useState(false);
+  const [isUploadingInvoiceFooter, setIsUploadingInvoiceFooter] = useState(false);
+  const [invoiceHeaderUrl, setInvoiceHeaderUrl] = useState<string | null>(activeBusiness?.settings?.invoice_header_image || null);
+  const [invoiceFooterUrl, setInvoiceFooterUrl] = useState<string | null>(activeBusiness?.settings?.invoice_footer_image || null);
+  const [invoiceHeaderPreview, setInvoiceHeaderPreview] = useState<string | null>(activeBusiness?.settings?.invoice_header_image || null);
+  const [invoiceFooterPreview, setInvoiceFooterPreview] = useState<string | null>(activeBusiness?.settings?.invoice_footer_image || null);
+
   const form = useForm<BusinessSettingsFormValues>({
     resolver: zodResolver(businessSettingsSchema) as any,
     defaultValues: activeBusiness ? {
-      settings: activeBusiness.settings || {
-        commission_calculation_base: 'sales',
-        sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
-        purchase_invoice_prefix: 'PUR-{YYYY}-{MM}-{SEQ:4}',
+      settings: {
+        ...activeBusiness.settings,
+        whatsapp_message_format: activeBusiness.settings?.whatsapp_message_format || 'Hello {customer_name}! Here is your invoice {invoice_number} for Rs.{amount}.\n\nYou can view and download your original PDF receipt here:\n{link}'
       }
     } : undefined
   });
@@ -82,16 +92,20 @@ export default function BusinessSettingsPage() {
   useEffect(() => {
     if (activeBusiness) {
       reset({
-        settings: activeBusiness.settings || {
-          commission_calculation_base: 'sales',
-          sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
-          purchase_invoice_prefix: 'PUR-{YYYY}-{MM}-{SEQ:4}',
+        settings: {
+          ...activeBusiness.settings,
+          whatsapp_message_format: activeBusiness.settings?.whatsapp_message_format || 'Hello {customer_name}! Here is your invoice {invoice_number} for Rs.{amount}.\n\nYou can view and download your original PDF receipt here:\n{link}'
         }
       });
       setWlLogoUrl(activeBusiness.settings?.whitelabel_logo || null);
       setWlFaviconUrl(activeBusiness.settings?.whitelabel_favicon || null);
       setWlLogoPreview(activeBusiness.settings?.whitelabel_logo || null);
       setWlFaviconPreview(activeBusiness.settings?.whitelabel_favicon || null);
+      
+      setInvoiceHeaderUrl(activeBusiness.settings?.invoice_header_image || null);
+      setInvoiceFooterUrl(activeBusiness.settings?.invoice_footer_image || null);
+      setInvoiceHeaderPreview(activeBusiness.settings?.invoice_header_image || null);
+      setInvoiceFooterPreview(activeBusiness.settings?.invoice_footer_image || null);
     }
   }, [activeBusiness, reset]);
 
@@ -122,6 +136,49 @@ export default function BusinessSettingsPage() {
     }
   };
 
+  const handleInvoiceImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'header' | 'footer') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const objectUrl = URL.createObjectURL(file);
+    if (type === 'header') setInvoiceHeaderPreview(objectUrl);
+    else setInvoiceFooterPreview(objectUrl);
+
+    try {
+      if (type === 'header') setIsUploadingInvoiceHeader(true);
+      else setIsUploadingInvoiceFooter(true);
+
+      const { public_url } = await uploadToR2(file, `uploads/invoice-${type}s`);
+      
+      if (type === 'header') {
+        setInvoiceHeaderUrl(public_url);
+        form.setValue('settings.invoice_header_image' as any, public_url);
+      } else {
+        setInvoiceFooterUrl(public_url);
+        form.setValue('settings.invoice_footer_image' as any, public_url);
+      }
+      
+      toast.success(`Invoice ${type} uploaded successfully!`);
+    } catch {
+      toast.error(`Failed to upload invoice ${type}`);
+    } finally {
+      if (type === 'header') setIsUploadingInvoiceHeader(false);
+      else setIsUploadingInvoiceFooter(false);
+    }
+  };
+
+  const handleRemoveInvoiceImage = (type: 'header' | 'footer') => {
+    if (type === 'header') {
+      setInvoiceHeaderUrl(null);
+      setInvoiceHeaderPreview(null);
+      form.setValue('settings.invoice_header_image' as any, null);
+    } else {
+      setInvoiceFooterUrl(null);
+      setInvoiceFooterPreview(null);
+      form.setValue('settings.invoice_footer_image' as any, null);
+    }
+  };
+
   const onSubmit = async (data: BusinessSettingsFormValues) => {
     try {
       if (!activeBusiness) return;
@@ -131,6 +188,8 @@ export default function BusinessSettingsPage() {
           ...data.settings,
           whitelabel_logo: wlLogoUrl,
           whitelabel_favicon: wlFaviconUrl,
+          invoice_header_image: invoiceHeaderUrl,
+          invoice_footer_image: invoiceFooterUrl,
         }
       };
 
@@ -231,11 +290,49 @@ export default function BusinessSettingsPage() {
               onChange={(val) => form.setValue('settings.purchase_invoice_prefix', val, { shouldDirty: true })} 
             />
           )
+        },
+        {
+          name: 'invoice_settings',
+          label: 'Invoice Print Settings',
+          type: 'custom',
+          colSpan: 2,
+          render: () => (
+            <InvoicePrintSettings
+              headerUrl={invoiceHeaderPreview}
+              footerUrl={invoiceFooterPreview}
+              isUploadingHeader={isUploadingInvoiceHeader}
+              isUploadingFooter={isUploadingInvoiceFooter}
+              onUpload={handleInvoiceImageUpload}
+              onRemove={handleRemoveInvoiceImage}
+            />
+          )
         }
       ]
     },
     {
-      title: 'Business Configurations',
+      title: 'WhatsApp Configuration',
+      className: activeTab === 'whatsapp' ? 'block' : 'hidden',
+      fields: [
+        {
+          name: 'whatsapp_settings',
+          label: '',
+          type: 'custom',
+          colSpan: 2,
+          render: (form) => (
+            <WhatsAppSettings
+              settings={form.watch('settings')}
+              onSave={async (updatedSettings) => {
+                form.setValue('settings', updatedSettings, { shouldDirty: true });
+                await form.handleSubmit(onSubmit)();
+              }}
+              isLoading={isSubmitting}
+            />
+          )
+        }
+      ]
+    },
+    {
+      title: 'System Configurations',
       className: activeTab === 'config' ? 'block' : 'hidden',
       fields: [
         {
