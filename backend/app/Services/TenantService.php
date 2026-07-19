@@ -127,6 +127,14 @@ class TenantService
         
         $business->update($data);
 
+        // Sync subscription fields across all branches owned by this user
+        $subscriptionData = collect($data)->only(['plan_id', 'plan_expires_at', 'custom_features', 'partner_id'])->toArray();
+        if (!empty($subscriptionData)) {
+            Business::where('owner_id', $business->owner_id)
+                ->where('id', '!=', $business->id)
+                ->update($subscriptionData);
+        }
+
         // Log the tenant update and feature changes
         if (isset($data['custom_features']) && $data['custom_features'] !== $oldFeatures) {
             $this->activityLogService->log(
