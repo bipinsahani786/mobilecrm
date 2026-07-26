@@ -132,7 +132,9 @@ class SaleController extends BaseController
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:completed,Draft',
-            
+            'cgst_rate' => 'nullable|numeric|min:0',
+            'sgst_rate' => 'nullable|numeric|min:0',
+
             // Items
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -142,6 +144,9 @@ class SaleController extends BaseController
             'items.*.imei_1' => 'nullable|string',
             'items.*.imei_2' => 'nullable|string',
             'items.*.serial_no' => 'nullable|string',
+
+            // Quotation Reference
+            'quotation_id' => 'nullable|exists:quotations,id',
 
             // Payments (Split Payments)
             'payments' => 'nullable|array',
@@ -215,7 +220,9 @@ class SaleController extends BaseController
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:completed,Draft',
-            
+            'cgst_rate' => 'nullable|numeric|min:0',
+            'sgst_rate' => 'nullable|numeric|min:0',
+
             // Items
             'items' => 'nullable|array',
             'items.*.product_id' => 'required|exists:products,id',
@@ -252,12 +259,13 @@ class SaleController extends BaseController
     public function generatePdf(Request $request, Sale $sale)
     {
         $sale->load(['customer', 'user', 'items.product', 'payments', 'emiDetail']);
-        
+
         $business = $sale->business;
         $settings = $business->settings ?? [];
 
-        $showHeader = $request->query('header') === 'true';
-        $showFooter = $request->query('footer') === 'true';
+        // Default to true if not explicitly passed (e.g., from QR scan or WhatsApp link)
+        $showHeader = $request->has('header') ? $request->query('header') === 'true' : true;
+        $showFooter = $request->has('footer') ? $request->query('footer') === 'true' : true;
 
         $headerImage = $showHeader && !empty($settings['invoice_header_image']) ? $settings['invoice_header_image'] : null;
         $footerImage = $showFooter && !empty($settings['invoice_footer_image']) ? $settings['invoice_footer_image'] : null;
@@ -298,9 +306,9 @@ class SaleController extends BaseController
             'footerImage' => $footerBase64 ?? $footerImage,
             'qrCodeUri' => $qrCodeBase64,
         ])->setOptions([
-            'isRemoteEnabled' => true, 
-            'isHtml5ParserEnabled' => true,
-        ]);
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                ]);
 
         return $pdf->download("invoice-{$sale->invoice_number}.pdf");
     }

@@ -1,4 +1,4 @@
-import { Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt, CheckCircle2, AlertCircle, BarChart3, Sparkles, Calendar, Coins, Wallet } from "lucide-react";
+import { Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt, CheckCircle2, AlertCircle, BarChart3, Sparkles, Calendar, Coins, Wallet, Truck, Plus } from "lucide-react";
 import { DashboardSkeleton } from "./../components/DashboardSkeleton";
 import { useTenantStore } from "@/store/tenantStore";
 import { useNavigate } from "react-router-dom";
@@ -187,6 +187,40 @@ export default function DashboardPage() {
               glowColor="purple"
               onClick={() => navigate('/invoices')}
             />
+          </div>
+          
+          <div className="mt-6 mb-2">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-3 ml-1 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-xl p-2 rounded-xl inline-block shadow-sm">Profit & Loss Summary (Net vs Direct)</h3>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <CustomKpiCard
+                title="Today's Profit"
+                value={`₹${(stats?.profits?.today?.net ?? 0).toLocaleString('en-IN')}`}
+                subtitle={`Direct: ₹${(stats?.profits?.today?.direct ?? 0).toLocaleString('en-IN')}`}
+                icon={<BarChart3 />}
+                glowColor="emerald"
+              />
+              <CustomKpiCard
+                title="This Week's Profit"
+                value={`₹${(stats?.profits?.week?.net ?? 0).toLocaleString('en-IN')}`}
+                subtitle={`Direct: ₹${(stats?.profits?.week?.direct ?? 0).toLocaleString('en-IN')}`}
+                icon={<BarChart3 />}
+                glowColor="indigo"
+              />
+              <CustomKpiCard
+                title="This Month's Profit"
+                value={`₹${(stats?.profits?.month?.net ?? 0).toLocaleString('en-IN')}`}
+                subtitle={`Direct: ₹${(stats?.profits?.month?.direct ?? 0).toLocaleString('en-IN')}`}
+                icon={<BarChart3 />}
+                glowColor="purple"
+              />
+              <CustomKpiCard
+                title="This Year's Profit"
+                value={`₹${(stats?.profits?.year?.net ?? 0).toLocaleString('en-IN')}`}
+                subtitle={`Direct: ₹${(stats?.profits?.year?.direct ?? 0).toLocaleString('en-IN')}`}
+                icon={<BarChart3 />}
+                glowColor="amber"
+              />
+            </div>
           </div>
           </div>
         )}
@@ -477,6 +511,30 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Mobile Floating Action Buttons ─── Only visible on small screens ── */}
+      {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && (
+        <div className="lg:hidden fixed bottom-20 left-0 right-0 z-50 flex justify-center gap-3 px-4 pointer-events-none">
+          <button
+            onClick={() => navigate('/pos')}
+            className="pointer-events-auto flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 border border-primary-400/30"
+          >
+            <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
+              <Plus className="w-4 h-4" />
+            </div>
+            New Invoice
+          </button>
+          <button
+            onClick={() => navigate('/suppliers')}
+            className="pointer-events-auto flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-900/30 hover:shadow-2xl hover:shadow-slate-900/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 border border-slate-600/30"
+          >
+            <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
+              <Truck className="w-4 h-4" />
+            </div>
+            Suppliers
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,6 +12,12 @@ export interface DashboardStats {
     present_today: number;
   };
   recent_sales: any[];
+  profits: {
+    today: { direct: number; net: number };
+    week: { direct: number; net: number };
+    month: { direct: number; net: number };
+    year: { direct: number; net: number };
+  };
 }
 
 export const useDashboardStats = () => {

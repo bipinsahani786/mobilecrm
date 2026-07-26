@@ -117,6 +117,28 @@ export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDow
     }
   },
   {
+    header: 'Profit',
+    className: 'text-right',
+    cell: (sale) => {
+      const netProfit = sale.net_profit || 0;
+      const totalProfit = sale.total_profit || 0;
+      const commission = sale.staff_commission || 0;
+
+      return (
+        <div className="text-right flex flex-col items-end">
+          <span className={`font-black text-sm ${netProfit > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
+            {formatCurrency(netProfit)}
+          </span>
+          {(totalProfit > 0 || commission > 0) && (
+            <span className="text-[9px] font-bold text-slate-500 mt-0.5 whitespace-nowrap">
+              Dir: {formatCurrency(totalProfit)} | Comm: {formatCurrency(commission)}
+            </span>
+          )}
+        </div>
+      );
+    }
+  },
+  {
     header: 'Payment Mode',
     cell: (sale) => {
       const udharPayment = sale.payments?.find(p => p.payment_mode === 'Udhar');

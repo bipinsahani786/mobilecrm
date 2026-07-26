@@ -42,6 +42,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('categories', \App\Http\Controllers\Api\Business\CategoryController::class);
             Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
             
+            Route::get('inventory/export', [\App\Http\Controllers\Api\Business\InventoryController::class, 'export']);
             Route::post('inventory/direct-inward', [\App\Http\Controllers\Api\Business\InventoryController::class, 'directInward']);
             Route::apiResource('inventory', \App\Http\Controllers\Api\Business\InventoryController::class);
             
@@ -49,10 +50,20 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('suppliers', \App\Http\Controllers\Api\SupplierController::class);
             Route::post('suppliers/{supplier}/purchases', [\App\Http\Controllers\Api\SupplierController::class, 'storePurchase']);
             Route::post('suppliers/{supplier}/payments', [\App\Http\Controllers\Api\SupplierController::class, 'storePayment']);
+            Route::post('suppliers/{supplier}/purchase-returns', [\App\Http\Controllers\Api\SupplierController::class, 'storePurchaseReturn']);
+            Route::get('suppliers/{supplier}/ledger', [\App\Http\Controllers\Api\SupplierController::class, 'ledger']);
+            Route::get('suppliers/purchases/{purchaseId}/bill-pdf', [\App\Http\Controllers\Api\SupplierController::class, 'purchaseBillPdf']);
             
             // Customer Routes
             Route::apiResource('customers', \App\Http\Controllers\Api\CustomerController::class);
             
+            // Quotation Routes
+            Route::middleware(['feature:has_quotations'])->group(function () {
+                Route::get('quotations/{quotation}/pdf', [\App\Http\Controllers\Api\Business\QuotationController::class, 'generatePdf']);
+                Route::post('quotations/{quotation}/convert', [\App\Http\Controllers\Api\Business\QuotationController::class, 'convertToBill']);
+                Route::apiResource('quotations', \App\Http\Controllers\Api\Business\QuotationController::class);
+            });
+
             // Sales Routes
             Route::get('sales/{sale}/invoice-pdf', [\App\Http\Controllers\Api\SaleController::class, 'generatePdf']);
             Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);

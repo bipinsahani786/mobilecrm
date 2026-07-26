@@ -255,4 +255,143 @@ class SupplierController extends BaseController
             return $this->supplierService->recordPayment($supplier, $validated);
         }, 'Payment recorded successfully', 201);
     }
+
+    #[OA\Post(
+        path: '/business/suppliers/{id}/purchase-returns',
+        summary: 'Record Purchase Return',
+        description: 'Record items being returned to supplier. Reduces stock and adjusts supplier ledger.',
+        tags: ['Business - Suppliers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['return_date', 'items'],
+                properties: [
+                    new OA\Property(property: 'supplier_purchase_id', type: 'integer', nullable: true),
+                    new OA\Property(property: 'return_date', type: 'string', format: 'date'),
+                    new OA\Property(property: 'reason', type: 'string', nullable: true),
+                    new OA\Property(property: 'notes', type: 'string', nullable: true),
+                    new OA\Property(property: 'items', type: 'array', items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'product_id', type: 'integer'),
+                            new OA\Property(property: 'product_batch_id', type: 'integer', nullable: true),
+                            new OA\Property(property: 'quantity', type: 'integer'),
+                            new OA\Property(property: 'unit_price', type: 'number'),
+                        ]
+                    )),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Purchase return recorded successfully')
+        ]
+    )]
+    public function storePurchaseReturn(Request $request, Supplier $supplier)
+    {
+        $validated = $request->validate([
+            'supplier_purchase_id' => 'nullable|exists:supplier_purchases,id',
+            'return_date' => 'required|date',
+            'reason' => 'nullable|string',
+            'notes' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.product_batch_id' => 'nullable|exists:product_batches,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'required|numeric|min:0',
+        ]);
+
+        return $this->executeAction(function () use ($supplier, $validated) {
+            return $this->supplierService->recordPurchaseReturn($supplier, $validated);
+        }, 'Purchase return recorded successfully', 201);
+    }
+
+    #[OA\Get(
+        path: '/business/suppliers/{id}/ledger',
+        summary: 'Get Supplier Ledger',
+        description: 'Get chronological ledger of all purchases, payments, and returns for a supplier.',
+        tags: ['Business - Suppliers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'start_date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date')),
+            new OA\Parameter(name: 'end_date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Supplier ledger retrieved successfully')
+        ]
+    )]
+    public function ledger(Request $request, Supplier $supplier)
+    {
+        $startDate = $request->query('start_date');
+        $endDate = $request->query('end_date');
+
+        return $this->executeAction(function () use ($supplier, $startDate, $endDate) {
+            $supplier->load(['purchases', 'payments', 'purchaseReturns']);
+            return $this->supplierService->getSupplierLedger($supplier, $startDate, $endDate);
+        }, 'Supplier ledger retrieved successfully');
+    }
+
+    #[OA\Get(
+        path: '/business/suppliers/purchases/{purchaseId}/bill-pdf',
+        summary: 'Download Purchase Bill PDF',
+        description: 'Generate and download a purchase bill PDF with header and footer.',
+        tags: ['Business - Suppliers'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'purchaseId', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'PDF downloaded')
+        ]
+    )]
+    public function purchaseBillPdf(Request $request, $purchaseId)
+    {
+        $purchase = \App\Models\SupplierPurchase::with(['supplier', 'items.product'])->findOrFail($purchaseId);
+
+        $business = \App\Models\Business::find(app('current_business_id'));
+        $settings = $business->settings ?? [];
+
+        $showHeader = $request->has('header') ? $request->query('header') === 'true' : true;
+        $showFooter = $request->has('footer') ? $request->query('footer') === 'true' : true;
+
+        $headerImage = $showHeader && !empty($settings['invoice_header_image']) ? $settings['invoice_header_image'] : null;
+        $footerImage = $showFooter && !empty($settings['invoice_footer_image']) ? $settings['invoice_footer_image'] : null;
+
+        $headerBase64 = null;
+        if ($headerImage) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get($headerImage);
+                if ($response->successful()) {
+                    $type = $response->header('Content-Type') ?: 'image/jpeg';
+                    $headerBase64 = 'data:' . $type . ';base64,' . base64_encode($response->body());
+                }
+            } catch (\Exception $e) {}
+        }
+
+        $footerBase64 = null;
+        if ($footerImage) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get($footerImage);
+                if ($response->successful()) {
+                    $type = $response->header('Content-Type') ?: 'image/jpeg';
+                    $footerBase64 = 'data:' . $type . ';base64,' . base64_encode($response->body());
+                }
+            } catch (\Exception $e) {}
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.purchase-bill', [
+            'purchase' => $purchase,
+            'business' => $business,
+            'headerImage' => $headerBase64 ?? $headerImage,
+            'footerImage' => $footerBase64 ?? $footerImage,
+        ])->setOptions([
+            'isRemoteEnabled' => true,
+            'isHtml5ParserEnabled' => true,
+        ]);
+
+        return $pdf->download("purchase-bill-{$purchase->purchase_number}.pdf");
+    }
 }

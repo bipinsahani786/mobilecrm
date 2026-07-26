@@ -19,6 +19,8 @@ class SaleItem extends Model
         'imei_1',
         'imei_2',
         'serial_no',
+        'purchase_price',
+        'profit',
     ];
 
     public function sale()

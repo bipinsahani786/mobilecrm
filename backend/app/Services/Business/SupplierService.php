@@ -4,7 +4,11 @@ namespace App\Services\Business;
 
 use App\Models\Supplier;
 use App\Models\SupplierPurchase;
+use App\Models\SupplierPayment;
 use App\Models\Product;
+use App\Models\ProductBatch;
+use App\Models\PurchaseReturn;
+use App\Models\PurchaseReturnItem;
 use App\Models\InventoryMovement;
 use Illuminate\Support\Facades\DB;
 
@@ -213,4 +217,190 @@ class SupplierService
             return collect($createdPayments);
         });
     }
+
+    public function recordPurchaseReturn(Supplier $supplier, array $data)
+    {
+        return DB::transaction(function () use ($supplier, $data) {
+            $businessId = app('current_business_id') ?? (auth()->check() ? (auth()->user()->business_id ?? auth()->user()->businesses()->first()?->id) : null);
+            $business = \App\Models\Business::find($businessId);
+
+            // Generate return number
+            $prefix = $business->settings['return_prefix'] ?? 'RET-';
+            $lastReturn = PurchaseReturn::where('business_id', $businessId)
+                ->orderBy('id', 'desc')
+                ->first();
+            $nextNumber = $lastReturn ? $lastReturn->id + 1 : 1;
+            $returnNumber = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+
+            $totalAmount = 0;
+            foreach ($data['items'] as $item) {
+                $totalAmount += $item['quantity'] * $item['unit_price'];
+            }
+
+            $purchaseReturn = PurchaseReturn::create([
+                'business_id' => $businessId,
+                'supplier_id' => $supplier->id,
+                'supplier_purchase_id' => $data['supplier_purchase_id'] ?? null,
+                'return_number' => $returnNumber,
+                'total_amount' => $totalAmount,
+                'return_date' => $data['return_date'],
+                'reason' => $data['reason'] ?? null,
+                'notes' => $data['notes'] ?? null,
+                'status' => 'completed',
+            ]);
+
+            foreach ($data['items'] as $item) {
+                $itemTotal = $item['quantity'] * $item['unit_price'];
+
+                PurchaseReturnItem::create([
+                    'purchase_return_id' => $purchaseReturn->id,
+                    'product_id' => $item['product_id'],
+                    'product_batch_id' => $item['product_batch_id'] ?? null,
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total_price' => $itemTotal,
+                ]);
+
+                // Reduce product stock
+                $product = Product::find($item['product_id']);
+                if ($product) {
+                    $product->quantity = max(0, $product->quantity - $item['quantity']);
+                    $product->save();
+                }
+
+                // Reduce batch stock if batch specified
+                if (!empty($item['product_batch_id'])) {
+                    $batch = ProductBatch::find($item['product_batch_id']);
+                    if ($batch) {
+                        $batch->remaining_quantity = max(0, $batch->remaining_quantity - $item['quantity']);
+                        $batch->save();
+                    }
+                }
+
+                // Log inventory movement
+                InventoryMovement::create([
+                    'product_id' => $item['product_id'],
+                    'type' => 'out',
+                    'quantity' => $item['quantity'],
+                    'reference_type' => 'purchase_return',
+                    'reference_id' => $purchaseReturn->id,
+                ]);
+            }
+
+            // Reduce the original purchase bill_amount so outstanding auto-adjusts
+            if (!empty($data['supplier_purchase_id'])) {
+                $purchase = SupplierPurchase::find($data['supplier_purchase_id']);
+                if ($purchase) {
+                    $purchase->bill_amount = max(0, $purchase->bill_amount - $totalAmount);
+                    $purchase->save();
+                }
+            }
+
+            $purchaseReturn->load('items.product');
+            return $purchaseReturn;
+        });
+    }
+
+    public function getSupplierLedger(Supplier $supplier, ?string $startDate = null, ?string $endDate = null)
+    {
+        $entries = collect();
+
+        // Purchases → Debit (bill amount increases outstanding)
+        foreach ($supplier->purchases as $purchase) {
+            $entries->push([
+                'id' => 'purchase_' . $purchase->id,
+                'date' => $purchase->purchase_date instanceof \Carbon\Carbon
+                    ? $purchase->purchase_date->format('Y-m-d')
+                    : $purchase->purchase_date,
+                'type' => 'purchase',
+                'reference' => $purchase->purchase_number,
+                'particulars' => 'Purchase ' . $purchase->purchase_number,
+                'debit' => (float) $purchase->bill_amount,
+                'credit' => 0,
+                'created_at' => $purchase->created_at,
+            ]);
+        }
+
+        // Payments → Credit (reduces outstanding)
+        foreach ($supplier->payments as $payment) {
+            $entries->push([
+                'id' => 'payment_' . $payment->id,
+                'date' => $payment->date instanceof \Carbon\Carbon
+                    ? $payment->date->format('Y-m-d')
+                    : $payment->date,
+                'type' => 'payment',
+                'reference' => $payment->payment_mode,
+                'particulars' => 'Payment (' . $payment->payment_mode . ')' . ($payment->notes ? ' - ' . $payment->notes : ''),
+                'debit' => 0,
+                'credit' => (float) $payment->amount,
+                'created_at' => $payment->created_at,
+            ]);
+        }
+
+        // Purchase Returns → Credit (reduces outstanding)
+        foreach ($supplier->purchaseReturns as $return) {
+            $entries->push([
+                'id' => 'return_' . $return->id,
+                'date' => $return->return_date instanceof \Carbon\Carbon
+                    ? $return->return_date->format('Y-m-d')
+                    : $return->return_date,
+                'type' => 'return',
+                'reference' => $return->return_number,
+                'particulars' => 'Return ' . $return->return_number . ($return->reason ? ' - ' . $return->reason : ''),
+                'debit' => 0,
+                'credit' => (float) $return->total_amount,
+                'created_at' => $return->created_at,
+            ]);
+        }
+
+        // Sort by date ASC first (for running balance calculation)
+        $sorted = $entries->sortBy([
+            ['date', 'asc'],
+            ['created_at', 'asc'],
+        ])->values();
+
+        // Calculate running balance on ALL entries first
+        $balance = 0;
+        $ledger = $sorted->map(function ($entry) use (&$balance) {
+            $balance += $entry['debit'] - $entry['credit'];
+            $entry['balance'] = $balance;
+            return $entry;
+        });
+
+        // Apply date filter if provided
+        $openingBalance = 0;
+        if ($startDate || $endDate) {
+            // Calculate opening balance from entries before start date
+            if ($startDate) {
+                $openingBalance = $ledger->filter(function ($entry) use ($startDate) {
+                    return $entry['date'] < $startDate;
+                })->reduce(function ($carry, $entry) {
+                    return $carry + $entry['debit'] - $entry['credit'];
+                }, 0);
+            }
+
+            $ledger = $ledger->filter(function ($entry) use ($startDate, $endDate) {
+                if ($startDate && $entry['date'] < $startDate) return false;
+                if ($endDate && $entry['date'] > $endDate) return false;
+                return true;
+            });
+
+            // Recalculate running balance within the filtered range
+            $runningBalance = $openingBalance;
+            $ledger = $ledger->map(function ($entry) use (&$runningBalance) {
+                $runningBalance += $entry['debit'] - $entry['credit'];
+                $entry['balance'] = $runningBalance;
+                return $entry;
+            });
+        }
+
+        return [
+            'entries' => $ledger->values()->all(),
+            'total_debit' => $ledger->sum('debit'),
+            'total_credit' => $ledger->sum('credit'),
+            'closing_balance' => $ledger->count() > 0 ? $ledger->last()['balance'] : $openingBalance,
+            'opening_balance' => $openingBalance,
+        ];
+    }
 }
+

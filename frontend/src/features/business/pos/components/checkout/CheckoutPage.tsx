@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { useCreateSale, useUpdateSale } from '../../api/useSales';
 import { useCustomers, useCreateCustomer } from '../../../customers/api/useCustomers';
+import { AddCustomerModal } from '../../../customers/components/AddCustomerModal';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { SearchableSelect } from '@/components/ui/searchable-select';
@@ -21,12 +22,13 @@ interface CheckoutPageProps {
   cartItems: CartItem[];
   cartTotal: number;
   draftId?: number;
+  quotationId?: number;
   initialDraftData?: any;
   onCancel: () => void;
   onSuccess: (saleId?: number, isDraft?: boolean) => void;
 }
 
-export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, onCancel, onSuccess }: CheckoutPageProps) {
+export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initialDraftData, onCancel, onSuccess }: CheckoutPageProps) {
   const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState<string>(initialDraftData?.payment_mode?.toLowerCase() || 'cash');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialDraftData?.customer_id ? String(initialDraftData.customer_id) : '');
@@ -34,6 +36,10 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
   // IMEI / Serial No states
   const [identifiers, setIdentifiers] = useState<Record<string, { imei_1: string; imei_2: string; serial_no: string }[]>>({});
   const [itemModes, setItemModes] = useState<Record<string, ('serial' | 'imei')[]>>({});
+
+  // GST States
+  const [cgstRate, setCgstRate] = useState<string>(initialDraftData?.cgst_rate ? String(initialDraftData.cgst_rate) : '');
+  const [sgstRate, setSgstRate] = useState<string>(initialDraftData?.sgst_rate ? String(initialDraftData.sgst_rate) : '');
 
   // Split and EMI States
   const [splitPayments, setSplitPayments] = useState<{ mode: string; amount: string; link_customer_id?: string }[]>(() => {
@@ -180,6 +186,9 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
 
   const discount = watch('discount') || 0;
   const roundOff = watch('round_off') || 0;
+
+  // Compute dynamic cart total based on number of identifiers
+  // Reverted: Cart total should depend strictly on item.quantity, not identifier count.
   const finalAmount = Math.max(0, cartTotal - Number(discount) + Number(roundOff));
 
   const splitTotal = splitPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
@@ -316,23 +325,42 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
       }
     }
 
-    // Construct Sale Items Payload (splitting quantity 1 for items with serials/IMEIs)
+    // Construct Sale Items Payload
     const itemsPayload: any[] = [];
     cartItems.forEach(item => {
       const itemIds = identifiers[item.id] || [];
-      const hasDetails = itemIds.some(d => d?.imei_1?.trim() || d?.imei_2?.trim() || d?.serial_no?.trim());
+      const modes = itemModes[item.id] || [];
+      
+      const hasDetails = itemIds.some((d, idx) => {
+        const mode = modes[idx] || 'serial';
+        if (mode === 'serial') return d?.serial_no?.trim();
+        return d?.imei_1?.trim() || d?.imei_2?.trim();
+      });
 
       if (hasDetails) {
-        itemIds.forEach(d => {
-          itemsPayload.push({
-            product_id: item.product_id,
-            product_batch_id: item.batch_id,
-            quantity: 1,
-            unit_price: item.unit_price,
-            imei_1: d?.imei_1?.trim() || null,
-            imei_2: d?.imei_2?.trim() || null,
-            serial_no: d?.serial_no?.trim() || null,
-          });
+        const imei_1_list = itemIds.map((d, idx) => {
+          const mode = modes[idx] || 'serial';
+          return mode === 'imei' ? d?.imei_1?.trim() : null;
+        }).filter(Boolean).join(', ');
+
+        const imei_2_list = itemIds.map((d, idx) => {
+          const mode = modes[idx] || 'serial';
+          return mode === 'imei' ? d?.imei_2?.trim() : null;
+        }).filter(Boolean).join(', ');
+
+        const serial_no_list = itemIds.map((d, idx) => {
+          const mode = modes[idx] || 'serial';
+          return mode === 'serial' ? d?.serial_no?.trim() : null;
+        }).filter(Boolean).join(', ');
+
+        itemsPayload.push({
+          product_id: item.product_id,
+          product_batch_id: item.batch_id,
+          quantity: item.quantity, // Keep original cart quantity
+          unit_price: item.unit_price,
+          imei_1: imei_1_list || null,
+          imei_2: imei_2_list || null,
+          serial_no: serial_no_list || null,
         });
       } else {
         itemsPayload.push({
@@ -347,10 +375,13 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
     // Construct Payload
     const payload: any = {
       customer_id: selectedCustomerId ? Number(selectedCustomerId) : null,
+      quotation_id: quotationId || undefined,
       discount: Number(data.discount || 0),
       round_off: Number(data.round_off || 0),
       date: new Date().toISOString().split('T')[0],
       items: itemsPayload,
+      cgst_rate: cgstRate ? Number(cgstRate) : null,
+      sgst_rate: sgstRate ? Number(sgstRate) : null,
     };
 
     if (paymentType === 'cash') {
@@ -546,44 +577,15 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
               controlSize="sm"
             />
 
-            {/* Quick Add Form */}
-            {isQuickAddOpen && (
-              <div className="p-3 bg-primary-50/50 dark:bg-primary-500/5 border border-primary-200/50 dark:border-primary-500/20 rounded-xl space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-200">
-                <span className="text-[9px] font-black uppercase text-primary-600 dark:text-primary-400">Quick Create Profile</span>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    placeholder="Full Name *"
-                    value={quickCustName}
-                    onChange={(e) => setQuickCustName(e.target.value)}
-                    controlSize="sm"
-                  />
-                  <Input
-                    placeholder="Phone Number"
-                    value={quickCustPhone}
-                    onChange={(e) => setQuickCustPhone(e.target.value)}
-                    controlSize="sm"
-                  />
-                </div>
-                <Input
-                  placeholder="Address (Optional)"
-                  value={quickCustAddress}
-                  onChange={(e) => setQuickCustAddress(e.target.value)}
-                  controlSize="sm"
-                  className="w-full"
-                />
-                <div className="flex justify-end">
-                  <button
-                    type="button"
-                    onClick={handleQuickAddCustomer}
-                    disabled={createCustomer.isPending}
-                    className="flex items-center gap-1 px-3 py-1 bg-primary-500 hover:bg-primary-600 text-white text-[10px] font-black rounded-lg transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    <Plus className="w-3 h-3" />
-                    {createCustomer.isPending ? 'Saving…' : 'Save'}
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Quick Add Form Modal */}
+            <AddCustomerModal 
+              isOpen={isQuickAddOpen} 
+              onClose={() => setIsQuickAddOpen(false)} 
+              onSuccess={(c) => {
+                setSelectedCustomerId(String(c.id));
+                setIsQuickAddOpen(false);
+              }}
+            />
           </div>
 
           {/* 2. IMEI & Serial No Identifiers Card */}
@@ -606,13 +608,34 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                     </div>
 
                     <div className="space-y-2">
-                      {Array.from({ length: item.quantity }).map((_, unitIdx) => {
+                      {Array.from({ length: identifiers[item.id]?.length > 0 ? identifiers[item.id].length : item.quantity }).map((_, unitIdx) => {
                         const currentMode = itemModes[item.id]?.[unitIdx] || 'serial';
 
                         return (
                           <div key={unitIdx} className="space-y-1.5 border-b border-dashed border-slate-100 dark:border-white/5 last:border-none pb-1.5 last:pb-0">
                             <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-slate-400 uppercase">Unit #{unitIdx + 1}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase">Unit #{unitIdx + 1}</span>
+                                {unitIdx >= item.quantity && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newDetails = [...(identifiers[item.id] || [])];
+                                      newDetails.splice(unitIdx, 1);
+                                      setIdentifiers({ ...identifiers, [item.id]: newDetails });
+                                      
+                                      const newModes = { ...itemModes };
+                                      if (newModes[item.id]) {
+                                        newModes[item.id].splice(unitIdx, 1);
+                                        setItemModes(newModes);
+                                      }
+                                    }}
+                                    className="text-[9px] text-red-500 hover:text-red-600 font-bold flex items-center gap-1"
+                                  >
+                                    <X className="w-3 h-3" /> Remove
+                                  </button>
+                                )}
+                              </div>
                               <button
                                 type="button"
                                 onClick={() => {
@@ -670,6 +693,18 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                           </div>
                         );
                       })}
+                      
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newDetails = [...(identifiers[item.id] || Array.from({ length: item.quantity }).map(() => ({ imei_1: '', imei_2: '', serial_no: '' })))];
+                          newDetails.push({ imei_1: '', imei_2: '', serial_no: '' });
+                          setIdentifiers({ ...identifiers, [item.id]: newDetails });
+                        }}
+                        className="w-full py-1.5 border border-dashed border-primary-500/30 text-primary-500 text-[10px] font-black uppercase rounded-lg hover:bg-primary-500/5 transition-colors flex items-center justify-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> Add Another Unit
+                      </button>
                     </div>
                   </div>
                 );
@@ -714,6 +749,56 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">CGST (%) (Inclusive)</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={cgstRate}
+                      onChange={(e) => setCgstRate(e.target.value)}
+                      controlSize="sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-wider block mb-1">SGST (%) (Inclusive)</label>
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={sgstRate}
+                      onChange={(e) => setSgstRate(e.target.value)}
+                      controlSize="sm"
+                    />
+                  </div>
+                </div>
+
+                {((Number(cgstRate) > 0) || (Number(sgstRate) > 0)) && (
+                  <div className="mt-2 p-2 bg-primary-50/50 dark:bg-primary-500/5 border border-primary-200/50 dark:border-primary-500/20 rounded-lg text-[10px] space-y-1">
+                    <div className="flex justify-between text-slate-500">
+                      <span>Taxable Amount:</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">
+                        {formatCurrency(finalAmount - (finalAmount * (Number(cgstRate || 0) + Number(sgstRate || 0)) / (100 + Number(cgstRate || 0) + Number(sgstRate || 0))))}
+                      </span>
+                    </div>
+                    {Number(cgstRate) > 0 && (
+                      <div className="flex justify-between text-slate-500">
+                        <span>CGST ({cgstRate}%):</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {formatCurrency((finalAmount * Number(cgstRate)) / (100 + Number(cgstRate || 0) + Number(sgstRate || 0)))}
+                        </span>
+                      </div>
+                    )}
+                    {Number(sgstRate) > 0 && (
+                      <div className="flex justify-between text-slate-500">
+                        <span>SGST ({sgstRate}%):</span>
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          {formatCurrency((finalAmount * Number(sgstRate)) / (100 + Number(cgstRate || 0) + Number(sgstRate || 0)))}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-slate-100 dark:border-white/5 pt-2 flex justify-between items-center">
@@ -825,42 +910,15 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, initialDraftData, 
                             controlSize="sm"
                           />
 
-                          {isAddingGuarantorCustomer && (
-                            <div className="p-2.5 bg-primary-500/5 border border-primary-500/10 rounded-xl space-y-2">
-                              <span className="text-[8px] font-black uppercase text-primary-500">Create Guarantor</span>
-                              <div className="grid grid-cols-2 gap-2">
-                                <Input
-                                  placeholder="Name *"
-                                  value={quickGuarantorName}
-                                  onChange={(e) => setQuickGuarantorName(e.target.value)}
-                                  controlSize="sm"
-                                />
-                                <Input
-                                  placeholder="Phone"
-                                  value={quickGuarantorPhone}
-                                  onChange={(e) => setQuickGuarantorPhone(e.target.value)}
-                                  controlSize="sm"
-                                />
-                              </div>
-                              <Input
-                                placeholder="Address"
-                                value={quickGuarantorAddress}
-                                onChange={(e) => setQuickGuarantorAddress(e.target.value)}
-                                controlSize="sm"
-                                className="w-full"
-                              />
-                              <div className="flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={handleQuickAddGuarantor}
-                                  disabled={isSavingGuarantor}
-                                  className="px-3 py-1 bg-primary-500 text-white text-[9px] font-black uppercase tracking-wider rounded-lg"
-                                >
-                                  {isSavingGuarantor ? 'Saving…' : 'Save'}
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                          {/* Guarantor Quick Add Form Modal */}
+                          <AddCustomerModal 
+                            isOpen={isAddingGuarantorCustomer} 
+                            onClose={() => setIsAddingGuarantorCustomer(false)} 
+                            onSuccess={(c) => {
+                              setGuarantorCustomerId(String(c.id));
+                              setIsAddingGuarantorCustomer(false);
+                            }}
+                          />
                         </div>
                       )}
                     </div>

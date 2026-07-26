@@ -40,6 +40,8 @@ export interface InventoryQueryFilters {
   category_id?: number;
   brand_id?: number;
   low_stock_days?: number | string;
+  start_date?: string;
+  end_date?: string;
 }
 
 // --- Zod Schemas ---

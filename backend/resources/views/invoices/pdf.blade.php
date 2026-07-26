@@ -257,7 +257,23 @@
                 </tr>
                 <tr>
                     <td class="lbl">Address</td>
-                    <td class="val">: {{ $sale->customer->address ?? 'N/A' }}</td>
+                    <td class="val">: 
+                        @php
+                            $customerAddress = 'N/A';
+                            if ($sale->customer) {
+                                if (!empty($sale->customer->village) || !empty($sale->customer->city) || !empty($sale->customer->district) || !empty($sale->customer->state)) {
+                                    $parts = array_filter([$sale->customer->village, $sale->customer->city, $sale->customer->district, $sale->customer->state]);
+                                    $customerAddress = implode(', ', $parts);
+                                    if (!empty($sale->customer->pin)) {
+                                        $customerAddress .= ' - ' . $sale->customer->pin;
+                                    }
+                                } elseif (!empty($sale->customer->address)) {
+                                    $customerAddress = $sale->customer->address;
+                                }
+                            }
+                        @endphp
+                        {{ $customerAddress }}
+                    </td>
                     <td class="lbl">GSTIN</td>
                     <td class="val">: {{ strtoupper($business->gst_number ?? 'N/A') }}</td>
                 </tr>
@@ -406,9 +422,36 @@
                 <td>NET PAYABLE</td>
                 <td class="total-val" style="text-align:right;">Rs.{{ number_format($sale->final_amount, 2) }}</td>
             </tr>
+            @if($sale->cgst_rate > 0 || $sale->sgst_rate > 0)
+                @php
+                    $cgstRate = (float)($sale->cgst_rate ?? 0);
+                    $sgstRate = (float)($sale->sgst_rate ?? 0);
+                    $totalGstRate = $cgstRate + $sgstRate;
+                    $taxableValue = $sale->final_amount / (1 + ($totalGstRate / 100));
+                    $totalTaxAmount = $sale->final_amount - $taxableValue;
+                    $cgstAmount = $totalTaxAmount / 2;
+                    $sgstAmount = $totalTaxAmount / 2;
+                @endphp
+                <tr>
+                    <td class="total-lbl" style="font-size: 10px; font-weight:normal; padding-top:4px;">Taxable Value (Incl.)</td>
+                    <td class="total-val" style="font-size: 10px; text-align:right; padding-top:4px;">Rs.{{ number_format($taxableValue, 2) }}</td>
+                </tr>
+                @if($cgstRate > 0)
+                <tr>
+                    <td class="total-lbl" style="font-size: 10px; font-weight:normal;">CGST @ {{ $cgstRate }}%</td>
+                    <td class="total-val" style="font-size: 10px; text-align:right;">Rs.{{ number_format($cgstAmount, 2) }}</td>
+                </tr>
+                @endif
+                @if($sgstRate > 0)
+                <tr>
+                    <td class="total-lbl" style="font-size: 10px; font-weight:normal;">SGST @ {{ $sgstRate }}%</td>
+                    <td class="total-val" style="font-size: 10px; text-align:right;">Rs.{{ number_format($sgstAmount, 2) }}</td>
+                </tr>
+                @endif
+            @endif
             <tr>
-                <td class="total-lbl">Paid Amount</td>
-                <td class="total-val" style="color:#16a34a; text-align:right;">Rs.{{ number_format($sale->paid_amount, 2) }}</td>
+                <td class="total-lbl" style="padding-top:8px;">Paid Amount</td>
+                <td class="total-val" style="color:#16a34a; text-align:right; padding-top:8px;">Rs.{{ number_format($sale->paid_amount, 2) }}</td>
             </tr>
             @if(($sale->final_amount - $sale->paid_amount) > 0)
                 @if($sale->emiDetail)
@@ -439,7 +482,26 @@
         </ol>
     </div>
 
-    <div class="end-note">
+    <div style="margin-top: 70px; margin-bottom: 20px; width: 100%; text-align: center; clear: both;">
+        <table style="width: 100%; font-size: 10px; font-weight: bold; color: #444;">
+            <tr>
+                <td style="width: 33%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
+                    CUSTOMER SIGN
+                </td>
+                <td style="width: 33%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
+                    CASHIER SIGN
+                </td>
+                <td style="width: 33%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
+                    STORE STAMP
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="end-note" style="margin-top: 10px;">
         This is a computer-generated receipt and does not require a physical signature.
         <br>Thank you for choosing {{ $business->name ?? 'our store' }}!
     </div>

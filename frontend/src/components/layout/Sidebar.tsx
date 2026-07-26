@@ -37,6 +37,7 @@ export const businessMenuGroups = [
     items: [
       { name: "NEW BILL (POS)", href: "/pos", icon: FileText },
       { name: "ALL INVOICES", href: "/invoices", icon: ClipboardList },
+      { name: "QUOTATIONS", href: "/quotations", icon: FileText },
       { name: "FINANCE LEDGER", href: "/finance", icon: Wallet, feature: 'has_finance' },
       { name: "EXPENSES", href: "/expenses", icon: Receipt },
     ]
@@ -232,6 +233,9 @@ export function Sidebar({ className }: { className?: string }) {
     if (hasPermission('manage_sales')) {
       operationsItems.push({ name: "POS & BILLING", href: "/pos", icon: Calculator });
       operationsItems.push({ name: "INVOICES", href: "/invoices", icon: FileText });
+      if (hasFeature('has_quotations')) {
+        operationsItems.push({ name: "QUOTATIONS", href: "/quotations", icon: FileText });
+      }
     }
     if (hasPermission('manage_inventory')) {
       operationsItems.push({ name: "ITEMS", href: "/items", icon: Package });

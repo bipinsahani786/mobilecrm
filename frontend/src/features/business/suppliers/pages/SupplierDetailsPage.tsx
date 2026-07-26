@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSupplier } from '../api/useSuppliers';
+import { useSupplier, useSupplierLedger } from '../api/useSuppliers';
 import { PageHeader } from '../../../../components/layout/PageHeader';
 import { Button } from '../../../../components/ui/button';
-import { Plus, Phone, MapPin, Package, Download, Edit2, IndianRupee } from 'lucide-react';
+import { Plus, Phone, MapPin, Package, Download, Edit2, IndianRupee, RotateCcw, BookOpen, Printer, FileDown } from 'lucide-react';
 import { formatCurrency } from '../../../../lib/formatters';
 import { AddPaymentModal } from '../components/AddPaymentModal';
 import { EditSupplierModal } from '../components/EditSupplierModal';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { CardSkeleton, TableSkeleton } from '@/components/ui/skeleton-loaders';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 function SupplierDetailsSkeleton() {
   return (
@@ -46,10 +48,79 @@ export default function SupplierDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: supplier, isLoading } = useSupplier(Number(id));
-  const [activeTab, setActiveTab] = useState<'purchases' | 'payments'>('purchases');
+  const [ledgerStartDate, setLedgerStartDate] = useState<string>('');
+  const [ledgerEndDate, setLedgerEndDate] = useState<string>('');
+  const { data: ledgerData } = useSupplierLedger(Number(id), ledgerStartDate, ledgerEndDate);
+  const [activeTab, setActiveTab] = useState<'purchases' | 'payments' | 'ledger'>('purchases');
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<number | undefined>();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const handleDownloadBill = async (purchase: any) => {
+    try {
+      toast.loading('Generating bill PDF...', { id: 'pdf-download' });
+      const response = await api.get(`/business/suppliers/purchases/${purchase.id}/bill-pdf?header=true&footer=true`, {
+        responseType: 'blob'
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `purchase-bill-${purchase.purchase_number || purchase.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('PDF downloaded successfully', { id: 'pdf-download' });
+    } catch (error) {
+      toast.error('Failed to generate PDF', { id: 'pdf-download' });
+    }
+  };
+
+  const exportLedgerCsv = () => {
+    if (!ledgerData?.entries) return;
+    
+    const infoRows = [
+      [`"Supplier Ledger: ${supplier?.name?.replace(/"/g, '""')}"`],
+      [`"Exported On: ${new Date().toLocaleString('en-IN')}"`],
+      [`"Date Range: ${ledgerStartDate ? new Date(ledgerStartDate).toLocaleDateString('en-IN') : 'All'} to ${ledgerEndDate ? new Date(ledgerEndDate).toLocaleDateString('en-IN') : 'All'}"`],
+      []
+    ];
+
+    const headers = ['Date', 'Particulars', 'Type', 'Debit (Billed)', 'Credit (Paid/Return)', 'Balance'];
+    
+    const rows = ledgerData.entries.map((entry: any) => [
+      `"${new Date(entry.date).toLocaleDateString('en-IN')}"`,
+      `"${entry.particulars.replace(/"/g, '""')}"`,
+      `"${entry.type.toUpperCase()}"`,
+      entry.debit || 0,
+      entry.credit || 0,
+      entry.balance || 0
+    ]);
+
+    const totalsRow = [
+      '',
+      '"NET TOTALS"',
+      '',
+      ledgerData.total_debit || 0,
+      ledgerData.total_credit || 0,
+      ledgerData.closing_balance || 0
+    ];
+
+    const csvContent = [
+      ...infoRows.map(r => r.join(',')),
+      headers.join(','),
+      ...rows.map((r: any) => r.join(',')),
+      totalsRow.join(',')
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ledger-${supplier?.name}-${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   if (isLoading) return <SupplierDetailsSkeleton />;
   if (!supplier) return <div className="p-8 text-center text-rose-500 min-h-screen bg-slate-50 dark:bg-[#09090b]">Supplier not found</div>;
@@ -62,11 +133,12 @@ export default function SupplierDetailsPage() {
 
   const purchasesColumns: ColumnDef<any>[] = [
     {
-      header: 'Date',
+      header: 'Bill Info',
       cell: (purchase) => (
         <div className="whitespace-nowrap">
-          <p className="font-medium">{new Date(purchase.purchase_date).toLocaleDateString()}</p>
-          {purchase.due_date && <p className="text-xs text-rose-500">Due: {new Date(purchase.due_date).toLocaleDateString()}</p>}
+          <p className="font-bold text-sm text-slate-900 dark:text-slate-100">{purchase.purchase_number}</p>
+          <p className="text-xs text-slate-500 mt-0.5">{new Date(purchase.purchase_date).toLocaleDateString()}</p>
+          {purchase.due_date && <p className="text-[10px] font-semibold text-rose-500 mt-0.5">Due: {new Date(purchase.due_date).toLocaleDateString()}</p>}
         </div>
       )
     },
@@ -79,9 +151,23 @@ export default function SupplierDetailsPage() {
       )
     },
     {
-      header: 'Bill Amount',
-      className: 'text-right font-medium',
-      cell: (purchase) => formatCurrency(purchase.bill_amount)
+      header: 'Net Bill',
+      className: 'text-right',
+      cell: (purchase) => {
+        const itemsTotal = purchase.items?.reduce((sum: number, item: any) => sum + Number(item.total_price), 0) || purchase.bill_amount;
+        const returnedAmount = itemsTotal - purchase.bill_amount;
+        
+        return (
+          <div className="flex flex-col items-end justify-center">
+            <span className="font-medium text-slate-900 dark:text-slate-100">{formatCurrency(purchase.bill_amount)}</span>
+            {returnedAmount > 0 && (
+              <span className="text-[10px] text-rose-500 font-medium mt-0.5">
+                (-{formatCurrency(returnedAmount)} Ret.)
+              </span>
+            )}
+          </div>
+        );
+      }
     },
     {
       header: 'Paid',
@@ -97,23 +183,38 @@ export default function SupplierDetailsPage() {
       header: '',
       className: 'text-right',
       cell: (purchase) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end items-center gap-2">
           {purchase.bill_amount - purchase.paid_amount > 0 && (
             <Button 
               variant="outline" 
               size="sm" 
-              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10"
-              onClick={() => {
+              className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20"
+              onClick={(e) => {
+                e.stopPropagation();
                 setSelectedPurchaseId(purchase.id);
                 setIsPaymentModalOpen(true);
               }}
             >
-              <IndianRupee className="w-4 h-4 mr-1" /> Pay
+              <IndianRupee className="w-3.5 h-3.5 mr-1" /> Pay
             </Button>
           )}
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:hover:bg-emerald-500/20 dark:border-emerald-500/20"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDownloadBill(purchase);
+            }}
+          >
+             <Printer className="w-3.5 h-3.5 mr-1.5" /> Print Bill
+          </Button>
           {purchase.invoice_file && (
-            <Button variant="ghost" size="sm" onClick={() => window.open(purchase.invoice_file, '_blank')}>
-              <Download className="w-4 h-4 mr-2" /> Invoice
+            <Button variant="ghost" size="sm" onClick={(e) => {
+              e.stopPropagation();
+              window.open(purchase.invoice_file, '_blank');
+            }}>
+              <Download className="w-4 h-4 text-slate-500" />
             </Button>
           )}
         </div>
@@ -174,6 +275,12 @@ export default function SupplierDetailsPage() {
               <Plus className="w-4 h-4 mr-2" />
               Add Purchase Bill
             </Button>
+            <button 
+              onClick={() => navigate(`/suppliers/${id}/purchase-returns/new`)}
+              className="flex items-center justify-center gap-2 h-10 px-5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Purchase Return
+            </button>
           </div>
         </div>
 
@@ -275,6 +382,16 @@ export default function SupplierDetailsPage() {
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
               )}
             </button>
+            <button
+              onClick={() => setActiveTab('ledger')}
+              className={`px-6 py-4 text-sm font-bold tracking-wide uppercase transition-colors flex items-center gap-2 relative ${activeTab === 'ledger' ? 'text-primary-600' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Ledger
+              {activeTab === 'ledger' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 rounded-full" />
+              )}
+            </button>
           </div>
 
           <div className="p-0">
@@ -283,6 +400,45 @@ export default function SupplierDetailsPage() {
                 columns={purchasesColumns} 
                 data={supplier.purchases || []} 
                 emptyMessage="No purchases found."
+                renderSubComponent={(purchase) => {
+                  const billPayments = supplier.payments?.filter((p: any) => p.supplier_purchase_id === purchase.id) || [];
+                  
+                  if (billPayments.length === 0) {
+                    return (
+                      <div className="p-4 bg-slate-50/50 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/5 flex items-center justify-center text-sm font-medium text-slate-400">
+                        No payments linked directly to this bill.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="p-4 bg-slate-50/50 dark:bg-[#111118]/50 border-t border-slate-100 dark:border-white/5 shadow-inner">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 px-2">Linked Payments</h4>
+                      <div className="rounded-xl border border-slate-200 dark:border-white/10 overflow-hidden bg-white dark:bg-[#09090b]">
+                        <table className="w-full text-left text-sm">
+                          <thead className="bg-slate-50 dark:bg-white/[0.02] border-b border-slate-200 dark:border-white/10">
+                            <tr>
+                              <th className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Date</th>
+                              <th className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Mode</th>
+                              <th className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Notes</th>
+                              <th className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {billPayments.map((p: any) => (
+                              <tr key={p.id} className="border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50/50 dark:hover:bg-white/[0.01]">
+                                <td className="px-4 py-3 font-medium text-slate-700 dark:text-slate-300">{new Date(p.date).toLocaleDateString()}</td>
+                                <td className="px-4 py-3 uppercase text-xs font-semibold text-slate-600 dark:text-slate-400">{p.payment_mode}</td>
+                                <td className="px-4 py-3 text-slate-500">{p.notes || '-'}</td>
+                                <td className="px-4 py-3 text-right font-bold text-emerald-600">{formatCurrency(p.amount)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                }}
               />
             )}
 
@@ -292,6 +448,104 @@ export default function SupplierDetailsPage() {
                 data={supplier.payments || []} 
                 emptyMessage="No payments found."
               />
+            )}
+
+            {activeTab === 'ledger' && (
+              <div className="space-y-4 printable-ledger">
+                {/* Filters & Export */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center p-4 bg-slate-50 dark:bg-white/[0.01] border border-slate-200 dark:border-white/5 rounded-xl print:hidden">
+                   <div className="flex gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Start Date</label>
+                        <input type="date" value={ledgerStartDate} onChange={(e) => setLedgerStartDate(e.target.value)} className="flex h-9 w-36 rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-[#111118] dark:text-slate-50" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">End Date</label>
+                        <input type="date" value={ledgerEndDate} onChange={(e) => setLedgerEndDate(e.target.value)} className="flex h-9 w-36 rounded-lg border border-slate-300 bg-white px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:border-white/10 dark:bg-[#111118] dark:text-slate-50" />
+                      </div>
+                   </div>
+                   <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => exportLedgerCsv()}>
+                         <FileDown className="w-4 h-4 mr-2" /> Excel
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => window.print()}>
+                         <Printer className="w-4 h-4 mr-2" /> Print/PDF
+                      </Button>
+                   </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  {ledgerData?.entries && ledgerData.entries.length > 0 ? (
+                    <>
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Date</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Particulars</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Debit (Billed)</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Credit (Paid/Return)</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {[...ledgerData.entries].reverse().map((entry: any) => (
+                          <tr key={entry.id} className="border-b border-slate-100 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                            <td className="px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                              {new Date(entry.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-2">
+                                <span className={`inline-flex items-center justify-center w-6 h-6 rounded-lg text-[10px] font-black ${
+                                  entry.type === 'purchase' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' :
+                                  entry.type === 'payment' ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                  'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                }`}>
+                                  {entry.type === 'purchase' ? 'P' : entry.type === 'payment' ? '₹' : 'R'}
+                                </span>
+                                <span className="text-sm font-semibold text-slate-800 dark:text-white">{entry.particulars}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-sm font-bold text-right text-blue-600 dark:text-blue-400">
+                              {entry.debit > 0 ? formatCurrency(entry.debit) : '-'}
+                            </td>
+                            <td className="px-4 py-3 text-sm font-bold text-right text-emerald-600 dark:text-emerald-400">
+                              {entry.credit > 0 ? formatCurrency(entry.credit) : '-'}
+                            </td>
+                            <td className={`px-4 py-3 text-sm font-black text-right ${
+                              entry.balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'
+                            }`}>
+                              {formatCurrency(entry.balance)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/[0.02]">
+                          <td className="px-4 py-3" colSpan={2}>
+                            <span className="text-xs font-black uppercase tracking-widest text-slate-500">Totals</span>
+                          </td>
+                          <td className="px-4 py-3 text-sm font-black text-right text-blue-600 dark:text-blue-400">
+                            {formatCurrency(ledgerData.total_debit)}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-black text-right text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(ledgerData.total_credit)}
+                          </td>
+                          <td className={`px-4 py-3 text-sm font-black text-right ${
+                            ledgerData.closing_balance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400'
+                          }`}>
+                            {formatCurrency(ledgerData.closing_balance)}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </>
+                ) : (
+                  <div className="p-12 text-center text-slate-400 text-sm font-semibold">
+                    No ledger entries found.
+                  </div>
+                )}
+              </div>
+            </div>
             )}
           </div>
         </div>
