@@ -25,10 +25,10 @@ export default function HeroSection() {
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-6">
                 <Link
-                    href={route('register')}
+                    href={route('contact')}
                     className="w-full sm:w-auto px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 rounded-xl transition-all shadow-lg shadow-orange-200/50 transform hover:-translate-y-1 text-center"
                 >
-                    Start Free Trial
+                    Request Free Trial
                 </Link>
                 <a
                     href="#features"

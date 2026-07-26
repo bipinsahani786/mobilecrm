@@ -1,0 +1,1 @@
+import{j as t}from"./app-syo86qEh.js";function s(i){return t.jsxs("svg",{...i,viewBox:"0 0 100 100",fill:"none",xmlns:"http://www.w3.org/2000/svg",children:[t.jsx("rect",{width:"100",height:"100",rx:"28",fill:"#F7F4EB",stroke:"#D4CBB3",strokeWidth:"2"}),t.jsx("path",{d:"M30 68V32H40L50 49L60 32H70V68H62V46L50 63L38 46V68H30Z",fill:"#065f46"})]})}export{s as A};
