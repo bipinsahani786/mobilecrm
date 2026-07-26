@@ -59,8 +59,8 @@ export default function PricingSection() {
                                         </li>
                                     ))}
                                 </ul>
-                                <Link href={route('register')} className="block w-full py-5 text-center font-black text-white bg-stone-900 hover:bg-orange-600 rounded-2xl transition-colors uppercase tracking-widest text-sm shadow-xl">
-                                    Start 14-Day Free Trial
+                                <Link href={route('contact')} className="block w-full py-5 text-center font-black text-white bg-stone-900 hover:bg-orange-600 rounded-2xl transition-colors uppercase tracking-widest text-sm shadow-xl">
+                                    Request Free Trial
                                 </Link>
                             </div>
                             

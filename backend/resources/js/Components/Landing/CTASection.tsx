@@ -25,10 +25,10 @@ export default function CTASection() {
                 </p>
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
                     <Link
-                        href={route('register')}
+                        href={route('contact')}
                         className="px-10 py-5 bg-orange-500 hover:bg-emerald-500 text-white font-black rounded-full shadow-[0_0_40px_rgba(249,115,22,0.4)] hover:shadow-[0_0_60px_rgba(16,185,129,0.6)] transition-all duration-500 hover:scale-105 uppercase tracking-widest text-sm"
                     >
-                        Get Started Free
+                        Request Free Trial
                     </Link>
                 </div>
             </div>

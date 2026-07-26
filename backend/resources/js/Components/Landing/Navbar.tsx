@@ -7,9 +7,21 @@ export default function Navbar({ auth }: { auth: { user: User } }) {
     const [isDarkHeader, setIsDarkHeader] = useState(false);
 
     useEffect(() => {
-        // Check if we are on a page that has a dark hero header at the top
         const path = window.location.pathname;
-        if (path === '/about' || path === '/contact') {
+        const darkPaths = [
+            '/about',
+            '/contact',
+            '/privacy-policy',
+            '/terms-of-service',
+            '/cookie-policy',
+            '/security',
+            '/features',
+            '/integrations',
+            '/pricing',
+            '/changelog',
+            '/docs'
+        ];
+        if (darkPaths.includes(path)) {
             setIsDarkHeader(true);
         }
 
@@ -62,20 +74,12 @@ export default function Navbar({ auth }: { auth: { user: User } }) {
                             Dashboard
                         </a>
                     ) : (
-                        <>
-                            <a
-                                href={`${frontendUrl}/login`}
-                                className={`hidden sm:block px-6 py-2.5 text-xs font-bold uppercase tracking-wider ${actionTextColor} ${!isDarkTextNeeded ? '' : 'hover:text-orange-600'} active:scale-95 transition-all`}
-                            >
-                                Log in
-                            </a>
-                            <a
-                                href={`${frontendUrl}/partner/register`}
-                                className={`px-6 py-2.5 text-xs font-bold uppercase tracking-wider text-white bg-emerald-800 hover:bg-orange-600 active:scale-95 rounded-xl transition-all ${scrolled ? 'shadow-md shadow-stone-200' : 'shadow-none border border-emerald-700/50'}`}
-                            >
-                                Partner Register
-                            </a>
-                        </>
+                        <a
+                            href={`${frontendUrl}/login`}
+                            className={`px-6 py-2.5 text-xs font-bold uppercase tracking-wider ${actionTextColor} ${!isDarkTextNeeded ? '' : 'hover:text-orange-600'} active:scale-95 transition-all`}
+                        >
+                            Log in
+                        </a>
                     )}
                 </div>
             </nav>
