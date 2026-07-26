@@ -66,7 +66,7 @@ export default function InvoiceDetailsPage() {
     let template = activeBusiness?.settings?.whatsapp_invoice_template || 
       "Hello *[Customer Name]*,\n\nThank you for shopping with us! Your invoice *[Invoice Number]* for Rs.*[Amount]* has been generated.\n\nView or download your invoice here:\n[Invoice Link]\n\nRegards,\n*[Business Name]*";
 
-    const invoiceLink = `${window.location.origin}/invoices/${sale.id}`; 
+    const invoiceLink = sale.public_url || `${window.location.origin}/invoices/${sale.id}`; 
 
     const message = template
       .replace(/\[Customer Name\]/g, sale.customer.name)
@@ -383,76 +383,93 @@ export default function InvoiceDetailsPage() {
             </div>
           </div>
         ) : (
-          <div className="bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/5 rounded-2xl shadow-xl print:shadow-none print:border-none print:rounded-none animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-hidden">
+          <div className="flex flex-col min-h-[800px] print:min-h-[1000px] bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/5 rounded-2xl shadow-xl print:shadow-none print:border-none print:rounded-none animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-hidden">
             <InvoiceHeader sale={sale} activeBusiness={activeBusiness} />
             
-            <InvoiceItemsTable items={sale.items || []} />
-            
-            <InvoiceTotals sale={sale} />
+            <div className="flex-grow">
+              <InvoiceItemsTable items={sale.items || []} />
+              <InvoiceTotals sale={sale} />
 
-            {/* Payments Section in Receipt */}
-            <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
-              <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3">Payment Details</h3>
-              
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {sale.payments?.map((payment: any) => {
-                    const guarantor = getGuarantorInfo(payment.notes);
-                    const displayNotes = payment.notes 
-                      ? payment.notes.replace(/Udhar linked to Customer:[^|]*/i, '').replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').trim()
-                      : '';
-                    return (
-                      <div key={payment.id} className="bg-white dark:bg-slate-900/50 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{payment.payment_mode}</p>
-                        <p className="font-bold text-slate-900 dark:text-white text-sm">{formatCurrency(payment.amount)}</p>
-                        {displayNotes && <p className="text-[10px] font-medium text-slate-500 mt-1">{displayNotes}</p>}
-                        {guarantor && (
-                          guarantor.id ? (
-                            <button
-                              onClick={() => navigate(`/customers/${guarantor.id}`)}
-                              className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider hover:text-rose-600 transition-colors cursor-pointer text-left block"
-                            >
-                              Guarantor: {guarantor.name} →
-                            </button>
-                          ) : (
-                            <p className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider">
-                              Guarantor: {guarantor.name}
-                            </p>
-                          )
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+              {/* Payments Section in Receipt */}
+              <div className="px-6 py-4 border-t border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-transparent">
+                <h3 className="text-xs font-bold tracking-widest text-slate-400 uppercase mb-3">Payment Details</h3>
+                
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {sale.payments?.map((payment: any) => {
+                      const guarantor = getGuarantorInfo(payment.notes);
+                      const displayNotes = payment.notes 
+                        ? payment.notes.replace(/Udhar linked to Customer:[^|]*/i, '').replace(/^\|\s*/, '').replace(/\s*\|\s*$/, '').trim()
+                        : '';
+                      return (
+                        <div key={payment.id} className="bg-white dark:bg-slate-900/50 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{payment.payment_mode}</p>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{formatCurrency(payment.amount)}</p>
+                          {displayNotes && <p className="text-[10px] font-medium text-slate-500 mt-1">{displayNotes}</p>}
+                          {guarantor && (
+                            guarantor.id ? (
+                              <button
+                                onClick={() => navigate(`/customers/${guarantor.id}`)}
+                                className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider hover:text-rose-600 transition-colors cursor-pointer text-left block"
+                              >
+                                Guarantor: {guarantor.name} →
+                              </button>
+                            ) : (
+                              <p className="text-[10px] font-black text-rose-500 mt-1.5 uppercase tracking-wider">
+                                Guarantor: {guarantor.name}
+                              </p>
+                            )
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                {sale.emiDetail && (
-                  <div className="bg-indigo-50/80 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/50 px-4 py-3 rounded-xl shadow-sm">
-                    <h4 className="text-xs font-bold text-indigo-900 dark:text-indigo-400 mb-2 tracking-tight">
-                      Finance Details - {sale.emiDetail.financier_name}
-                    </h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Down Payment</p>
-                        <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.down_payment)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Loan Amount</p>
-                        <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.loan_amount)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Processing Fee</p>
-                        <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.processing_fee)}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Tenure</p>
-                        <p className="font-black text-indigo-900 dark:text-indigo-300">{sale.emiDetail.tenure_months || 'N/A'} Months</p>
+                  {sale.emiDetail && (
+                    <div className="bg-indigo-50/80 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-900/50 px-4 py-3 rounded-xl shadow-sm">
+                      <h4 className="text-xs font-bold text-indigo-900 dark:text-indigo-400 mb-2 tracking-tight">
+                        Finance Details - {sale.emiDetail.financier_name}
+                      </h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Down Payment</p>
+                          <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.down_payment)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Loan Amount</p>
+                          <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.loan_amount)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Processing Fee</p>
+                          <p className="font-black text-indigo-900 dark:text-indigo-300">{formatCurrency(sale.emiDetail.processing_fee)}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600/70 dark:text-indigo-400/70 mb-1">Tenure</p>
+                          <p className="font-black text-indigo-900 dark:text-indigo-300">{sale.emiDetail.tenure_months || 'N/A'} Months</p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
             
+            {/* Signatures */}
+            <div className="mt-auto px-6 pt-32 pb-8 flex justify-between items-end border-t border-slate-200 dark:border-white/5 bg-white dark:bg-[#111118]">
+              <div className="flex flex-col items-center text-center">
+                <div className="w-24 sm:w-32 border-t border-slate-300 dark:border-slate-700 mb-2"></div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Sign</span>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-24 sm:w-32 border-t border-slate-300 dark:border-slate-700 mb-2"></div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cashier Sign</span>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="w-24 sm:w-32 border-dashed border-t border-slate-300 dark:border-slate-700 mb-2"></div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Store Stamp</span>
+              </div>
+            </div>
+
             <div className="px-6 py-4 text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 border-t border-slate-200 dark:border-white/5 bg-slate-100 dark:bg-black/20">
               Thank you for your business!
             </div>

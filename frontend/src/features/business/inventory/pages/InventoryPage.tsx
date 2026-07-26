@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, Plus, DollarSign, AlertTriangle, Search, RotateCcw, Layers } from 'lucide-react';
+import { Package, Plus, DollarSign, AlertTriangle, Search, RotateCcw, Layers, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { useCategories } from '../api/useCategories';
 import { useBrands } from '../api/useBrands';
 import { useDebounce } from '@/hooks/useDebounce';
 import { toast } from 'sonner';
+import api from '@/lib/api';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { InventoryFormModal } from '../components/InventoryFormModal';
 import { DirectAddModal } from '../components/DirectAddModal';
@@ -26,12 +27,14 @@ export default function InventoryPage() {
   const [categoryId, setCategoryId] = useState<number | undefined>();
   const [brandId, setBrandId] = useState<number | undefined>();
   const [lowStockDays, setLowStockDays] = useState<string>('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const debouncedSearch = useDebounce(search, 400);
   const debouncedLowStockDays = useDebounce(lowStockDays, 600);
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, categoryId, brandId, debouncedLowStockDays]);
+  }, [debouncedSearch, categoryId, brandId, debouncedLowStockDays, startDate, endDate]);
 
   const { data: inventoryData, isLoading } = useInventory({
     page,
@@ -40,6 +43,8 @@ export default function InventoryPage() {
     category_id: categoryId,
     brand_id: brandId,
     low_stock_days: debouncedLowStockDays || undefined,
+    start_date: startDate || undefined,
+    end_date: endDate || undefined,
   });
 
   const { data: categoriesData } = useCategories();
@@ -85,6 +90,34 @@ export default function InventoryPage() {
     onDelete: (product) => setProductToDelete(product),
     onAddStock: handleAddStock
   }), []);
+
+  const handleExportExcel = async () => {
+    try {
+      toast.loading('Preparing Excel export...', { id: 'export-excel' });
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append('search', search);
+      if (categoryId) queryParams.append('category_id', String(categoryId));
+      if (brandId) queryParams.append('brand_id', String(brandId));
+      if (lowStockDays) queryParams.append('low_stock_days', lowStockDays);
+      if (startDate) queryParams.append('start_date', startDate);
+      if (endDate) queryParams.append('end_date', endDate);
+
+      const response = await api.get(`/business/inventory/export?${queryParams.toString()}`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `inventory-export-${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Excel exported successfully', { id: 'export-excel' });
+    } catch (error) {
+      console.error('Failed to export:', error);
+      toast.error('Failed to export data', { id: 'export-excel' });
+    }
+  };
 
   // Calculate simple stats based on current page data (ideally this comes from backend metadata)
   const lowStockCount = products.filter(p => p.quantity <= 10).length;
@@ -133,7 +166,15 @@ export default function InventoryPage() {
               </div>
             </div>
             
-            <div className="flex-shrink-0 flex items-center justify-end px-2 sm:px-4">
+            <div className="flex-shrink-0 flex flex-col sm:flex-row items-center justify-end gap-3 px-2 sm:px-4">
+              <button
+                onClick={handleExportExcel}
+                className="group relative flex items-center gap-2 h-12 px-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 w-full sm:w-auto justify-center"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <Download className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">Export</span>
+              </button>
               <button 
                 onClick={handleCreate}
                 className="group relative flex items-center gap-3 h-12 px-6 bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 overflow-hidden w-full sm:w-auto justify-center"
@@ -187,14 +228,35 @@ export default function InventoryPage() {
               />
             </div>
           </div>
+          <div className="flex flex-col sm:flex-row gap-3 mt-3 sm:mt-0">
+            <div className="flex items-center gap-2">
+              <input 
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-10 px-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500 w-full sm:w-auto"
+                title="Start Date"
+              />
+              <span className="text-slate-400 text-xs font-bold">to</span>
+              <input 
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-10 px-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500 w-full sm:w-auto"
+                title="End Date"
+              />
+            </div>
+          </div>
 
-          {(search || categoryId || brandId || lowStockDays) && (
+          {(search || categoryId || brandId || lowStockDays || startDate || endDate) && (
             <FilterReset
               onClick={() => {
                 setSearch('');
                 setCategoryId(undefined);
                 setBrandId(undefined);
                 setLowStockDays('');
+                setStartDate('');
+                setEndDate('');
                 setPage(1);
               }}
             />

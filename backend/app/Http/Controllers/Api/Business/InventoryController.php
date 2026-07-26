@@ -30,11 +30,62 @@ class InventoryController extends BaseController
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days']);
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
             $perPage = $request->input('per_page', 10);
             $paginator = $this->inventoryService->getInventory($filters, $perPage);
             
             return $this->paginated($paginator, 'Inventory retrieved successfully');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
+
+    #[OA\Get(
+        path: '/business/inventory/export',
+        summary: 'Export Inventory',
+        description: 'Export a CSV file of inventory products.',
+        tags: ['Business - Inventory'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation')
+        ]
+    )]
+    public function export(Request $request)
+    {
+        try {
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
+            $query = $this->inventoryService->getInventoryQuery($filters);
+            $products = $query->get();
+
+            $headers = [
+                'Content-type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename=inventory.csv',
+                'Pragma' => 'no-cache',
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0'
+            ];
+
+            $callback = function () use ($products) {
+                $file = fopen('php://output', 'w');
+                // CSV Header
+                fputcsv($file, ['ID', 'Product Name', 'Brand', 'Category', 'Stock Quantity', 'Purchase Price', 'MRP', 'Added Date']);
+
+                foreach ($products as $product) {
+                    fputcsv($file, [
+                        $product->id,
+                        $product->model_name,
+                        $product->brand ? $product->brand->name : 'N/A',
+                        $product->category ? $product->category->name : 'N/A',
+                        $product->quantity,
+                        $product->purchase_price,
+                        $product->mrp,
+                        $product->created_at ? $product->created_at->format('Y-m-d') : 'N/A'
+                    ]);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }

@@ -44,7 +44,16 @@ export function InvoiceHeader({ sale, activeBusiness }: InvoiceHeaderProps) {
             <>
               <p className="font-bold text-slate-900 dark:text-white text-sm">{sale.customer.name}</p>
               {sale.customer.phone && <p className="text-xs text-slate-600 dark:text-slate-400">{sale.customer.phone}</p>}
-              {sale.customer.address && <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs">{sale.customer.address}</p>}
+              {(sale.customer.village || sale.customer.city || sale.customer.district || sale.customer.state) ? (
+                <>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs">
+                    {[sale.customer.village, sale.customer.city, sale.customer.district, sale.customer.state].filter(Boolean).join(', ')}
+                  </p>
+                  {sale.customer.pin && <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5">PIN: {sale.customer.pin}</p>}
+                </>
+              ) : (
+                sale.customer.address && <p className="text-xs text-slate-600 dark:text-slate-400 max-w-xs">{sale.customer.address}</p>
+              )}
             </>
           ) : (
             <p className="font-bold text-slate-900 dark:text-white text-sm">Walk-in Customer</p>

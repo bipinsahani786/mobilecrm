@@ -1,6 +1,6 @@
 import { useTenantStore } from '@/store/tenantStore';
 
-export type FeatureKey = 'has_finance' | 'has_payroll' | 'can_whitelabel_invoice' | 'has_activity_logs';
+export type FeatureKey = 'has_finance' | 'has_payroll' | 'has_quotations' | 'can_whitelabel_invoice' | 'has_activity_logs';
 
 export function useFeatureAccess() {
   const { activeBusiness } = useTenantStore();

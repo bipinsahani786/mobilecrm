@@ -26,6 +26,15 @@ class Sale extends Model
         'notes',
         'date',
         'draft_data',
+        'cgst_rate',
+        'sgst_rate',
+        'cgst_amount',
+        'sgst_amount',
+        'taxable_amount',
+        'is_gst_inclusive',
+        'total_profit',
+        'staff_commission',
+        'net_profit',
     ];
 
     protected $casts = [

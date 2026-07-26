@@ -60,6 +60,29 @@ class DashboardController extends Controller
             ->where('invoice_number', 'not like', 'UDH-%')
             ->count();
 
+        // Profit Stats
+        $thisWeek = Carbon::now()->startOfWeek();
+        $thisYear = Carbon::now()->startOfYear();
+
+        $profitStats = [
+            'today' => [
+                'direct' => Sale::whereDate('date', $today)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::whereDate('date', $today)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'week' => [
+                'direct' => Sale::where('date', '>=', $thisWeek)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisWeek)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'month' => [
+                'direct' => Sale::where('date', '>=', $thisMonth)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisMonth)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'year' => [
+                'direct' => Sale::where('date', '>=', $thisYear)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisYear)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+        ];
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -73,6 +96,7 @@ class DashboardController extends Controller
                     'present_today' => $presentToday,
                 ],
                 'recent_sales' => $recentSales,
+                'profits' => $profitStats,
             ]
         ]);
     }

@@ -138,6 +138,35 @@ class SaleService
                 }
             }
 
+            // GST Calculations
+            $cgstRate = isset($data['cgst_rate']) ? (float)$data['cgst_rate'] : null;
+            $sgstRate = isset($data['sgst_rate']) ? (float)$data['sgst_rate'] : null;
+            
+            $cgstAmount = null;
+            $sgstAmount = null;
+            $taxableAmount = null;
+
+            if ($cgstRate !== null || $sgstRate !== null) {
+                $totalTaxRate = ($cgstRate ?? 0) + ($sgstRate ?? 0);
+                if ($totalTaxRate > 0) {
+                    $totalTaxAmount = ($finalAmount * $totalTaxRate) / (100 + $totalTaxRate);
+                    $taxableAmount = $finalAmount - $totalTaxAmount;
+                    
+                    if ($cgstRate > 0 && $sgstRate > 0) {
+                        $cgstAmount = $totalTaxAmount / 2;
+                        $sgstAmount = $totalTaxAmount / 2;
+                    } elseif ($cgstRate > 0) {
+                        $cgstAmount = $totalTaxAmount;
+                    } elseif ($sgstRate > 0) {
+                        $sgstAmount = $totalTaxAmount;
+                    }
+                } else {
+                    $taxableAmount = $finalAmount;
+                    $cgstAmount = 0;
+                    $sgstAmount = 0;
+                }
+            }
+
             // Create Sale
             $sale = Sale::create([
                 'business_id' => $businessId,
@@ -154,18 +183,56 @@ class SaleService
                 'notes' => $data['notes'] ?? null,
                 'status' => $data['status'] ?? 'completed',
                 'draft_data' => ($data['status'] ?? 'completed') === 'Draft' ? $data : null,
+                'cgst_rate' => $cgstRate,
+                'sgst_rate' => $sgstRate,
+                'cgst_amount' => $cgstAmount,
+                'sgst_amount' => $sgstAmount,
+                'taxable_amount' => $taxableAmount,
+                'is_gst_inclusive' => true,
             ]);
+
+            $totalSaleProfit = 0;
+
+            // Link Quotation if provided
+            if (!empty($data['quotation_id'])) {
+                $quotation = \App\Models\Quotation::find($data['quotation_id']);
+                if ($quotation) {
+                    $quotation->update([
+                        'status' => 'converted',
+                        'converted_sale_id' => $sale->id,
+                    ]);
+                }
+            }
 
             // Create Items & Deduct Stock
             foreach ($data['items'] as $item) {
                 $subtotal = $item['quantity'] * $item['unit_price'];
+
+                // Retrieve purchase price for profit calculation
+                $purchasePrice = 0;
+                if (!empty($item['product_batch_id'])) {
+                    $batch = \App\Models\ProductBatch::find($item['product_batch_id']);
+                    if ($batch) {
+                        $purchasePrice = $batch->purchase_price;
+                    }
+                } else {
+                    $product = \App\Models\Product::find($item['product_id']);
+                    if ($product) {
+                        $purchasePrice = $product->purchase_price;
+                    }
+                }
+
+                $itemProfit = ($item['unit_price'] - $purchasePrice) * $item['quantity'];
+                $totalSaleProfit += $itemProfit;
 
                 $saleItem = $sale->items()->create([
                     'product_id' => $item['product_id'],
                     'product_batch_id' => $item['product_batch_id'] ?? null,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
+                    'purchase_price' => $purchasePrice,
                     'subtotal' => $subtotal,
+                    'profit' => $itemProfit,
                     'imei_1' => $item['imei_1'] ?? null,
                     'imei_2' => $item['imei_2'] ?? null,
                     'serial_no' => $item['serial_no'] ?? null,
@@ -289,7 +356,21 @@ class SaleService
                         'commission_rate' => $commissionRate,
                         'commission_amount' => $commissionAmount,
                     ]);
+                } else {
+                    $commissionAmount = 0;
                 }
+
+                // Update Profit fields
+                $sale->update([
+                    'total_profit' => $totalSaleProfit,
+                    'staff_commission' => $commissionAmount,
+                    'net_profit' => $totalSaleProfit - $commissionAmount,
+                ]);
+            } else {
+                $sale->update([
+                    'total_profit' => $totalSaleProfit,
+                    'net_profit' => $totalSaleProfit,
+                ]);
             }
 
             return $sale->load(['customer', 'items.product', 'payments', 'emiDetail']);
@@ -345,6 +426,9 @@ class SaleService
                 $sale->items()->delete();
             }
 
+            // Delete old commissions
+            \App\Models\SaleCommission::where('sale_id', $sale->id)->delete();
+
             // Delete old related records
             $sale->payments()->delete();
             Sale::where('notes', 'like', "%(Invoice: {$sale->invoice_number})%")->delete();
@@ -378,6 +462,37 @@ class SaleService
                 }
             }
 
+            // GST Calculations
+            $cgstRate = isset($data['cgst_rate']) ? (float)$data['cgst_rate'] : $sale->cgst_rate;
+            $sgstRate = isset($data['sgst_rate']) ? (float)$data['sgst_rate'] : $sale->sgst_rate;
+            
+            $cgstAmount = $sale->cgst_amount;
+            $sgstAmount = $sale->sgst_amount;
+            $taxableAmount = $sale->taxable_amount;
+
+            if (isset($data['cgst_rate']) || isset($data['sgst_rate']) || $hasItems || isset($data['discount']) || isset($data['round_off'])) {
+                if ($cgstRate !== null || $sgstRate !== null) {
+                    $totalTaxRate = ($cgstRate ?? 0) + ($sgstRate ?? 0);
+                    if ($totalTaxRate > 0) {
+                        $totalTaxAmount = ($finalAmount * $totalTaxRate) / (100 + $totalTaxRate);
+                        $taxableAmount = $finalAmount - $totalTaxAmount;
+                        
+                        if ($cgstRate > 0 && $sgstRate > 0) {
+                            $cgstAmount = $totalTaxAmount / 2;
+                            $sgstAmount = $totalTaxAmount / 2;
+                        } elseif ($cgstRate > 0) {
+                            $cgstAmount = $totalTaxAmount;
+                        } elseif ($sgstRate > 0) {
+                            $sgstAmount = $totalTaxAmount;
+                        }
+                    } else {
+                        $taxableAmount = $finalAmount;
+                        $cgstAmount = 0;
+                        $sgstAmount = 0;
+                    }
+                }
+            }
+
             $sale->update([
                 'customer_id' => $data['customer_id'] ?? null,
                 'total_amount' => $totalAmount,
@@ -390,19 +505,45 @@ class SaleService
                 'notes' => $data['notes'] ?? null,
                 'status' => $data['status'] ?? 'completed',
                 'draft_data' => ($data['status'] ?? 'completed') === 'Draft' ? $data : null,
+                'cgst_rate' => $cgstRate,
+                'sgst_rate' => $sgstRate,
+                'cgst_amount' => $cgstAmount,
+                'sgst_amount' => $sgstAmount,
+                'taxable_amount' => $taxableAmount,
             ]);
+
+            $totalSaleProfit = 0;
 
             // 3. Create New Items & Deduct Stock
             if ($hasItems) {
                 foreach ($data['items'] as $item) {
                     $subtotal = $item['quantity'] * $item['unit_price'];
 
+                    // Retrieve purchase price for profit calculation
+                    $purchasePrice = 0;
+                    if (!empty($item['product_batch_id'])) {
+                        $batch = \App\Models\ProductBatch::find($item['product_batch_id']);
+                        if ($batch) {
+                            $purchasePrice = $batch->purchase_price;
+                        }
+                    } else {
+                        $product = \App\Models\Product::find($item['product_id']);
+                        if ($product) {
+                            $purchasePrice = $product->purchase_price;
+                        }
+                    }
+
+                    $itemProfit = ($item['unit_price'] - $purchasePrice) * $item['quantity'];
+                    $totalSaleProfit += $itemProfit;
+
                     $saleItem = $sale->items()->create([
                         'product_id' => $item['product_id'],
                         'product_batch_id' => $item['product_batch_id'] ?? null,
                         'quantity' => $item['quantity'],
                         'unit_price' => $item['unit_price'],
+                        'purchase_price' => $purchasePrice,
                         'subtotal' => $subtotal,
+                        'profit' => $itemProfit,
                         'imei_1' => $item['imei_1'] ?? null,
                         'imei_2' => $item['imei_2'] ?? null,
                         'serial_no' => $item['serial_no'] ?? null,
@@ -504,6 +645,34 @@ class SaleService
                         }
                     }
                 }
+            }
+
+            if (($data['status'] ?? 'completed') !== 'Draft') {
+                $commissionAmount = 0;
+                $staffPivot = \Illuminate\Support\Facades\DB::table('business_user')
+                    ->where('business_id', $sale->business_id)
+                    ->where('user_id', $sale->user_id)
+                    ->first();
+    
+                if ($staffPivot && $staffPivot->commission_rate > 0) {
+                    $commissionRate = (float) $staffPivot->commission_rate;
+                    $commissionAmount = ($finalAmount * $commissionRate) / 100;
+                    
+                    \App\Models\SaleCommission::create([
+                        'business_id' => $sale->business_id,
+                        'user_id' => $sale->user_id,
+                        'sale_id' => $sale->id,
+                        'sale_amount' => $finalAmount,
+                        'commission_rate' => $commissionRate,
+                        'commission_amount' => $commissionAmount,
+                    ]);
+                }
+
+                $sale->update([
+                    'total_profit' => $hasItems ? $totalSaleProfit : $sale->total_profit,
+                    'staff_commission' => $commissionAmount,
+                    'net_profit' => ($hasItems ? $totalSaleProfit : $sale->total_profit) - $commissionAmount,
+                ]);
             }
 
             return $sale->load(['customer', 'items.product', 'payments', 'emiDetail']);

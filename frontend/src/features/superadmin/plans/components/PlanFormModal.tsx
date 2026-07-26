@@ -14,6 +14,7 @@ import { getPlanFormConfig } from '../constants/planForm';
 export const PREMIUM_FEATURES = [
   { id: 'has_finance', label: 'EMI & Finance', description: 'Enable EMI tracking and finance ledgers.' },
   { id: 'has_payroll', label: 'HR & Payroll', description: 'Enable staff attendance, advance salary, and commission tracking.' },
+  { id: 'has_quotations', label: 'Quotations', description: 'Enable quotation creation, PDF export, and bill conversion.' },
   { id: 'can_whitelabel_invoice', label: 'Invoice Customization', description: 'Allow custom letterheads and remove CRM watermark.' },
   { id: 'has_activity_logs', label: 'Activity Logs', description: 'Detailed audit logs for staff actions.' },
 ];
@@ -40,6 +41,7 @@ export function PlanFormModal({ isOpen, onClose, planToEdit }: PlanFormModalProp
         max_staff: 1,
         has_finance: false,
         has_payroll: false,
+        has_quotations: false,
         can_whitelabel_invoice: false,
         has_activity_logs: false,
         attendance_photo_retention_days: 0,
@@ -66,6 +68,7 @@ export function PlanFormModal({ isOpen, onClose, planToEdit }: PlanFormModalProp
           max_staff: planToEdit.features?.max_staff || 1,
           has_finance: !!planToEdit.features?.has_finance,
           has_payroll: !!planToEdit.features?.has_payroll,
+          has_quotations: !!planToEdit.features?.has_quotations,
           can_whitelabel_invoice: !!planToEdit.features?.can_whitelabel_invoice,
           has_activity_logs: !!planToEdit.features?.has_activity_logs,
           attendance_photo_retention_days: planToEdit.features?.attendance_photo_retention_days || 0,
@@ -82,6 +85,7 @@ export function PlanFormModal({ isOpen, onClose, planToEdit }: PlanFormModalProp
           max_staff: 1,
           has_finance: false,
           has_payroll: false,
+          has_quotations: false,
           can_whitelabel_invoice: false,
           has_activity_logs: false,
           attendance_photo_retention_days: 0,

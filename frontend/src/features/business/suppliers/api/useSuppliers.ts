@@ -79,6 +79,40 @@ export const useCreateSupplierPayment = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       queryClient.invalidateQueries({ queryKey: ['suppliers', variables.supplierId] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-ledger', variables.supplierId] });
     },
   });
 };
+
+export const useCreatePurchaseReturn = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ supplierId, data }: { supplierId: number; data: any }) => {
+      const response = await api.post(`/business/suppliers/${supplierId}/purchase-returns`, data);
+      return response.data.data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers', variables.supplierId] });
+      queryClient.invalidateQueries({ queryKey: ['supplier-ledger', variables.supplierId] });
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+};
+
+export const useSupplierLedger = (supplierId: number, startDate?: string, endDate?: string) => {
+  return useQuery({
+    queryKey: ['supplier-ledger', supplierId, startDate, endDate],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      const queryString = params.toString();
+      const { data } = await api.get(`/business/suppliers/${supplierId}/ledger${queryString ? `?${queryString}` : ''}`);
+      return data.data;
+    },
+    enabled: !!supplierId,
+  });
+};
+
