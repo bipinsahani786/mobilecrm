@@ -1,4 +1,5 @@
 import { Building2, ArrowRight, TrendingUp, IndianRupee, Users, Clock, Receipt, CheckCircle2, AlertCircle, BarChart3, Sparkles, Calendar, Coins, Wallet, Truck, Plus } from "lucide-react";
+import { createPortal } from "react-dom";
 import { DashboardSkeleton } from "./../components/DashboardSkeleton";
 import { useTenantStore } from "@/store/tenantStore";
 import { useNavigate } from "react-router-dom";
@@ -59,7 +60,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f]">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f] pb-28">
       {/* ── Hero Header Banner ─────────────────────────────────────── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-500 to-indigo-600 dark:from-primary-800 dark:via-primary-700 dark:to-indigo-800 px-5 md:px-10 pt-7 pb-16">
 
@@ -513,8 +514,8 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Mobile Floating Action Buttons ─── Only visible on small screens ── */}
-      {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && (
-        <div className="lg:hidden fixed bottom-20 left-0 right-0 z-50 flex justify-center gap-3 px-4 pointer-events-none">
+      {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && typeof document !== 'undefined' && createPortal(
+        <div className="lg:hidden fixed bottom-6 left-0 right-0 z-[9999] flex justify-center gap-3 px-4 pointer-events-none">
           <button
             onClick={() => navigate('/pos')}
             className="pointer-events-auto flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 border border-primary-400/30"
@@ -533,7 +534,8 @@ export default function DashboardPage() {
             </div>
             Suppliers
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
