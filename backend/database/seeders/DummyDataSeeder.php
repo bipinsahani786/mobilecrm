@@ -164,7 +164,7 @@ class DummyDataSeeder extends Seeder
                 'owner_id' => $owner->id,
                 'status' => 'active',
                 'plan_id' => $plan->id,
-                'plan_expires_at' => rand(0, 10) > 2 ? now()->addDays(rand(10, 365)) : null,
+                'plan_expires_at' => now()->addDays(rand(15, 300)),
                 'partner_id' => $partner ? $partner->id : null,
                 'state' => 'Maharashtra',
                 'pincode' => '4000' . str_pad($idx, 2, '0', STR_PAD_LEFT),

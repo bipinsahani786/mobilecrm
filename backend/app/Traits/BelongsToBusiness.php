@@ -19,9 +19,8 @@ trait BelongsToBusiness
             if (empty($model->business_id)) {
                 if (app()->has('current_business_id')) {
                     $model->business_id = app('current_business_id');
-                } elseif (auth()->check()) {
-                    $model->business_id = auth()->user()->business_id;
                 }
+                // Removed invalid fallback to auth()->user()->business_id since users belongToMany businesses
             }
         });
     }

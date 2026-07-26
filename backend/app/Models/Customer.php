@@ -16,6 +16,12 @@ class Customer extends Model
         'name',
         'phone',
         'address',
+        'village',
+        'city',
+        'district',
+        'state',
+        'pin',
+        'contact_2',
     ];
 
     public function business()

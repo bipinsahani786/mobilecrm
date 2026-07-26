@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { usePayrolls, useConfirmPayroll, useMarkPayrollPaid } from '../api/usePayroll';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { IndianRupee, FileText, CheckCircle, Clock, Download, Plus, Search, HelpCircle, ShieldAlert, BadgeDollarSign } from 'lucide-react';
+import { IndianRupee, FileText, CheckCircle, Clock, Download, Plus, Search, HelpCircle, ShieldAlert, BadgeDollarSign, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +36,10 @@ export default function PayrollPage() {
     return user?.roles?.some((r: any) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin' || r.name === 'Superadmin') || hasPermission('manage_payroll');
   }, [user, hasPermission]);
 
-  const queryFilters: any = { month: selectedMonth };
+  const queryFilters: any = {};
+  if (selectedMonth && selectedMonth !== 'all') {
+    queryFilters.month = selectedMonth;
+  }
   if (isManager) {
     if (selectedStaff !== 'all') {
       queryFilters.user_id = selectedStaff;
@@ -44,6 +47,8 @@ export default function PayrollPage() {
   } else {
     queryFilters.user_id = user?.id?.toString();
   }
+  const [viewMode, setViewMode] = useState<'earned' | 'projected'>('projected');
+
   if (selectedStatus !== 'all') {
     queryFilters.status = selectedStatus;
   }
@@ -52,7 +57,7 @@ export default function PayrollPage() {
   const confirmMutation = useConfirmPayroll();
   const markPaidMutation = useMarkPayrollPaid();
 
-  const columns = getPayrollColumns({ confirmMutation, markPaidMutation, navigate, isManager });
+  const columns = getPayrollColumns({ confirmMutation, markPaidMutation, navigate, isManager, viewMode });
 
   // Compute local KPI statistics based on current month's payrolls
   const stats = useMemo(() => {
@@ -86,6 +91,8 @@ export default function PayrollPage() {
       />
 
       <div className="w-full max-w-[1600px] px-4 pt-0 pb-4 space-y-4">
+        
+
         
         {/* Analytics Section (Full Width Grid) */}
         {isManager && (
@@ -164,6 +171,12 @@ export default function PayrollPage() {
               >
                 Last Month
               </button>
+              <button 
+                onClick={() => setSelectedMonth('')}
+                className={`h-9 px-3 rounded-lg text-xs font-black uppercase tracking-widest border transition-all duration-250 cursor-pointer ${!selectedMonth || selectedMonth === 'all' ? 'bg-primary-500/10 text-primary-500 border-primary-500/30' : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-white/10'}`}
+              >
+                All Time
+              </button>
             </div>
 
             {/* Staff Selector */}
@@ -204,6 +217,27 @@ export default function PayrollPage() {
               />
             </div>
 
+            {/* View Mode Toggle */}
+            <div className="w-full sm:w-48 shrink-0">
+              <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+                Draft Values Show
+              </label>
+              <div className="flex bg-slate-100 dark:bg-black/20 p-1 rounded-lg border border-slate-200 dark:border-white/10 h-10 w-full">
+                <button 
+                  onClick={() => setViewMode('earned')}
+                  className={`flex-1 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all duration-300 ${viewMode === 'earned' ? 'bg-white dark:bg-zinc-800 text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'}`}
+                >
+                  Till Date
+                </button>
+                <button 
+                  onClick={() => setViewMode('projected')}
+                  className={`flex-1 text-[10px] font-bold uppercase tracking-widest rounded-md transition-all duration-300 ${viewMode === 'projected' ? 'bg-white dark:bg-zinc-800 text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'}`}
+                >
+                  Projected
+                </button>
+              </div>
+            </div>
+
           </div>
 
           {/* Divider */}
@@ -237,6 +271,16 @@ export default function PayrollPage() {
           </div>
 
         </div>
+
+        {/* Important Note */}
+        {isManager && (
+          <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-4 flex items-start gap-3 mt-4">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+            <div className="text-sm text-blue-800 dark:text-blue-300">
+              <strong className="font-bold">Important:</strong> It is highly recommended to generate payroll at the <strong>end of the month</strong> or the <strong>beginning of the next month</strong> to ensure all attendances and leaves are accurately recorded. Generating payroll in the middle of the month will create "Draft" slips that show projected salaries assuming the employee will be present for the rest of the month.
+            </div>
+          </div>
+        )}
 
         {/* Payroll Table */}
         <div className="bg-white dark:bg-[#111115] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm">

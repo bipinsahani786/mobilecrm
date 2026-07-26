@@ -22,6 +22,8 @@ import { useTenantStore } from "@/store/tenantStore";
 import { ShieldAlert, Settings, Database, Briefcase, Coins, UserCircle, LogOut, MessageSquare, Calendar, Calculator } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useFeature } from "@/hooks/useFeature";
+import { FeatureLockModal } from "@/features/business/components/FeatureLockModal";
+import { Crown } from "lucide-react";
 
 export const businessMenuGroups = [
   {
@@ -35,7 +37,8 @@ export const businessMenuGroups = [
     items: [
       { name: "NEW BILL (POS)", href: "/pos", icon: FileText },
       { name: "ALL INVOICES", href: "/invoices", icon: ClipboardList },
-      { name: "FINANCE LEDGER", href: "/finance", icon: Wallet },
+      { name: "QUOTATIONS", href: "/quotations", icon: FileText },
+      { name: "FINANCE LEDGER", href: "/finance", icon: Wallet, feature: 'has_finance' },
       { name: "EXPENSES", href: "/expenses", icon: Receipt },
     ]
   },
@@ -58,18 +61,17 @@ export const businessMenuGroups = [
     title: "STAFF & HR",
     items: [
       { name: "STAFF", href: "/staff", icon: Users },
-      { name: "ATTENDANCE", href: "/attendance", icon: ClipboardList },
-      { name: "PAYROLL", href: "/payroll", icon: Wallet },
-      // { name: "SALARY COMPONENTS", href: "/payroll/components", icon: Settings },
-      { name: "LEAVE REQUESTS", href: "/hr/leave-requests", icon: Calendar },
-      { name: "SALARY ADVANCES", href: "/hr/advances", icon: Coins },
+      { name: "ATTENDANCE", href: "/attendance", icon: ClipboardList, feature: 'has_payroll' },
+      { name: "PAYROLL", href: "/payroll", icon: Wallet, feature: 'has_payroll' },
+      { name: "LEAVE REQUESTS", href: "/hr/leave-requests", icon: Calendar, feature: 'has_payroll' },
+      { name: "SALARY ADVANCES", href: "/hr/advances", icon: Coins, feature: 'has_payroll' },
     ]
   },
   {
     title: "REPORTS & AUDIT",
     items: [
       { name: "STAFF PERFORMANCE", href: "/reports/staff-performance", icon: Activity },
-      { name: "SYSTEM LOGS", href: "/reports/audit-logs", icon: Database },
+      { name: "SYSTEM LOGS", href: "/reports/audit-logs", icon: Database, feature: 'has_activity_logs' },
     ]
   },
   {
@@ -186,14 +188,19 @@ export function Sidebar({ className }: { className?: string }) {
   const { activeBusiness } = useTenantStore();
   const { hasPermission } = usePermissions();
   const { hasFeature } = useFeature();
+  const [lockedFeatureName, setLockedFeatureName] = useState<string | undefined>();
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+
+  const handleLockedClick = (e: React.MouseEvent, featureName: string) => {
+    e.preventDefault();
+    setLockedFeatureName(featureName);
+    setIsLockModalOpen(true);
+  };
 
   const isSuperadmin = user?.roles?.some((r) => r.name === 'Superadmin');
   const isPartner = user?.roles?.some((r) => r.name === 'Partner');
 
-  const filteredBusinessGroups = businessMenuGroups.map(group => ({
-    ...group,
-    items: group.items.filter((item: any) => !item.feature || hasFeature(item.feature))
-  })).filter(group => group.items.length > 0);
+  const filteredBusinessGroups = businessMenuGroups;
 
   const filteredSuperadminGroups = superadminMenuGroups.map(group => ({
     ...group,
@@ -226,6 +233,9 @@ export function Sidebar({ className }: { className?: string }) {
     if (hasPermission('manage_sales')) {
       operationsItems.push({ name: "POS & BILLING", href: "/pos", icon: Calculator });
       operationsItems.push({ name: "INVOICES", href: "/invoices", icon: FileText });
+      if (hasFeature('has_quotations')) {
+        operationsItems.push({ name: "QUOTATIONS", href: "/quotations", icon: FileText });
+      }
     }
     if (hasPermission('manage_inventory')) {
       operationsItems.push({ name: "ITEMS", href: "/items", icon: Package });
@@ -233,13 +243,17 @@ export function Sidebar({ className }: { className?: string }) {
       operationsItems.push({ name: "BRANDS", href: "/brands", icon: FileStack });
     }
     if (hasPermission('manage_expenses')) {
-      operationsItems.push({ name: "FINANCE LEDGER", href: "/finance", icon: Wallet });
+      if (hasFeature('has_finance')) {
+        operationsItems.push({ name: "FINANCE LEDGER", href: "/finance", icon: Wallet });
+      }
       operationsItems.push({ name: "EXPENSES", href: "/expenses", icon: Receipt });
     }
-    filteredStaffGroups.push({
-      title: "OPERATIONS",
-      items: operationsItems
-    });
+    if (operationsItems.length > 0) {
+      filteredStaffGroups.push({
+        title: "OPERATIONS",
+        items: operationsItems
+      });
+    }
   }
 
   if (hasPermission('manage_customers') || hasPermission('manage_suppliers')) {
@@ -261,27 +275,29 @@ export function Sidebar({ className }: { className?: string }) {
     if (hasPermission('manage_staff')) {
       hrItems.push({ name: "STAFF", href: "/staff", icon: Users });
     }
-    if (hasPermission('view_attendance')) {
+    if (hasPermission('view_attendance') && hasFeature('has_payroll')) {
       hrItems.push({ name: "ATTENDANCE", href: "/attendance", icon: ClipboardList });
     }
-    if (hasPermission('manage_payroll')) {
+    if (hasPermission('manage_payroll') && hasFeature('has_payroll')) {
       hrItems.push({ name: "PAYROLL", href: "/payroll", icon: Wallet });
     }
-    filteredStaffGroups.push({
-      title: "STAFF & HR (MANAGEMENT)",
-      items: hrItems
-    });
+    if (hrItems.length > 0) {
+      filteredStaffGroups.push({
+        title: "STAFF & HR (MANAGEMENT)",
+        items: hrItems
+      });
+    }
   }
 
   filteredStaffGroups.push({
     title: "SELF SERVICE",
     items: [
       { name: "DASHBOARD", href: "/dashboard", icon: LayoutDashboard },
-      { name: "MY ATTENDANCE", href: "/attendance", icon: ClipboardList },
-      { name: "MY SALARY SLIPS", href: "/payroll", icon: Wallet },
-      { name: "REQUEST LEAVE", href: "/hr/leave-requests", icon: Calendar },
-      { name: "SALARY ADVANCE", href: "/hr/advances", icon: Wallet },
-    ]
+      hasFeature('has_payroll') ? { name: "MY ATTENDANCE", href: "/attendance", icon: ClipboardList } : null,
+      hasFeature('has_payroll') ? { name: "MY SALARY SLIPS", href: "/payroll", icon: Wallet } : null,
+      hasFeature('has_payroll') ? { name: "REQUEST LEAVE", href: "/hr/leave-requests", icon: Calendar } : null,
+      hasFeature('has_payroll') ? { name: "SALARY ADVANCE", href: "/hr/advances", icon: Wallet } : null,
+    ].filter(Boolean) as any[]
   });
 
   const activeMenuGroups = isSuperadmin
@@ -346,6 +362,48 @@ export function Sidebar({ className }: { className?: string }) {
                     const isActive = location.pathname === item.href
                       || (item.href === '/superadmin/dashboard' && location.pathname === '/superadmin')
                       || (item.href === '/dashboard' && location.pathname === '/');
+                    const isLocked = item.feature && !hasFeature(item.feature);
+
+                    if (isLocked) {
+                      return (
+                        <PortalTooltip key={item.name} text={`${item.name} (Premium)`} visible={isSidebarCollapsed}>
+                          <button
+                            onClick={(e) => handleLockedClick(e, item.name)}
+                            className={cn(
+                              "relative flex w-full items-center text-[10px] font-semibold tracking-[0.05em] transition-all duration-200 group overflow-hidden opacity-60 hover:opacity-100",
+                              isSidebarCollapsed
+                                ? "justify-center h-10 mx-auto rounded-xl"
+                                : "py-2.5 px-3 rounded-xl",
+                              "text-slate-700 dark:text-slate-200 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-700 dark:hover:text-yellow-400"
+                            )}
+                          >
+                            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-yellow-500/10 to-transparent rounded-xl" />
+                            <item.icon
+                              strokeWidth={1.75}
+                              className={cn(
+                                "flex-shrink-0 h-[15px] w-[15px] transition-all duration-200 relative z-10",
+                                isSidebarCollapsed ? "mx-auto" : "mr-2.5",
+                                "text-slate-400 group-hover:text-yellow-600 dark:group-hover:text-yellow-500"
+                              )}
+                            />
+                            {!isSidebarCollapsed && (
+                              <span className="whitespace-nowrap relative z-10 flex-1 text-left transition-all duration-200">
+                                {item.name}
+                              </span>
+                            )}
+                            {!isSidebarCollapsed && (
+                              <Crown className="w-3.5 h-3.5 text-yellow-500 ml-auto shrink-0 relative z-10" />
+                            )}
+                            {isSidebarCollapsed && (
+                              <div className="absolute -top-1 -right-1 bg-yellow-100 dark:bg-yellow-900/50 rounded-full p-0.5">
+                                <Crown className="w-2.5 h-2.5 text-yellow-600 dark:text-yellow-400" />
+                              </div>
+                            )}
+                          </button>
+                        </PortalTooltip>
+                      );
+                    }
+
                     return (
                       <PortalTooltip key={item.name} text={item.name} visible={isSidebarCollapsed}>
                         <Link
@@ -433,6 +491,12 @@ export function Sidebar({ className }: { className?: string }) {
           </PortalTooltip>
         </div>
       </div>
+      
+      <FeatureLockModal 
+        isOpen={isLockModalOpen}
+        onClose={() => setIsLockModalOpen(false)}
+        featureName={lockedFeatureName}
+      />
     </>
   );
 }

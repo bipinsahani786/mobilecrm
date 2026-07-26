@@ -22,6 +22,7 @@ const InventoryPage = lazy(() => import('@/features/business/inventory/pages/Inv
 const SuppliersPage = lazy(() => import('@/features/business/suppliers/pages/SuppliersPage'));
 const SupplierDetailsPage = lazy(() => import('@/features/business/suppliers/pages/SupplierDetailsPage'));
 const AddPurchasePage = lazy(() => import('@/features/business/suppliers/pages/AddPurchasePage'));
+const PurchaseReturnPage = lazy(() => import('@/features/business/suppliers/pages/PurchaseReturnPage'));
 
 const CustomersPage = lazy(() => import('@/features/business/customers/pages/CustomersPage'));
 const CustomerDetailsPage = lazy(() => import('@/features/business/customers/pages/CustomerDetailsPage'));
@@ -31,6 +32,9 @@ const InvoicesPage = lazy(() => import('@/features/business/pos/pages/InvoicesPa
 const InvoiceDetailsPage = lazy(() => import('@/features/business/pos/pages/InvoiceDetailsPage'));
 const ExpensesPage = lazy(() => import('@/features/business/expenses/pages/ExpensesPage'));
 const FinanceLedgerPage = lazy(() => import('@/features/business/finance/pages/FinanceLedgerPage'));
+const QuotationsPage = lazy(() => import('@/features/business/quotations/pages/QuotationsPage'));
+const CreateQuotationPage = lazy(() => import('@/features/business/quotations/pages/CreateQuotationPage'));
+const QuotationDetailsPage = lazy(() => import('@/features/business/quotations/pages/QuotationDetailsPage'));
 
 // Staff & HR
 const StaffPage = lazy(() => import('@/features/business/staff/pages/StaffPage'));
@@ -43,6 +47,7 @@ const LeaveRequestsPage = lazy(() => import('@/features/business/hr/pages/LeaveR
 const SalaryAdvancesPage = lazy(() => import('@/features/business/hr/pages/SalaryAdvancesPage'));
 const AuditLogsPage = lazy(() => import('@/features/business/reports/pages/AuditLogsPage'));
 const StaffPerformancePage = lazy(() => import('@/features/business/reports/pages/StaffPerformancePage'));
+const DocsPage = lazy(() => import('@/features/docs/pages/DocsPage'));
 
 const SuperadminDashboard = lazy(() => import('@/features/superadmin/dashboard/pages/SuperadminDashboardPage'));
 const TenantsPage = lazy(() => import('@/features/superadmin/tenants/pages/TenantsPage'));
@@ -220,13 +225,18 @@ function App() {
             <Route path="/suppliers" element={<BusinessRoute><SuppliersPage /></BusinessRoute>} />
             <Route path="/suppliers/:id" element={<BusinessRoute><SupplierDetailsPage /></BusinessRoute>} />
             <Route path="/suppliers/:id/purchases/new" element={<BusinessRoute><AddPurchasePage /></BusinessRoute>} />
+            <Route path="/suppliers/:id/purchase-returns/new" element={<BusinessRoute><PurchaseReturnPage /></BusinessRoute>} />
             <Route path="/customers" element={<BusinessRoute><CustomersPage /></BusinessRoute>} />
             <Route path="/customers/:id" element={<BusinessRoute><CustomerDetailsPage /></BusinessRoute>} />
             <Route path="/pos" element={<BusinessRoute><PosPage /></BusinessRoute>} />
             <Route path="/invoices" element={<BusinessRoute><InvoicesPage /></BusinessRoute>} />
             <Route path="/invoices/:id" element={<BusinessRoute><InvoiceDetailsPage /></BusinessRoute>} />
+            <Route path="/quotations" element={<BusinessRoute><QuotationsPage /></BusinessRoute>} />
+            <Route path="/quotations/new" element={<BusinessRoute><CreateQuotationPage /></BusinessRoute>} />
+            <Route path="/quotations/:id" element={<BusinessRoute><QuotationDetailsPage /></BusinessRoute>} />
             <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
             <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
+            <Route path="/docs" element={<BusinessRoute><DocsPage /></BusinessRoute>} />
 
             {/* Staff & HR Routes */}
             <Route path="/staff" element={<BusinessRoute><StaffPage /></BusinessRoute>} />

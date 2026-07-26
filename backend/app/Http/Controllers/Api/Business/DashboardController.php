@@ -60,6 +60,29 @@ class DashboardController extends Controller
             ->where('invoice_number', 'not like', 'UDH-%')
             ->count();
 
+        // Profit Stats
+        $thisWeek = Carbon::now()->startOfWeek();
+        $thisYear = Carbon::now()->startOfYear();
+
+        $profitStats = [
+            'today' => [
+                'direct' => Sale::whereDate('date', $today)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::whereDate('date', $today)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'week' => [
+                'direct' => Sale::where('date', '>=', $thisWeek)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisWeek)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'month' => [
+                'direct' => Sale::where('date', '>=', $thisMonth)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisMonth)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+            'year' => [
+                'direct' => Sale::where('date', '>=', $thisYear)->where('invoice_number', 'not like', 'UDH-%')->sum('total_profit'),
+                'net' => Sale::where('date', '>=', $thisYear)->where('invoice_number', 'not like', 'UDH-%')->sum('net_profit'),
+            ],
+        ];
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -73,6 +96,7 @@ class DashboardController extends Controller
                     'present_today' => $presentToday,
                 ],
                 'recent_sales' => $recentSales,
+                'profits' => $profitStats,
             ]
         ]);
     }
@@ -82,6 +106,14 @@ class DashboardController extends Controller
         $user = $request->user();
         $businessId = app('current_business_id');
         $month = Carbon::now()->format('Y-m');
+
+        // Get staff salary type from pivot
+        $staffData = \Illuminate\Support\Facades\DB::table('business_user')
+            ->where('business_id', $businessId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        $salaryType = $staffData->salary_type ?? 'monthly';
 
         // Use PayrollService to calculate the draft payroll for this month
         $payrollService = app(\App\Services\Business\PayrollService::class);
@@ -99,27 +131,34 @@ class DashboardController extends Controller
             ->sum('commission_amount');
 
         $todayEarnings = 0;
-        if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day', 'holiday'])) { // assuming holiday is paid, but let's just use per_day_salary
+        if ($todayAttendance && in_array($todayAttendance->status, ['present', 'half_day'])) {
             $multiplier = ($todayAttendance->status === 'half_day') ? 0.5 : 1;
             $todayEarnings = ($draftPayroll->per_day_salary * $multiplier);
         }
         $todayEarnings += $todayCommission;
 
-        // 2. This Month's Earnings (Earnings before advance deductions)
-        $monthlyEarnings = $draftPayroll->base_salary - $draftPayroll->deduction + $draftPayroll->total_commission;
+        // 2. This Month's Earnings
+        if ($salaryType === 'daily') {
+            // Daily staff: base_salary already = present_days × daily_rate
+            $monthlyEarnings = $draftPayroll->base_salary + $draftPayroll->total_commission;
+            $draftDues = $monthlyEarnings - $draftPayroll->advance_deduction;
+        } else {
+            // Monthly staff: calculate EXACT earned amount till date
+            $effectivePresent = $draftPayroll->present_days + ($draftPayroll->half_days * 0.5) + $draftPayroll->paid_leaves;
+            $earnedBaseTillDate = $effectivePresent * $draftPayroll->per_day_salary;
+            $monthlyEarnings = $earnedBaseTillDate + $draftPayroll->total_commission;
+            $draftDues = $monthlyEarnings - $draftPayroll->advance_deduction;
+        }
 
         // 3. Advance Taken This Month
         $advanceTaken = $draftPayroll->advance_deduction;
 
         // 4. Total Unpaid Dues
-        // Sum of all Confirmed payrolls that are NOT paid
         $unpaidPayrolls = \App\Models\Payroll::where('user_id', $user->id)
             ->where('status', 'confirmed')
             ->sum('final_salary');
 
-        // Add current month's calculated earnings
-        // final_salary already subtracts advances for the current month!
-        $totalDues = $unpaidPayrolls + $draftPayroll->final_salary;
+        $totalDues = $unpaidPayrolls + $draftDues;
 
         return response()->json([
             'success' => true,

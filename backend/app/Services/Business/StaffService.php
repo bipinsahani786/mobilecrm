@@ -29,7 +29,9 @@ class StaffService
                 'users.phone',
                 'users.avatar',
                 'business_user.role',
+                'business_user.salary_type',
                 'business_user.monthly_salary',
+                'business_user.daily_salary',
                 'business_user.salary_components',
                 'business_user.commission_rate',
                 'business_user.join_date',
@@ -52,8 +54,12 @@ class StaffService
         $businessId = app('current_business_id');
 
         return DB::transaction(function () use ($data, $businessId) {
-            // Find existing user by phone or create new
+            // Find existing user by phone or email, or create new
             $user = User::where('phone', $data['phone'])->first();
+
+            if (!$user && !empty($data['email'])) {
+                $user = User::where('email', $data['email'])->first();
+            }
 
             if (!$user) {
                 $user = User::create([
@@ -80,7 +86,9 @@ class StaffService
                 'business_id' => $businessId,
                 'user_id' => $user->id,
                 'role' => $data['role'] ?? 'staff',
+                'salary_type' => $data['salary_type'] ?? 'monthly',
                 'monthly_salary' => $data['monthly_salary'] ?? 0,
+                'daily_salary' => $data['daily_salary'] ?? null,
                 'salary_components' => isset($data['salary_components']) ? json_encode($data['salary_components']) : null,
                 'commission_rate' => $data['commission_rate'] ?? 0,
                 'join_date' => $data['join_date'] ?? now()->toDateString(),
@@ -101,7 +109,9 @@ class StaffService
                 'name' => $user->name,
                 'phone' => $user->phone,
                 'email' => $user->email,
+                'salary_type' => $data['salary_type'] ?? 'monthly',
                 'monthly_salary' => $data['monthly_salary'] ?? 0,
+                'daily_salary' => $data['daily_salary'] ?? null,
                 'salary_components' => $data['salary_components'] ?? null,
                 'commission_rate' => $data['commission_rate'] ?? 0,
                 'join_date' => $data['join_date'] ?? now()->toDateString(),
@@ -126,7 +136,9 @@ class StaffService
 
         // Update pivot data
         $pivotData = [];
+        if (isset($data['salary_type'])) $pivotData['salary_type'] = $data['salary_type'];
         if (isset($data['monthly_salary'])) $pivotData['monthly_salary'] = $data['monthly_salary'];
+        if (array_key_exists('daily_salary', $data)) $pivotData['daily_salary'] = $data['daily_salary'];
         if (array_key_exists('salary_components', $data)) {
             $pivotData['salary_components'] = is_array($data['salary_components']) ? json_encode($data['salary_components']) : $data['salary_components'];
         }
@@ -190,7 +202,8 @@ class StaffService
             ->where('business_user.user_id', $userId)
             ->select(
                 'users.id', 'users.name', 'users.email', 'users.phone', 'users.avatar',
-                'business_user.role', 'business_user.monthly_salary', 'business_user.salary_components',
+                'business_user.role', 'business_user.salary_type', 'business_user.monthly_salary',
+                'business_user.daily_salary', 'business_user.salary_components',
                 'business_user.commission_rate', 'business_user.join_date', 'business_user.status'
             )
             ->first();

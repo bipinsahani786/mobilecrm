@@ -43,12 +43,13 @@ export default function BusinessProfilePage() {
         theme: activeBusiness.card_preferences?.theme ?? 'primary',
       },
       settings: {
-        commission_calculation_base: activeBusiness.settings?.commission_calculation_base ?? 'sales',
-        sale_invoice_prefix: activeBusiness.settings?.sale_invoice_prefix ?? 'INV-',
-        purchase_invoice_prefix: activeBusiness.settings?.purchase_invoice_prefix ?? 'PUR-',
-        whitelabel_name: activeBusiness.settings?.whitelabel_name ?? null,
-        whitelabel_logo: activeBusiness.settings?.whitelabel_logo ?? null,
-        whitelabel_favicon: activeBusiness.settings?.whitelabel_favicon ?? null,
+        commission_calculation_base: activeBusiness?.settings?.commission_calculation_base ?? 'sales',
+        sale_invoice_prefix: activeBusiness?.settings?.sale_invoice_prefix ?? 'INV-',
+        purchase_invoice_prefix: activeBusiness?.settings?.purchase_invoice_prefix ?? 'PUR-',
+        whitelabel_name: activeBusiness?.settings?.whitelabel_name ?? null,
+        whitelabel_logo: activeBusiness?.settings?.whitelabel_logo ?? null,
+        whitelabel_favicon: activeBusiness?.settings?.whitelabel_favicon ?? null,
+        whatsapp_message_format: activeBusiness?.settings?.whatsapp_message_format ?? 'Hello {customer_name}! Here is your invoice {invoice_number} for Rs.{amount}.\n\nYou can view and download your original PDF receipt here:\n{link}'
       }
     } : {
       name: '',
@@ -96,6 +97,38 @@ export default function BusinessProfilePage() {
       setSignatureUrl(activeBusiness.signature_path);
       setLogoPreview(activeBusiness.logo_path);
       setSigPreview(activeBusiness.signature_path);
+    } else {
+      // Adding new branch - Reset form to blank
+      reset({
+        name: '',
+        email: '',
+        phone: '',
+        phone_2: '',
+        gst_number: '',
+        address: '',
+        pincode: '',
+        state: '',
+        description: '',
+        business_type: '',
+        business_category: '',
+        books_opening_date: '',
+        card_preferences: {
+          show_address: true,
+          show_email: true,
+          show_phone_2: true,
+          show_gst: true,
+          theme: 'primary',
+        },
+        settings: {
+          commission_calculation_base: 'sales',
+          sale_invoice_prefix: 'INV-',
+          purchase_invoice_prefix: 'PUR-',
+        }
+      });
+      setLogoUrl(null);
+      setSignatureUrl(null);
+      setLogoPreview(null);
+      setSigPreview(null);
     }
   }, [activeBusiness, reset]);
 

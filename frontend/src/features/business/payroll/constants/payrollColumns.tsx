@@ -8,22 +8,41 @@ interface PayrollColumnActions {
   markPaidMutation: any;
   navigate: any;
   isManager: boolean;
+  viewMode?: 'earned' | 'projected';
 }
 
-export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate, isManager }: PayrollColumnActions): any[] => [
+export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate, isManager, viewMode = 'projected' }: PayrollColumnActions): any[] => [
   {
     header: 'Staff Member',
     accessorKey: 'user.name',
     cell: (row: PayrollRecord) => (
-      <div className="font-bold text-xs text-slate-900 dark:text-white">
-        {row.user?.name}
+      <div className="flex items-center gap-2">
+        <span className="font-bold text-xs text-slate-900 dark:text-white">
+          {row.user?.name}
+        </span>
+        {(row as any).salary_type === 'daily' && (
+          <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            Per Day
+          </span>
+        )}
       </div>
     )
   },
   {
     header: 'Base Salary',
     accessorKey: 'base_salary',
-    cell: (row: PayrollRecord) => `₹${Number(row.base_salary).toLocaleString()}`
+    cell: (row: PayrollRecord) => {
+      const isDraft = row.status === 'draft';
+      const isMonthly = (row as any).salary_type !== 'daily';
+      
+      let displayBase = Number(row.base_salary);
+      if (isDraft && isMonthly && viewMode === 'earned') {
+        const perDaySalary = Number((row as any).per_day_salary || 0);
+        const effectivePresent = Number(row.present_days || 0) + (Number(row.half_days || 0) * 0.5) + Number(row.paid_leaves || 0);
+        displayBase = effectivePresent * perDaySalary;
+      }
+      return `₹${displayBase.toLocaleString()}`;
+    }
   },
   {
     header: 'Attendance',
@@ -50,18 +69,43 @@ export const getPayrollColumns = ({ confirmMutation, markPaidMutation, navigate,
     header: 'Deductions',
     accessorKey: 'deduction',
     cell: (row: PayrollRecord) => {
-      const val = Number(row.deduction) + Number(row.advance_deduction);
+      const isDraft = row.status === 'draft';
+      const isMonthly = (row as any).salary_type !== 'daily';
+      
+      let displayDeduction = Number((row as any).deduction);
+      if (isDraft && isMonthly && viewMode === 'earned') {
+        displayDeduction = 0;
+      }
+      
+      const val = displayDeduction + Number((row as any).advance_deduction);
       return val > 0 ? <span className="text-red-500">-₹{val.toLocaleString()}</span> : '-';
     }
   },
   {
     header: 'Final Salary',
     accessorKey: 'final_salary',
-    cell: (row: PayrollRecord) => (
-      <span className="font-bold text-slate-900 dark:text-white">
-        ₹{Number(row.final_salary).toLocaleString()}
-      </span>
-    )
+    cell: (row: PayrollRecord) => {
+      const isDraft = row.status === 'draft';
+      const isMonthly = (row as any).salary_type !== 'daily';
+      
+      let displayNet = Number(row.final_salary);
+      if (isDraft && isMonthly && viewMode === 'earned') {
+        const perDaySalary = Number((row as any).per_day_salary || 0);
+        const effectivePresent = Number(row.present_days || 0) + (Number(row.half_days || 0) * 0.5) + Number(row.paid_leaves || 0);
+        const earnedTillDateBase = effectivePresent * perDaySalary;
+        const totalCommission = Number((row as any).total_commission || 0);
+        const activeBonus = Number((row as any).bonus || 0);
+        const activeAdvanceDeduction = Number((row as any).advance_deduction || 0);
+        
+        displayNet = earnedTillDateBase + totalCommission + activeBonus - activeAdvanceDeduction;
+      }
+      
+      return (
+        <span className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          ₹{displayNet.toLocaleString()}
+        </span>
+      );
+    }
   },
   {
     header: 'Status',

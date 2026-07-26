@@ -21,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => \App\Http\Middleware\TenantMiddleware::class,
             'superadmin' => \App\Http\Middleware\SuperadminMiddleware::class,
             'partner' => \App\Http\Middleware\PartnerMiddleware::class,
+            'feature' => \App\Http\Middleware\CheckFeatureAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -28,6 +28,7 @@ class Payroll extends Model
         'bonus',
         'advance_deduction',
         'salary_components',
+        'salary_type',
         'final_salary',
         'notes',
         'status',

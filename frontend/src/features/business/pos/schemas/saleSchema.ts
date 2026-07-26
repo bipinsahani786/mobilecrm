@@ -43,6 +43,10 @@ export interface Sale {
   emiDetail?: any;
   emi_detail?: any;
   draft_data?: any;
+  public_url?: string;
+  net_profit?: number;
+  total_profit?: number;
+  staff_commission?: number;
 }
 
 export interface CartItem {

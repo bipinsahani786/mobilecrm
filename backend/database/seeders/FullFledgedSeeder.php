@@ -42,7 +42,7 @@ class FullFledgedSeeder extends Seeder
             ]
         );
 
-        $plan = Plan::first();
+        $plans = Plan::all();
 
         // ─── 2. Create 3 Businesses for this Owner ────────────────────────────────
         $businessesData = [
@@ -52,6 +52,11 @@ class FullFledgedSeeder extends Seeder
         ];
 
         foreach ($businessesData as $index => $bData) {
+            // Distribute plans: 0 -> Enterprise, 1 -> Professional, 2 -> Starter
+            // Assumes plans are ordered ID 1=Starter, 2=Professional, 3=Enterprise. So reverse index.
+            $planIndex = count($plans) > 0 ? (2 - $index) % count($plans) : 0;
+            $plan = $plans[$planIndex] ?? null;
+
             $business = Business::firstOrCreate(
                 ['email' => 'contact' . $index . '@' . Str::slug($bData['name']) . '.com'],
                 [

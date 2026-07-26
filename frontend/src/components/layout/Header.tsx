@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Menu, Expand, Shrink, Moon, Sun, Palette, Paintbrush, Settings, ArrowRight, Monitor, User, LogOut, CreditCard, Building2, Store } from "lucide-react";
+import { Menu, Expand, Shrink, Moon, Sun, Palette, Paintbrush, Settings, ArrowRight, Monitor, User, LogOut, CreditCard, Building2, Store, HelpCircle, Crown, Lock } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { useLayoutStore } from "@/store/layoutStore";
 import { useThemeStore, type LayoutTheme, type PrimaryColor, type FontFamily } from "@/store/themeStore";
@@ -10,7 +10,8 @@ import { ModeToggle } from "@/components/ui/mode-toggle";
 import { businessMenuGroups, superadminMenuGroups, isRouteActive } from "./Sidebar";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
-
+import { useFeatureAccess } from "@/features/business/hooks/useFeatureAccess";
+import { FeatureLockModal } from "@/features/business/components/FeatureLockModal";
 // Theme dropdown component inside Header.tsx
 function ThemeCustomizer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -172,7 +173,9 @@ function ProfileMenu() {
   const ref = useRef<HTMLDivElement>(null);
   const user = useAuthStore(state => state.user);
   const logout = useAuthStore(state => state.logout);
-  const { activeBusiness, clearActiveBusiness } = useTenantStore();
+  const { activeBusiness, clearActiveBusiness, businesses } = useTenantStore();
+  const { getMaxLimit, planName } = useFeatureAccess();
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -237,9 +240,16 @@ function ProfileMenu() {
           <div className="min-w-0">
             <p className="text-sm font-extrabold text-slate-800 dark:text-white truncate tracking-tight">{user?.name || "User"}</p>
             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 truncate mt-0.5">{user?.email || ""}</p>
-            <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
-              {displayRole}
-            </span>
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-500/30">
+                {displayRole}
+              </span>
+              {!isSuperadmin && !isPartner && (
+                <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-widest bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-500/30">
+                  {planName}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -256,18 +266,37 @@ function ProfileMenu() {
                   onClick={() => { setIsOpen(false); navigate('/setup/profile'); }}
                   className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
                 >
-                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Edit Business
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Edit Branch
                 </button>
                 <button
-                  onClick={() => { clearActiveBusiness(); setIsOpen(false); navigate('/setup/profile'); }}
+                  onClick={() => { 
+                    const maxLocations = getMaxLimit('max_locations');
+                    if (businesses.length >= maxLocations) {
+                      setIsOpen(false);
+                      setIsLockModalOpen(true);
+                    } else {
+                      clearActiveBusiness(); 
+                      setIsOpen(false); 
+                      navigate('/setup/profile');
+                    }
+                  }}
                   className="w-full flex items-center px-3 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-lg transition-all duration-200 group/btn"
                 >
-                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> Add New Business
+                  <Building2 className="w-4 h-4 mr-3 opacity-70 group-hover/btn:opacity-100 group-hover/btn:scale-110 transition-all" /> 
+                  <span className="flex-1 text-left">Add New Branch</span>
+                  <span className="text-[10px] font-bold text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-500/10 px-1.5 py-0.5 rounded ml-2">
+                    {businesses.length}/{getMaxLimit('max_locations')}
+                  </span>
+                  {businesses.length >= getMaxLimit('max_locations') && (
+                    <Crown className="w-3.5 h-3.5 text-yellow-500 ml-1.5 flex-shrink-0" />
+                  )}
                 </button>
               </>
             )}
           </div>
         )}
+
+        <FeatureLockModal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} featureName="max_locations" />
 
         {/* User Options */}
         <div className="p-2 space-y-0.5">
@@ -326,8 +355,11 @@ export function Header({ className }: { className?: string }) {
   const user = useAuthStore(state => state.user);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isBranchDropdownOpen, setIsBranchDropdownOpen] = useState(false);
+  const branchDropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { getMaxLimit } = useFeatureAccess();
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const isSuperadminMode = user?.roles?.some(r => r.name === 'Superadmin') || location.pathname.startsWith('/superadmin');
   const isPartnerMode = location.pathname.startsWith('/partner');
   const isBusinessManager = user?.roles?.some((r) => r.name === 'admin' || r.name === 'manager' || r.name === 'Business Admin');
@@ -340,6 +372,22 @@ export function Header({ className }: { className?: string }) {
       fetchBusinesses();
     }
   }, [fetchBusinesses, isSuperadminMode, isPartnerMode]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (branchDropdownRef.current && !branchDropdownRef.current.contains(event.target as Node)) {
+        setIsBranchDropdownOpen(false);
+      }
+    };
+    if (isBranchDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isBranchDropdownOpen]);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentDateTime(new Date()), 1000);
@@ -401,9 +449,9 @@ export function Header({ className }: { className?: string }) {
 
         {/* Impersonation Banner */}
         {useAuthStore((state) => !!state.originalToken) && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-300 shadow-sm ml-1 sm:ml-2">
-            <User className="h-4 w-4 shrink-0" />
-            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest leading-none">
+          <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-full bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-2 duration-300 shadow-sm ml-1 sm:ml-2 shrink-0">
+            <User className="h-4 w-4 shrink-0 hidden sm:block" />
+            <span className="hidden lg:inline text-[10px] font-black uppercase tracking-widest leading-none truncate max-w-[80px] xl:max-w-[150px]">
               Impersonating {user?.name}
             </span>
             <Button
@@ -413,7 +461,7 @@ export function Header({ className }: { className?: string }) {
                 useAuthStore.getState().leaveImpersonation();
                 window.location.href = '/staff'; 
               }}
-              className="h-6 px-2 sm:ml-1 text-[9px] bg-white hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold uppercase tracking-widest rounded-full transition-colors"
+              className="h-6 px-2 sm:ml-1 text-[9px] bg-white hover:bg-rose-100 dark:bg-rose-900/30 dark:hover:bg-rose-900/50 border-rose-200 dark:border-rose-500/30 text-rose-600 dark:text-rose-300 font-bold uppercase tracking-widest rounded-full transition-colors shrink-0"
             >
               Leave
             </Button>
@@ -425,7 +473,7 @@ export function Header({ className }: { className?: string }) {
         {/* Branch Selector - business mode only */}
         {!isSuperadminMode && !isPartnerMode && (
           isBusinessManager ? (
-            <div className="relative">
+            <div className="relative" ref={branchDropdownRef}>
               <button
                 onClick={() => setIsBranchDropdownOpen(!isBranchDropdownOpen)}
                 className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-sm border border-primary-200 dark:border-primary-500/20 bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500 hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors"
@@ -446,10 +494,19 @@ export function Header({ className }: { className?: string }) {
                     <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Select Branch</p>
                   </div>
                   <div className="max-h-60 overflow-y-auto">
-                    {businesses.map((b) => (
+                    {businesses.map((b, index) => {
+                      const maxLocations = getMaxLimit('max_locations');
+                      const isLocked = index >= maxLocations;
+                      
+                      return (
                       <button
                         key={b.id}
                         onClick={() => {
+                          if (isLocked) {
+                            setIsBranchDropdownOpen(false);
+                            setIsLockModalOpen(true);
+                            return;
+                          }
                           if (activeBusiness?.id !== b.id) {
                             setActiveBusiness(b);
                             setIsBranchDropdownOpen(false);
@@ -462,27 +519,42 @@ export function Header({ className }: { className?: string }) {
                           "w-full text-left px-4 py-2 text-xs font-semibold flex items-center gap-3 transition-colors",
                           activeBusiness?.id === b.id
                             ? "bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-500"
-                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
+                            : isLocked 
+                              ? "text-slate-400 dark:text-slate-500 opacity-70 cursor-not-allowed bg-slate-50/50 dark:bg-white/[0.02]" 
+                              : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5"
                         )}
                       >
                         {b.logo_path ? (
-                          <img src={b.logo_path} alt="Logo" className="w-5 h-5 object-contain rounded-sm bg-white/10" />
+                          <img src={b.logo_path} alt="Logo" className={cn("w-5 h-5 object-contain rounded-sm bg-white/10", isLocked && "grayscale")} />
                         ) : (
                           <Building2 className="w-4 h-4 opacity-70" />
                         )}
-                        <span className="truncate">{b.name}</span>
+                        <span className="truncate flex-1">{b.name}</span>
+                        {isLocked && <Lock className="w-3 h-3 text-slate-400 shrink-0" />}
                       </button>
-                    ))}
+                    )})}
                     {businesses.length === 0 && (
                       <div className="px-4 py-3 text-xs text-slate-400 text-center">No branches found</div>
                     )}
                   </div>
                   <div className="border-t border-slate-100 dark:border-white/5 mt-1 pt-1 px-2">
                     <button
-                      onClick={() => { setIsBranchDropdownOpen(false); navigate('/setup/profile'); }}
+                      onClick={() => {
+                        const maxLocations = getMaxLimit('max_locations');
+                        if (businesses.length >= maxLocations) {
+                          setIsBranchDropdownOpen(false);
+                          setIsLockModalOpen(true);
+                        } else {
+                          setIsBranchDropdownOpen(false);
+                          navigate('/setup/profile');
+                        }
+                      }}
                       className="w-full flex items-center justify-center py-2 text-xs font-bold text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-500/10 rounded-sm transition-colors"
                     >
-                      + Add New Branch
+                      <span className="flex-1 text-center">+ Add New Branch ({businesses.length}/{getMaxLimit('max_locations')})</span>
+                      {businesses.length >= getMaxLimit('max_locations') && (
+                        <Crown className="w-4 h-4 text-yellow-500 flex-shrink-0 ml-1" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -500,6 +572,25 @@ export function Header({ className }: { className?: string }) {
               </span>
             </div>
           )
+        )}
+
+        {/* Plan Info Badge */}
+        {!isSuperadminMode && !isPartnerMode && isBusinessManager && activeBusiness?.plan && (
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/10 border border-yellow-200/60 dark:border-yellow-700/30 rounded-sm shadow-sm cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/setup/profile')}>
+            <div className="w-6 h-6 rounded-full bg-yellow-100 dark:bg-yellow-800/50 flex items-center justify-center shrink-0">
+              <Crown className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="text-[10px] font-extrabold text-yellow-700 dark:text-yellow-500 uppercase tracking-widest leading-none">
+                {activeBusiness.plan.name}
+              </span>
+              {activeBusiness.plan_expires_at && (
+                <span className="text-[9px] text-yellow-600/80 dark:text-yellow-500/80 font-bold leading-none mt-1">
+                  {Math.max(0, Math.ceil((new Date(activeBusiness.plan_expires_at).getTime() - new Date().getTime()) / (1000 * 3600 * 24)))} Days Left
+                </span>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Real-time DateTime Display */}
@@ -521,6 +612,15 @@ export function Header({ className }: { className?: string }) {
         {/* Animated Theme Toggle */}
         <ModeToggle />
 
+        {/* Help & Docs */}
+        <button
+          onClick={() => navigate('/docs')}
+          className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-primary-500 dark:hover:text-primary-400 transition-colors"
+          title="Help & Docs"
+        >
+          <HelpCircle className="w-5 h-5" />
+        </button>
+
         {/* Advanced Theme Customizer */}
         <ThemeCustomizer />
 
@@ -528,6 +628,12 @@ export function Header({ className }: { className?: string }) {
         <ProfileMenu />
 
       </div>
+      {/* Feature Lock Modal for Add Branch */}
+      <FeatureLockModal
+        isOpen={isLockModalOpen}
+        onClose={() => setIsLockModalOpen(false)}
+        featureName="Multi-Branch"
+      />
     </header>
   );
 }

@@ -7,7 +7,7 @@ export interface Plan {
   description: string | null;
   price_monthly: number;
   price_yearly: number;
-  features: string[] | null;
+  features: Record<string, any> | null;
   is_active: boolean;
   businesses_count?: number;
   created_at: string;

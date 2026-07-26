@@ -168,15 +168,15 @@ export default function PlansPage() {
                   <div className="flex-1 space-y-3 mb-6">
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Features</p>
                     <ul className="space-y-2">
-                      {(plan.features || []).slice(0, 5).map(feature => (
+                      {Object.keys(plan.features || {}).filter(k => plan.features?.[k]).slice(0, 5).map(feature => (
                         <li key={feature} className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                           <CheckCircle2 className="w-4 h-4 text-primary-500" />
-                          <span className="capitalize">{feature.replace('_', ' ')}</span>
+                          <span className="capitalize">{feature.replace(/_/g, ' ')}</span>
                         </li>
                       ))}
-                      {(plan.features?.length || 0) > 5 && (
+                      {Object.keys(plan.features || {}).filter(k => plan.features?.[k]).length > 5 && (
                         <li className="text-sm text-slate-500 italic pl-6">
-                          + {(plan.features?.length || 0) - 5} more features
+                          + {Object.keys(plan.features || {}).filter(k => plan.features?.[k]).length - 5} more features
                         </li>
                       )}
                     </ul>

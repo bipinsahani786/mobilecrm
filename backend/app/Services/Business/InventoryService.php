@@ -6,7 +6,7 @@ use App\Models\Product;
 
 class InventoryService
 {
-    public function getInventory($filters = [], $perPage = 10)
+    public function getInventoryQuery($filters = [])
     {
         $query = Product::with(['category', 'brand', 'batches'])->latest();
         
@@ -32,7 +32,20 @@ class InventoryService
             $query->where('quantity', '<=', $qty);
         }
 
-        return $query->paginate($perPage);
+        if (!empty($filters['start_date'])) {
+            $query->whereDate('created_at', '>=', $filters['start_date']);
+        }
+
+        if (!empty($filters['end_date'])) {
+            $query->whereDate('created_at', '<=', $filters['end_date']);
+        }
+
+        return $query;
+    }
+
+    public function getInventory($filters = [], $perPage = 10)
+    {
+        return $this->getInventoryQuery($filters)->paginate($perPage);
     }
 
     public function createProduct(array $data)

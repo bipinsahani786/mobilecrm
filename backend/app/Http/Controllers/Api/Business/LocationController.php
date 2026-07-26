@@ -30,6 +30,20 @@ class LocationController extends BaseController
         ]);
 
         try {
+            $business = request()->attributes->get('business');
+            if ($business) {
+                $plan = $business->plan;
+                $maxLocations = $plan->features['max_locations'] ?? 1;
+                $currentLocationsCount = BusinessLocation::count();
+                if ($currentLocationsCount >= $maxLocations) {
+                    return response()->json([
+                        'error' => 'plan_upgrade_required',
+                        'feature' => 'max_locations',
+                        'message' => "You have reached your plan's maximum limit of {$maxLocations} location(s)."
+                    ], 403);
+                }
+            }
+
             $data = $request->only(['name', 'latitude', 'longitude', 'radius_meters', 'address', 'is_default']);
 
             // If setting as default, unset other defaults

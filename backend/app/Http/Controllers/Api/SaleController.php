@@ -132,7 +132,9 @@ class SaleController extends BaseController
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:completed,Draft',
-            
+            'cgst_rate' => 'nullable|numeric|min:0',
+            'sgst_rate' => 'nullable|numeric|min:0',
+
             // Items
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
@@ -142,6 +144,9 @@ class SaleController extends BaseController
             'items.*.imei_1' => 'nullable|string',
             'items.*.imei_2' => 'nullable|string',
             'items.*.serial_no' => 'nullable|string',
+
+            // Quotation Reference
+            'quotation_id' => 'nullable|exists:quotations,id',
 
             // Payments (Split Payments)
             'payments' => 'nullable|array',
@@ -215,9 +220,11 @@ class SaleController extends BaseController
             'date' => 'nullable|date',
             'notes' => 'nullable|string',
             'status' => 'nullable|string|in:completed,Draft',
-            
+            'cgst_rate' => 'nullable|numeric|min:0',
+            'sgst_rate' => 'nullable|numeric|min:0',
+
             // Items
-            'items' => 'required|array|min:1',
+            'items' => 'nullable|array',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.product_batch_id' => 'nullable|exists:product_batches,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -247,5 +254,62 @@ class SaleController extends BaseController
         return $this->executeAction(function () use ($sale, $validated) {
             return $this->saleService->updateSale($sale, $validated);
         }, 'Sale updated successfully', 200);
+    }
+
+    public function generatePdf(Request $request, Sale $sale)
+    {
+        $sale->load(['customer', 'user', 'items.product', 'payments', 'emiDetail']);
+
+        $business = $sale->business;
+        $settings = $business->settings ?? [];
+
+        // Default to true if not explicitly passed (e.g., from QR scan or WhatsApp link)
+        $showHeader = $request->has('header') ? $request->query('header') === 'true' : true;
+        $showFooter = $request->has('footer') ? $request->query('footer') === 'true' : true;
+
+        $headerImage = $showHeader && !empty($settings['invoice_header_image']) ? $settings['invoice_header_image'] : null;
+        $footerImage = $showFooter && !empty($settings['invoice_footer_image']) ? $settings['invoice_footer_image'] : null;
+
+        $headerBase64 = null;
+        if ($headerImage) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get($headerImage);
+                if ($response->successful()) {
+                    $type = $response->header('Content-Type') ?: 'image/jpeg';
+                    $headerBase64 = 'data:' . $type . ';base64,' . base64_encode($response->body());
+                }
+            } catch (\Exception $e) {
+                // Silently fallback if fetch fails
+            }
+        }
+
+        $footerBase64 = null;
+        if ($footerImage) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::withoutVerifying()->get($footerImage);
+                if ($response->successful()) {
+                    $type = $response->header('Content-Type') ?: 'image/jpeg';
+                    $footerBase64 = 'data:' . $type . ';base64,' . base64_encode($response->body());
+                }
+            } catch (\Exception $e) {
+                // Silently fallback if fetch fails
+            }
+        }
+
+        $qrUrl = \Illuminate\Support\Facades\URL::signedRoute('invoice.verify', ['sale' => $sale->id]);
+        $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->generate($qrUrl));
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('invoices.pdf', [
+            'sale' => $sale,
+            'business' => $business,
+            'headerImage' => $headerBase64 ?? $headerImage,
+            'footerImage' => $footerBase64 ?? $footerImage,
+            'qrCodeUri' => $qrCodeBase64,
+        ])->setOptions([
+                    'isRemoteEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                ]);
+
+        return $pdf->download("invoice-{$sale->invoice_number}.pdf");
     }
 }

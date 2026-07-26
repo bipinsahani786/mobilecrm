@@ -26,12 +26,28 @@ class Sale extends Model
         'notes',
         'date',
         'draft_data',
+        'cgst_rate',
+        'sgst_rate',
+        'cgst_amount',
+        'sgst_amount',
+        'taxable_amount',
+        'is_gst_inclusive',
+        'total_profit',
+        'staff_commission',
+        'net_profit',
     ];
 
     protected $casts = [
         'date' => 'date',
         'draft_data' => 'array',
     ];
+
+    protected $appends = ['public_url'];
+
+    public function getPublicUrlAttribute()
+    {
+        return \Illuminate\Support\Facades\URL::signedRoute('invoice.verify', ['sale' => $this->id]);
+    }
 
     public function business()
     {

@@ -25,10 +25,21 @@ class BusinessService
     {
         $data['owner_id'] = $owner->id;
 
-        // Assign default plan (e.g. Enterprise Trial) if none provided
-        if (!isset($data['plan_id'])) {
-            $data['plan_id'] = 4; // Assuming 4 is Enterprise
-            $data['plan_expires_at'] = now()->addDays(14);
+        // Check if owner already has a business with a plan
+        $existingBusiness = Business::where('owner_id', $owner->id)->whereNotNull('plan_id')->first();
+        
+        if ($existingBusiness) {
+            // Inherit the plan details from the existing business
+            $data['plan_id'] = $existingBusiness->plan_id;
+            $data['plan_expires_at'] = $existingBusiness->plan_expires_at;
+            $data['custom_features'] = $existingBusiness->custom_features;
+            $data['partner_id'] = $existingBusiness->partner_id;
+        } else {
+            // Assign default plan (e.g. Enterprise Trial) if none provided
+            if (!isset($data['plan_id'])) {
+                $data['plan_id'] = 4; // Assuming 4 is Enterprise
+                $data['plan_expires_at'] = now()->addDays(14);
+            }
         }
 
         $business = Business::create($data);

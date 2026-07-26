@@ -90,7 +90,13 @@ class CustomerController extends BaseController
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'contact_2' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'village' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:255',
+            'pin' => 'nullable|string|max:20',
         ]);
 
         return $this->executeAction(function () use ($validated) {
@@ -127,7 +133,13 @@ class CustomerController extends BaseController
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'contact_2' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+            'village' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
+            'state' => 'nullable|string|max:255',
+            'pin' => 'nullable|string|max:20',
         ]);
 
         return $this->executeAction(function () use ($customer, $validated) {

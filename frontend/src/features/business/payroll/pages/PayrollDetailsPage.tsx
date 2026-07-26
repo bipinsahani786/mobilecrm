@@ -32,6 +32,7 @@ export default function PayrollDetailsPage() {
   }, [user, hasPermission]);
 
   const [editMode, setEditMode] = useState(false);
+  const [viewMode, setViewMode] = useState<'earned' | 'projected'>('earned');
   const [formData, setFormData] = useState({
     bonus: 0,
     advance_deduction: 0,
@@ -73,6 +74,27 @@ export default function PayrollDetailsPage() {
 
   const isDraft = payroll.status === 'draft';
   const isConfirmed = payroll.status === 'confirmed';
+  const isMonthly = (payroll as any).salary_type !== 'daily';
+
+  // Calculate Earned Till Date vs Projected
+  const perDaySalary = Number(payroll.per_day_salary || 0);
+  const effectivePresent = Number(payroll.present_days || 0) + (Number(payroll.half_days || 0) * 0.5) + Number(payroll.paid_leaves || 0);
+  
+  const earnedTillDateBase = isMonthly ? (effectivePresent * perDaySalary) : Number(payroll.base_salary || 0);
+  const totalCommission = Number(payroll.total_commission || 0);
+  const activeBonus = editMode ? Number(formData.bonus) : Number(payroll.bonus || 0);
+  const activeAdvanceDeduction = editMode ? Number(formData.advance_deduction) : Number(payroll.advance_deduction || 0);
+  
+  const earnedTillDateNet = earnedTillDateBase + totalCommission + activeBonus - activeAdvanceDeduction;
+  
+  const projectedNet = editMode 
+    ? (Number(payroll.base_salary) - Number(payroll.deduction) + totalCommission + activeBonus - activeAdvanceDeduction)
+    : Number(payroll.final_salary);
+
+  // Determine which values to display based on viewMode
+  const displayNet = (isDraft && isMonthly && viewMode === 'earned') ? earnedTillDateNet : projectedNet;
+  const displayBase = (isDraft && isMonthly && viewMode === 'earned') ? earnedTillDateBase : Number(payroll.base_salary);
+  const displayDeduction = (isDraft && isMonthly && viewMode === 'earned') ? 0 : Number(payroll.deduction);
 
   return (
     <div className="flex flex-col h-full bg-slate-50 dark:bg-[#09090b]">
@@ -211,27 +233,49 @@ export default function PayrollDetailsPage() {
             {/* Glowing spot */}
             <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary-500/20 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 bg-primary-500/10 dark:bg-primary-500/15 px-2.5 py-0.5 rounded-full w-fit block">
-                Net Payable
-              </span>
-              <p className="text-[11px] font-bold text-slate-400 dark:text-zinc-400 tracking-wider">
-                FINAL MONTHLY SALARY
-              </p>
+            <div className="space-y-1.5 flex justify-between items-start">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-primary-600 dark:text-primary-400 bg-primary-500/10 dark:bg-primary-500/15 px-2.5 py-0.5 rounded-full w-fit block">
+                  Net Payable
+                </span>
+                <p className="text-[11px] font-bold text-slate-400 dark:text-zinc-400 tracking-wider mt-1.5">
+                  {(payroll as any).salary_type === 'daily' ? 'DAILY WAGE SALARY' : (viewMode === 'earned' ? 'EARNED TILL DATE' : 'PROJECTED FINAL SALARY')}
+                </p>
+              </div>
+              
+              {isDraft && isMonthly && (
+                <div className="flex bg-white/50 dark:bg-black/20 p-1 rounded-lg border border-primary-500/10 backdrop-blur-sm relative z-10">
+                  <button 
+                    onClick={() => setViewMode('earned')}
+                    className={cn(
+                      "text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-md transition-all duration-300",
+                      viewMode === 'earned' ? "bg-white dark:bg-zinc-800 text-primary-600 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    )}
+                  >
+                    Earned
+                  </button>
+                  <button 
+                    onClick={() => setViewMode('projected')}
+                    className={cn(
+                      "text-[9px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-md transition-all duration-300",
+                      viewMode === 'projected' ? "bg-white dark:bg-zinc-800 text-primary-600 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    )}
+                  >
+                    Projected
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="my-6">
               <div className="flex items-baseline text-slate-900 dark:text-white">
                 <span className="text-xl font-extrabold text-primary-500 mr-1 font-display">₹</span>
                 <span className="text-4xl font-black font-display tracking-tight transition-transform group-hover:scale-105 duration-300 inline-block">
-                  {editMode 
-                    ? (Number(payroll.base_salary) - Number(payroll.deduction) + Number(payroll.total_commission) + Number(formData.bonus) - Number(formData.advance_deduction)).toLocaleString()
-                    : Number(payroll.final_salary).toLocaleString()
-                  }
+                  {displayNet.toLocaleString()}
                 </span>
               </div>
               <p className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1">
-                Inclusive of bonuses, commissions & LOP deductions.
+                Inclusive of bonuses, commissions & {viewMode === 'earned' ? 'recoveries' : 'LOP deductions'}.
               </p>
             </div>
 
@@ -315,7 +359,7 @@ export default function PayrollDetailsPage() {
           </div>
         </div>
 
-        {/* Section 3: Earnings & Deductions Split */}
+          {/* Section 3: Earnings & Deductions Split */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Earnings card */}
@@ -326,28 +370,75 @@ export default function PayrollDetailsPage() {
                   <TrendingUp className="w-4 h-4" />
                 </div>
                 <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200 font-display">
-                  Monthly Earnings
+                  {(payroll as any).salary_type === 'daily' ? 'Daily Wage Earnings' : 'Monthly Earnings'}
                 </h4>
+                {(payroll as any).salary_type === 'daily' && (
+                  <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest ml-auto">
+                    Per Day
+                  </span>
+                )}
               </div>
 
               <div className="mt-4 space-y-4">
-                {/* Check Salary components */}
-                {Array.isArray(payroll.salary_components) && payroll.salary_components.filter((c: any) => c.type === 'earning').map((comp: any) => (
-                  <div key={comp.id || comp.name} className="flex justify-between items-center text-sm">
-                    <span className="text-slate-550 dark:text-zinc-400">{comp.name}</span>
-                    <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                      ₹{Number(comp.amount).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                
-                {(!payroll.salary_components || (Array.isArray(payroll.salary_components) && payroll.salary_components.length === 0)) && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-555 dark:text-zinc-400">Basic Salary</span>
-                    <span className="font-semibold text-slate-700 dark:text-zinc-200">
-                      ₹{Number(payroll.base_salary).toLocaleString()}
-                    </span>
-                  </div>
+                {(payroll as any).salary_type === 'daily' ? (
+                  /* Daily wage breakdown */
+                  <>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-550 dark:text-zinc-400">Daily Rate</span>
+                      <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                        ₹{Number(payroll.per_day_salary).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-550 dark:text-zinc-400">Days Worked (Present)</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                        {payroll.present_days} days
+                      </span>
+                    </div>
+                    {Number(payroll.half_days) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">Half Days (×0.5)</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {payroll.half_days} days
+                        </span>
+                      </div>
+                    )}
+                    {Number(payroll.paid_leaves) > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">Paid Leaves</span>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {payroll.paid_leaves} days
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-100 dark:border-white/5">
+                      <span className="text-slate-550 dark:text-zinc-400 font-medium">Earned from Attendance</span>
+                      <span className="font-bold text-slate-700 dark:text-zinc-200">
+                        ₹{Number(payroll.base_salary).toLocaleString()}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  /* Monthly salary breakdown */
+                  <>
+                    {Array.isArray(payroll.salary_components) && payroll.salary_components.filter((c: any) => c.type === 'earning').map((comp: any) => (
+                      <div key={comp.id || comp.name} className="flex justify-between items-center text-sm">
+                        <span className="text-slate-550 dark:text-zinc-400">{comp.name}</span>
+                        <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                          ₹{Number(comp.amount).toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                    
+                    {(!payroll.salary_components || (Array.isArray(payroll.salary_components) && payroll.salary_components.length === 0)) && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-555 dark:text-zinc-400">Basic Salary</span>
+                        <span className="font-semibold text-slate-700 dark:text-zinc-200">
+                          ₹{displayBase.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </>
                 )}
                 
                 {Number(payroll.total_commission) > 0 && (
@@ -389,9 +480,7 @@ export default function PayrollDetailsPage() {
             <div className="border-t border-slate-100 dark:border-white/5 mt-6 pt-4 flex justify-between items-center">
               <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Gross Earnings</span>
               <span className="text-base font-black text-slate-800 dark:text-zinc-200 font-display">
-                ₹{((!payroll.salary_components || payroll.salary_components.length === 0 
-                  ? Number(payroll.base_salary) 
-                  : payroll.salary_components.filter((c: any) => c.type === 'earning').reduce((acc: number, c: any) => acc + Number(c.amount), 0))
+                ₹{(displayBase
                   + Number(payroll.total_commission) 
                   + (editMode ? Number(formData.bonus) : Number(payroll.bonus))).toLocaleString()}
               </span>
@@ -421,11 +510,11 @@ export default function PayrollDetailsPage() {
                   </div>
                 ))}
                 
-                {Number(payroll.deduction) > 0 && (
+                {displayDeduction > 0 && (
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-slate-555 dark:text-zinc-400">Absence Deductions (LOP)</span>
                     <span className="font-semibold text-rose-500">
-                      -₹{Number(payroll.deduction).toLocaleString()}
+                      -₹{displayDeduction.toLocaleString()}
                     </span>
                   </div>
                 )}
@@ -460,11 +549,11 @@ export default function PayrollDetailsPage() {
             <div className="border-t border-slate-100 dark:border-white/5 mt-6 pt-4 flex justify-between items-center">
               <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">Total Deductions</span>
               <span className="text-base font-black text-rose-500 font-display">
-                ₹{((Array.isArray(payroll.salary_components) 
-                  ? payroll.salary_components.filter((c: any) => c.type === 'deduction').reduce((acc: number, c: any) => acc + Number(c.amount), 0)
-                  : 0) 
-                  + Number(payroll.deduction) 
-                  + (editMode ? Number(formData.advance_deduction) : Number(payroll.advance_deduction))).toLocaleString()}
+                ₹{(
+                  displayDeduction 
+                  + (editMode ? Number(formData.advance_deduction) : Number(payroll.advance_deduction))
+                  + (Array.isArray(payroll.salary_components) ? payroll.salary_components.filter((c: any) => c.type === 'deduction').reduce((acc: number, curr: any) => acc + Number(curr.amount), 0) : 0)
+                ).toLocaleString()}
               </span>
             </div>
           </div>
