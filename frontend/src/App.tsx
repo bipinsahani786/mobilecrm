@@ -36,6 +36,14 @@ const QuotationsPage = lazy(() => import('@/features/business/quotations/pages/Q
 const CreateQuotationPage = lazy(() => import('@/features/business/quotations/pages/CreateQuotationPage'));
 const QuotationDetailsPage = lazy(() => import('@/features/business/quotations/pages/QuotationDetailsPage'));
 
+// Bookings & Returns
+const BookingsPage = lazy(() => import('@/features/business/bookings/pages/BookingsPage'));
+const NewBookingPage = lazy(() => import('@/features/business/bookings/pages/NewBookingPage'));
+const BookingDetailsPage = lazy(() => import('@/features/business/bookings/pages/BookingDetailsPage'));
+const SaleReturnsPage = lazy(() => import('@/features/business/returns/pages/SaleReturnsPage'));
+const NewSaleReturnPage = lazy(() => import('@/features/business/returns/pages/NewSaleReturnPage'));
+const SaleReturnDetailsPage = lazy(() => import('@/features/business/returns/pages/SaleReturnDetailsPage'));
+
 // Staff & HR
 const StaffPage = lazy(() => import('@/features/business/staff/pages/StaffPage'));
 const StaffDetailsPage = lazy(() => import('@/features/business/staff/pages/StaffDetailsPage'));
@@ -236,6 +244,13 @@ function App() {
             <Route path="/quotations/:id" element={<BusinessRoute><QuotationDetailsPage /></BusinessRoute>} />
             <Route path="/expenses" element={<BusinessRoute><ExpensesPage /></BusinessRoute>} />
             <Route path="/finance" element={<BusinessRoute><FinanceLedgerPage /></BusinessRoute>} />
+            <Route path="/bookings" element={<BusinessRoute><BookingsPage /></BusinessRoute>} />
+            <Route path="/bookings/new" element={<BusinessRoute><NewBookingPage /></BusinessRoute>} />
+            <Route path="/bookings/:id" element={<BusinessRoute><BookingDetailsPage /></BusinessRoute>} />
+            <Route path="/sale-returns" element={<BusinessRoute><SaleReturnsPage /></BusinessRoute>} />
+            <Route path="/sale-returns/new" element={<BusinessRoute><NewSaleReturnPage /></BusinessRoute>} />
+            <Route path="/sale-returns/new/:saleId" element={<BusinessRoute><NewSaleReturnPage /></BusinessRoute>} />
+            <Route path="/sale-returns/:id" element={<BusinessRoute><SaleReturnDetailsPage /></BusinessRoute>} />
             <Route path="/docs" element={<BusinessRoute><DocsPage /></BusinessRoute>} />
 
             {/* Staff & HR Routes */}

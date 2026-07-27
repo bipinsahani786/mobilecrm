@@ -204,6 +204,17 @@ class SaleService
                 }
             }
 
+            // Link Booking if provided
+            if (!empty($data['booking_id'])) {
+                $booking = \App\Models\Booking::find($data['booking_id']);
+                if ($booking) {
+                    $booking->update([
+                        'status' => 'converted',
+                        'converted_sale_id' => $sale->id,
+                    ]);
+                }
+            }
+
             // Create Items & Deduct Stock
             foreach ($data['items'] as $item) {
                 $subtotal = $item['quantity'] * $item['unit_price'];
@@ -359,6 +370,9 @@ class SaleService
                 } else {
                     $commissionAmount = 0;
                 }
+
+                // Subtract discount from total profit
+                $totalSaleProfit -= (float) ($sale->discount ?? 0);
 
                 // Update Profit fields
                 $sale->update([
@@ -666,6 +680,10 @@ class SaleService
                         'commission_rate' => $commissionRate,
                         'commission_amount' => $commissionAmount,
                     ]);
+                }
+
+                if ($hasItems) {
+                    $totalSaleProfit -= (float) ($sale->discount ?? 0);
                 }
 
                 $sale->update([

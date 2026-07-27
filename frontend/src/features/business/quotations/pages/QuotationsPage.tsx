@@ -261,21 +261,19 @@ export default function QuotationsPage() {
           )}
         </FilterContainer>
 
-        {/* Table */}
-        {isLoading ? (
-          <TableSkeleton />
-        ) : (
-          <DataTable
-            columns={columns}
-            data={quotations}
-            pagination={{
-              currentPage: meta?.current_page || 1,
-              totalPages: meta?.last_page || 1,
-              onPageChange: setPage
-            }}
-            onRowClick={(q) => navigate(`/quotations/${q.id}`)}
-          />
-        )}
+        <DataTable
+          isLoading={isLoading}
+          loadingSkeleton={<TableSkeleton />}
+          columns={columns}
+          data={quotations}
+          pagination={{
+            currentPage: meta?.current_page || 1,
+            totalPages: meta?.last_page || 1,
+            onPageChange: setPage
+          }}
+          onRowClick={(q) => navigate(`/quotations/${q.id}`)}
+          emptyMessage="No quotations found for these filters"
+        />
       </div>
 
       <DeleteConfirmModal

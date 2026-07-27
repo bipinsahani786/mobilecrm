@@ -37,6 +37,8 @@ export const businessMenuGroups = [
     items: [
       { name: "NEW BILL (POS)", href: "/pos", icon: FileText },
       { name: "ALL INVOICES", href: "/invoices", icon: ClipboardList },
+      { name: "BOOKINGS", href: "/bookings", icon: Calendar },
+      { name: "SALE RETURNS", href: "/sale-returns", icon: Receipt },
       { name: "QUOTATIONS", href: "/quotations", icon: FileText },
       { name: "FINANCE LEDGER", href: "/finance", icon: Wallet, feature: 'has_finance' },
       { name: "EXPENSES", href: "/expenses", icon: Receipt },

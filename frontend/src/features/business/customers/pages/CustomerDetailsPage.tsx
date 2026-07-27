@@ -19,7 +19,6 @@ function CustomerDetailsSkeleton() {
         icon={Users}
         title="Loading Customer..." 
         subtitle="Please wait"
-        breadcrumbs={[{ label: 'Customers', onClick: () => {} }, { label: 'Loading', active: true }]} 
       />
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -172,10 +171,6 @@ export default function CustomerDetailsPage() {
         icon={Users}
         title={customer.name}
         subtitle={`ID: ${customer.id}`}
-        breadcrumbs={[
-          { label: 'Customers', onClick: () => navigate('/customers') },
-          { label: customer.name, active: true }
-        ]}
         actions={
           <div className="flex gap-2">
             <button 
@@ -196,7 +191,7 @@ export default function CustomerDetailsPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Contact Information */}
           <div className="md:col-span-2 bg-white dark:bg-[#09090b] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-slate-800 dark:text-white text-base mb-5 tracking-tight">Contact Information</h3>
+            <h3 className="font-bold text-slate-800 dark:text-white text-base mb-5 tracking-tight">Customer Details</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50/50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
                 <div className="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center text-primary-500">

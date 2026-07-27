@@ -339,6 +339,9 @@ class StaffService
                     $productsSold[$productId]['total_sale'] += ($item->unit_price * $item->quantity);
                     $productsSold[$productId]['total_profit'] += $itemProfit;
                 }
+
+                // Subtract sale discount from overall profit for this sale
+                $totalProfit -= (float) ($sale->discount ?? 0);
             }
 
             $commissionRate = (float) $member->commission_rate;

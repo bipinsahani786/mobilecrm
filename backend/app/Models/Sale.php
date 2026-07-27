@@ -78,4 +78,14 @@ class Sale extends Model
     {
         return $this->hasOne(EmiDetail::class);
     }
+
+    public function returns()
+    {
+        return $this->hasMany(SaleReturn::class);
+    }
+
+    public function booking()
+    {
+        return $this->hasOne(Booking::class, 'converted_sale_id');
+    }
 }

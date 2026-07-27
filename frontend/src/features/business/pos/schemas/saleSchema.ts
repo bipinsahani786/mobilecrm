@@ -42,6 +42,7 @@ export interface Sale {
   payments?: SalePayment[];
   emiDetail?: any;
   emi_detail?: any;
+  returns?: any[];
   draft_data?: any;
   public_url?: string;
   net_profit?: number;

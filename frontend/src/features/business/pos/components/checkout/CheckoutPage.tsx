@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
 import { useCreateSale, useUpdateSale } from '../../api/useSales';
 import { useCustomers, useCreateCustomer } from '../../../customers/api/useCustomers';
+
 import { AddCustomerModal } from '../../../customers/components/AddCustomerModal';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ import { DatePicker } from '@/components/ui/DatePicker';
 import type { CartItem } from '../../schemas/saleSchema';
 import {
   ArrowLeft, Plus, UserPlus, X, CreditCard, Banknote, Smartphone,
-  GitMerge, BarChart2, IndianRupee, CheckCircle2
+  GitMerge, BarChart2, IndianRupee, CheckCircle2, Wallet
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '@/lib/formatters';
@@ -23,12 +24,13 @@ interface CheckoutPageProps {
   cartTotal: number;
   draftId?: number;
   quotationId?: number;
+  bookingId?: number;
   initialDraftData?: any;
   onCancel: () => void;
   onSuccess: (saleId?: number, isDraft?: boolean) => void;
 }
 
-export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initialDraftData, onCancel, onSuccess }: CheckoutPageProps) {
+export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, bookingId, initialDraftData, onCancel, onSuccess }: CheckoutPageProps) {
   const navigate = useNavigate();
   const [paymentType, setPaymentType] = useState<string>(initialDraftData?.payment_mode?.toLowerCase() || 'cash');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>(initialDraftData?.customer_id ? String(initialDraftData.customer_id) : '');
@@ -113,6 +115,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
   const { data: customersResponse } = useCustomers(1, 200);
   const customers = customersResponse?.data || [];
 
+    
   const { register, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm({
     defaultValues: {
       discount: initialDraftData?.discount || 0,
@@ -190,10 +193,12 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
   // Compute dynamic cart total based on number of identifiers
   // Reverted: Cart total should depend strictly on item.quantity, not identifier count.
   const finalAmount = Math.max(0, cartTotal - Number(discount) + Number(roundOff));
+  const advanceAmount = Number(initialDraftData?.advance_amount || 0);
+  const finalPayable = Math.max(0, finalAmount - advanceAmount);
 
   const splitTotal = splitPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-  const splitOver = splitTotal > finalAmount;
-  const remaining = finalAmount - splitTotal;
+  const splitOver = splitTotal > finalPayable;
+  const remaining = finalPayable - splitTotal;
 
   const emiSingleDown = watch('emi_down_payment') || 0;
   const emiDownPayment = emiDownPaymentMode === 'Split'
@@ -205,13 +210,13 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
   // Auto calculate loan amount and monthly installments
   useEffect(() => {
     if (paymentType === 'emi') {
-      const loan = Math.max(0, finalAmount - Number(emiDownPayment));
+      const loan = Math.max(0, finalPayable - Number(emiDownPayment));
       setValue('emi_loan_amount', loan);
       if (!isManualEmi && Number(emiTenure) > 0) {
         setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
       }
     }
-  }, [finalAmount, emiDownPayment, emiTenure, paymentType, setValue, isManualEmi]);
+  }, [finalPayable, emiDownPayment, emiTenure, paymentType, setValue, isManualEmi]);
 
   // Customer quick add handler
   const handleQuickAddCustomer = async () => {
@@ -376,6 +381,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
     const payload: any = {
       customer_id: selectedCustomerId ? Number(selectedCustomerId) : null,
       quotation_id: quotationId || undefined,
+      booking_id: bookingId || undefined,
       discount: Number(data.discount || 0),
       round_off: Number(data.round_off || 0),
       date: new Date().toISOString().split('T')[0],
@@ -386,16 +392,16 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
 
     if (paymentType === 'cash') {
       payload.payment_mode = 'Cash';
-      payload.payments = [{ payment_mode: 'Cash', amount: finalAmount }];
+      payload.payments = [{ payment_mode: 'Cash', amount: finalPayable }];
     } else if (paymentType === 'upi') {
       payload.payment_mode = 'UPI';
-      payload.payments = [{ payment_mode: 'UPI', amount: finalAmount }];
+      payload.payments = [{ payment_mode: 'UPI', amount: finalPayable }];
     } else if (paymentType === 'debit_card') {
       payload.payment_mode = 'Debit Card';
-      payload.payments = [{ payment_mode: 'Debit Card', amount: finalAmount }];
+      payload.payments = [{ payment_mode: 'Debit Card', amount: finalPayable }];
     } else if (paymentType === 'credit_card') {
       payload.payment_mode = 'Credit Card';
-      payload.payments = [{ payment_mode: 'Credit Card', amount: finalAmount }];
+      payload.payments = [{ payment_mode: 'Credit Card', amount: finalPayable }];
     } else if (paymentType === 'udhar') {
       payload.payment_mode = 'Udhar';
 
@@ -423,10 +429,10 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
         }));
 
       const totalPaid = payload.payments.reduce((sum: number, p: any) => sum + p.amount, 0);
-      if (totalPaid > finalAmount) {
+      if (totalPaid > finalPayable) {
         toast.error('Split payment total exceeds final amount'); return;
       }
-      if (totalPaid < finalAmount) {
+      if (totalPaid < finalPayable) {
         toast.error('Split payments must cover the entire final amount'); return;
       }
     } else if (paymentType === 'emi') {
@@ -456,13 +462,15 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
           return;
         }
 
-        if (emiDownPayment > 0)
+        if (emiDownPayment > 0) {
+          
           payload.payments.push({
             payment_mode: emiDownPaymentMode,
             amount: emiDownPayment,
             link_customer_id: emiDownPaymentMode === 'Udhar' ? (emiDownPayments[0]?.link_customer_id ? Number(emiDownPayments[0].link_customer_id) : undefined) : undefined,
             notes: `EMI Down Payment (${emiDownPaymentMode})`
           });
+        }
       }
 
       payload.emi_detail = {
@@ -802,8 +810,18 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
               </div>
 
               <div className="border-t border-slate-100 dark:border-white/5 pt-2 flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-650 dark:text-slate-350">Order Total:</span>
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{formatCurrency(finalAmount)}</span>
+              </div>
+              {advanceAmount > 0 && (
+                <div className="flex justify-between items-center pt-1 text-emerald-600 dark:text-emerald-400">
+                  <span className="text-xs font-bold">Advance Paid:</span>
+                  <span className="text-sm font-bold">- {formatCurrency(advanceAmount)}</span>
+                </div>
+              )}
+              <div className="border-t border-slate-100 dark:border-white/5 pt-2 flex justify-between items-center mt-2">
                 <span className="text-xs font-bold text-slate-650 dark:text-slate-350">Final Payable Amount:</span>
-                <span className="text-lg font-black text-primary-500 font-display">{formatCurrency(finalAmount)}</span>
+                <span className="text-lg font-black text-primary-500 font-display">{formatCurrency(finalPayable)}</span>
               </div>
             </div>
 
@@ -821,6 +839,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                   { id: 'upi', label: 'UPI', icon: <Smartphone className="w-3.5 h-3.5" /> },
                   { id: 'debit_card', label: 'Debit Card', icon: <CreditCard className="w-3.5 h-3.5" /> },
                   { id: 'credit_card', label: 'Credit Card', icon: <CreditCard className="w-3.5 h-3.5" /> },
+                  
                   { id: 'udhar', label: 'Credit (Udhar)', icon: <IndianRupee className="w-3.5 h-3.5 text-amber-500" /> },
                   { id: 'split', label: 'Split', icon: <GitMerge className="w-3.5 h-3.5 text-primary-500" /> },
                   { id: 'emi', label: 'Finance / EMI', icon: <BarChart2 className="w-3.5 h-3.5 text-emerald-500" /> },
@@ -862,7 +881,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Full {paymentType.replace('_', ' ').toUpperCase()} Payment</p>
-                      <p className="text-lg font-black text-primary-500 font-display mt-0.5">{formatCurrency(finalAmount)}</p>
+                      <p className="text-lg font-black text-primary-500 font-display mt-0.5">{formatCurrency(finalPayable)}</p>
                       <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">Amount will be fully recorded as paid.</p>
                     </div>
                   </div>
@@ -874,7 +893,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                     <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-lg">
                       <IndianRupee className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                       <div className="text-[9px] text-amber-600 dark:text-amber-400 font-semibold leading-relaxed">
-                        Credit Sale will post a debt balance of <strong>{formatCurrency(finalAmount)}</strong> to the customer ledger.
+                        Credit Sale will post a debt balance of <strong>{formatCurrency(finalPayable)}</strong> to the customer ledger.
                       </div>
                     </div>
 
@@ -948,6 +967,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                                   { value: 'UPI', label: 'UPI' },
                                   { value: 'Card', label: 'Card' },
                                   { value: 'Net Banking', label: 'Net Banking' },
+                                  
                                   { value: 'Udhar', label: 'Udhar (Credit)' },
                                 ]}
                               />
@@ -1252,6 +1272,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                                         { value: 'UPI', label: 'UPI' },
                                         { value: 'Card', label: 'Card' },
                                         { value: 'Net Banking', label: 'Net Banking' },
+                                        
                                         { value: 'Udhar', label: 'Udhar (Credit)' },
                                       ]}
                                     />
@@ -1413,7 +1434,7 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, initi
                               type="button"
                               onClick={() => {
                                 setIsManualEmi(false);
-                                const loan = Math.max(0, finalAmount - Number(emiDownPayment));
+                                const loan = Math.max(0, finalPayable - Number(emiDownPayment));
                                 if (Number(emiTenure) > 0) {
                                   setValue('emi_monthly_amount', (loan / Number(emiTenure)).toFixed(2));
                                 }

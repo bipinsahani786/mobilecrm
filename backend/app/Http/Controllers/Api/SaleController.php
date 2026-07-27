@@ -145,8 +145,9 @@ class SaleController extends BaseController
             'items.*.imei_2' => 'nullable|string',
             'items.*.serial_no' => 'nullable|string',
 
-            // Quotation Reference
+            // Quotation & Booking Reference
             'quotation_id' => 'nullable|exists:quotations,id',
+            'booking_id' => 'nullable|exists:bookings,id',
 
             // Payments (Split Payments)
             'payments' => 'nullable|array',
