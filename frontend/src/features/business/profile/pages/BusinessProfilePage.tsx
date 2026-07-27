@@ -230,10 +230,6 @@ export default function BusinessProfilePage() {
         icon={Building2}
         title="Business Management"
         subtitle="Register and manage profile."
-        breadcrumbs={[
-          { label: 'Home', onClick: () => navigate('/dashboard') },
-          { label: activeBusiness ? 'Profile' : 'Setup', active: true }
-        ]}
       />
 
       <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 py-3 sm:py-4 md:py-6 overflow-x-hidden min-w-0">

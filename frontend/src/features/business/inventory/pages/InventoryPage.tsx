@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Package, Plus, DollarSign, AlertTriangle, Search, RotateCcw, Layers, Download } from 'lucide-react';
+import { Package, Plus, DollarSign, AlertTriangle, Search, RotateCcw, Layers, Download, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/formatters';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { useInventory, useDeleteProduct } from '../api/useInventory';
+import { useInventory, useDeleteProduct, downloadInventoryPdf } from '../api/useInventory';
 import type { Product } from '../schemas/productSchema';
 import { useCategories } from '../api/useCategories';
 import { useBrands } from '../api/useBrands';
@@ -119,6 +119,34 @@ export default function InventoryPage() {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    const downloadPromise = async () => {
+      const queryParams = new URLSearchParams();
+      if (search) queryParams.append('search', search);
+      if (categoryId) queryParams.append('category_id', String(categoryId));
+      if (brandId) queryParams.append('brand_id', String(brandId));
+      if (lowStockDays) queryParams.append('low_stock_days', lowStockDays);
+      if (startDate) queryParams.append('start_date', startDate);
+      if (endDate) queryParams.append('end_date', endDate);
+
+      const response = await downloadInventoryPdf(queryParams);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `inventory-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    };
+
+    toast.promise(downloadPromise(), {
+      loading: 'Generating PDF...',
+      success: 'PDF downloaded successfully!',
+      error: 'Failed to download inventory PDF',
+    });
+  };
+
   // Calculate simple stats based on current page data (ideally this comes from backend metadata)
   const lowStockCount = products.filter(p => p.quantity <= 10).length;
   const totalValue = products.reduce((sum, p: any) => sum + (p.inventory_value || (p.quantity * p.purchase_price)), 0);
@@ -174,6 +202,14 @@ export default function InventoryPage() {
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
                 <Download className="w-4 h-4 relative z-10" />
                 <span className="relative z-10">Export</span>
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                className="group relative flex items-center gap-2 h-12 px-6 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg shadow-rose-500/30 hover:shadow-rose-500/50 hover:-translate-y-1 active:translate-y-0 transition-all duration-300 w-full sm:w-auto justify-center"
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <FileText className="w-4 h-4 relative z-10" />
+                <span className="relative z-10">PDF</span>
               </button>
               <button 
                 onClick={handleCreate}

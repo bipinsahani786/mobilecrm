@@ -329,6 +329,51 @@
 
     <div style="clear:both;"></div>
 
+    <div style="margin-top: 30px; font-size: 9.5px; border-top: 1px solid #ccc; padding-top: 10px; color: #333;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 50%; vertical-align: top; padding-right: 15px;">
+                    <strong style="font-size: 11px;">Terms & Conditions:</strong>
+                    <div style="margin-top: 5px; line-height: 1.4;">
+                        @if(!empty($business->settings['quotation_terms']))
+                            {!! nl2br(e($business->settings['quotation_terms'])) !!}
+                        @else
+                            <ol style="margin: 0; padding-left: 15px;">
+                                <li>Prices are subject to change without notice.</li>
+                                <li>Subject to local jurisdiction.</li>
+                            </ol>
+                        @endif
+                    </div>
+                </td>
+                <td style="width: 50%; vertical-align: top; padding-left: 15px; border-left: 1px solid #eee;">
+                    <strong style="font-size: 11px;">Bank Details:</strong>
+                    <div style="margin-top: 5px; line-height: 1.4;">
+                        @if(!empty($business->settings['bank_details']))
+                            {!! nl2br(e($business->settings['bank_details'])) !!}
+                        @else
+                            <p style="margin:0; color:#777;">No bank details provided.</p>
+                        @endif
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="margin-top: 60px; margin-bottom: 20px; width: 100%; text-align: center; clear: both;">
+        <table style="width: 100%; font-size: 10px; font-weight: bold; color: #444;">
+            <tr>
+                <td style="width: 50%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
+                    CUSTOMER SIGN
+                </td>
+                <td style="width: 50%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 150px;"></div>
+                    CASHIER SIGN
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div class="validity-notice">
         @if($quotation->valid_until)
             This quotation is valid until {{ \Carbon\Carbon::parse($quotation->valid_until)->format('d M Y') }}. Prices may change after this date.

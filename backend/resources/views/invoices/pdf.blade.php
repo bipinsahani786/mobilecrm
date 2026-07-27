@@ -378,6 +378,10 @@
                             @if($cleanNotes)
                                 <span style="font-size:9.5px; color:#777; margin-left:4px;">( {{ $cleanNotes }} )</span>
                             @endif
+                            <br>
+                            <span style="font-size:9.5px; color:#777;">
+                                {{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d M Y') : \Carbon\Carbon::parse($payment->created_at)->format('d M Y') }}
+                            </span>
                         </td>
                         <td style="padding:4px 0; text-align:right; font-weight:bold; border-bottom:1px solid #eee; {{ $isRowUdhar ? 'color:#dc2626;' : '' }}">Rs.{{ number_format($payment->amount, 2) }}</td>
                     </tr>
@@ -473,29 +477,31 @@
 
     <div style="margin-top: 30px; font-size: 9.5px; border-top: 1px solid #ccc; padding-top: 10px; color: #333;">
         <strong style="font-size: 11px;">Terms & Conditions:</strong>
-        <ol style="margin-top: 5px; padding-left: 15px; line-height: 1.4;">
-            <li>Goods once sold will not be taken back or exchanged.</li>
-            <li>Warranty on products is provided by the respective OEM/brand authorized service centers. We hold no liability for warranty claims.</li>
-            <li>Our responsibility ceases once the goods leave our premises.</li>
-            <li>All disputes are subject to the local jurisdiction of the business address.</li>
-            <li>E. & O. E. (Errors and Omissions Excepted).</li>
-        </ol>
+        <div style="margin-top: 5px; line-height: 1.4;">
+            @if(!empty($business->settings['invoice_terms']))
+                {!! nl2br(e($business->settings['invoice_terms'])) !!}
+            @else
+                <ol style="margin: 0; padding-left: 15px;">
+                    <li>Goods once sold will not be taken back or exchanged.</li>
+                    <li>Warranty on products is provided by the respective OEM/brand authorized service centers. We hold no liability for warranty claims.</li>
+                    <li>Our responsibility ceases once the goods leave our premises.</li>
+                    <li>All disputes are subject to the local jurisdiction of the business address.</li>
+                    <li>E. & O. E. (Errors and Omissions Excepted).</li>
+                </ol>
+            @endif
+        </div>
     </div>
 
     <div style="margin-top: 70px; margin-bottom: 20px; width: 100%; text-align: center; clear: both;">
         <table style="width: 100%; font-size: 10px; font-weight: bold; color: #444;">
             <tr>
-                <td style="width: 33%; text-align: center;">
+                <td style="width: 50%; text-align: center;">
                     <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
                     CUSTOMER SIGN
                 </td>
-                <td style="width: 33%; text-align: center;">
-                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
+                <td style="width: 50%; text-align: center;">
+                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 150px;"></div>
                     CASHIER SIGN
-                </td>
-                <td style="width: 33%; text-align: center;">
-                    <div style="border-top: 1px dashed #999; margin: 0 auto 5px; width: 120px;"></div>
-                    STORE STAMP
                 </td>
             </tr>
         </table>

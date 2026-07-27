@@ -91,6 +91,41 @@ class InventoryController extends BaseController
         }
     }
 
+    #[OA\Get(
+        path: '/business/inventory/export-pdf',
+        summary: 'Export Inventory as PDF',
+        description: 'Exports the filtered inventory list as a PDF document.',
+        tags: ['Business - Inventory'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successful operation')
+        ]
+    )]
+    public function exportPdf(Request $request)
+    {
+        try {
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
+            $query = $this->inventoryService->getInventoryQuery($filters);
+            $products = $query->get();
+            $business = \App\Models\Business::find(app('current_business_id'));
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('reports.inventory-pdf', [
+                'products' => $products,
+                'business' => $business,
+            ]);
+
+            $pdf->setPaper('A4', 'portrait');
+            $pdf->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => true,
+                'defaultFont' => 'sans-serif'
+            ]);
+
+            return $pdf->download('inventory-report.pdf');
+        } catch (\Throwable $e) {
+            return $this->error($e->getMessage(), 500);
+        }
+    }
     #[OA\Post(
         path: '/business/inventory',
         summary: 'Create Product',

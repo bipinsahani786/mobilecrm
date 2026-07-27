@@ -31,6 +31,11 @@ const businessSettingsSchema = z.object({
     whitelabel_logo: z.string().nullable().optional(),
     whitelabel_favicon: z.string().nullable().optional(),
     whatsapp_message_format: z.string().nullable().optional(),
+    invoice_terms: z.string().nullable().optional(),
+    purchase_terms: z.string().nullable().optional(),
+    quotation_terms: z.string().nullable().optional(),
+    booking_terms: z.string().nullable().optional(),
+    bank_details: z.string().nullable().optional(),
   }).default({
     commission_calculation_base: 'sales',
     sale_invoice_prefix: 'INV-{YYYY}-{MM}-{SEQ:4}',
@@ -292,6 +297,46 @@ export default function BusinessSettingsPage() {
           )
         },
         {
+          name: 'settings.invoice_terms',
+          label: 'Sales Invoice Terms & Conditions',
+          type: 'textarea',
+          colSpan: 2,
+          placeholder: 'Enter terms and conditions for Sales Invoice...',
+          tooltip: 'These terms will be displayed at the bottom of the Sales Invoice PDF.',
+        },
+        {
+          name: 'settings.purchase_terms',
+          label: 'Purchase Bill Terms & Conditions',
+          type: 'textarea',
+          colSpan: 2,
+          placeholder: 'Enter terms and conditions for Purchase Bill...',
+          tooltip: 'These terms will be displayed at the bottom of the Purchase Bill PDF.',
+        },
+        {
+          name: 'settings.quotation_terms',
+          label: 'Quotation Terms & Conditions',
+          type: 'textarea',
+          colSpan: 2,
+          placeholder: 'Enter terms and conditions for Quotation...',
+          tooltip: 'These terms will be displayed at the bottom of the Quotation PDF.',
+        },
+        {
+          name: 'settings.booking_terms',
+          label: 'Booking Terms & Conditions',
+          type: 'textarea',
+          colSpan: 2,
+          placeholder: 'Enter terms and conditions for Booking Receipts...',
+          tooltip: 'These terms will be displayed at the bottom of the Booking PDF.',
+        },
+        {
+          name: 'settings.bank_details',
+          label: 'Bank Details (for Quotation)',
+          type: 'textarea',
+          colSpan: 2,
+          placeholder: 'Bank Name: \nAccount No: \nIFSC Code: \nBranch: ',
+          tooltip: 'These bank details will be displayed on the Quotation PDF.',
+        },
+        {
           name: 'invoice_settings',
           label: 'Invoice Print Settings',
           type: 'custom',
@@ -345,6 +390,16 @@ export default function BusinessSettingsPage() {
           ],
           tooltip: 'Select how staff commission should be calculated.',
         },
+        {
+          name: 'settings.booking_stock_reserve',
+          label: 'Pre-Booking Stock Reservation',
+          type: 'select',
+          options: [
+            { label: 'Yes - Reserve Stock Immediately', value: 'yes' },
+            { label: 'No - Do not reserve stock', value: 'no' },
+          ],
+          tooltip: 'If Yes, inventory will be deducted as soon as a booking is created.',
+        },
       ]
     },
   ];
@@ -357,10 +412,6 @@ export default function BusinessSettingsPage() {
         icon={Settings}
         title="Business Settings"
         subtitle="Configure branding, formats, and operational rules."
-        breadcrumbs={[
-          { label: 'Home', onClick: () => navigate('/dashboard') },
-          { label: 'Settings', active: true }
-        ]}
       />
 
       <div className="w-full px-3 sm:px-6 py-3 sm:py-4 md:py-6 overflow-x-hidden min-w-0">

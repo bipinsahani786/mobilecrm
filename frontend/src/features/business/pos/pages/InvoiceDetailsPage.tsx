@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSale } from '../api/useSales';
 import { Button } from '@/components/ui/button';
-import { FileText, Printer, ArrowLeft, Edit3, User, CreditCard } from 'lucide-react';
-import { formatCurrency } from '@/lib/formatters';
+import { FileText, Printer, ArrowLeft, Edit3, User, CreditCard, CornerDownLeft } from 'lucide-react';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 import { useTenantStore } from '@/store/tenantStore';
 import { CardSkeleton, TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { useState } from 'react';
@@ -47,7 +47,7 @@ export default function InvoiceDetailsPage() {
   const { data: sale, isLoading } = useSale(Number(id));
   const { activeBusiness } = useTenantStore();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'receipt'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'receipt' | 'returns'>('overview');
   const [isDownloading, setIsDownloading] = useState(false);
 
   if (isLoading) return <InvoiceDetailsSkeleton />;
@@ -109,8 +109,6 @@ export default function InvoiceDetailsPage() {
     }
   };
 
-  const isEmiPaid = sale?.emiDetail?.installments?.some((inst: any) => inst.status === 'paid');
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0a0f] text-slate-900 dark:text-slate-200 print:bg-white print:min-h-0">
       
@@ -156,6 +154,12 @@ export default function InvoiceDetailsPage() {
               className="flex items-center gap-2 h-10 px-5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 hover:bg-amber-100 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm"
             >
               <Edit3 className="w-3.5 h-3.5" /> Edit
+            </button>
+            <button 
+              onClick={() => navigate(`/sale-returns/new/${sale.id}`)}
+              className="flex items-center gap-2 h-10 px-5 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 hover:bg-rose-100 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl font-bold text-xs uppercase tracking-widest transition-all shadow-sm"
+            >
+              <CornerDownLeft className="w-3.5 h-3.5" /> Return Items
             </button>
             <button 
               onClick={() => handleWhatsAppShare()}
@@ -215,6 +219,18 @@ export default function InvoiceDetailsPage() {
           >
             Printable Receipt
           </button>
+          {sale?.returns && sale.returns.length > 0 && (
+            <button
+              onClick={() => setActiveTab('returns')}
+              className={`px-6 py-2 text-xs font-black uppercase tracking-widest rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                activeTab === 'returns' 
+                  ? 'bg-rose-500 text-white shadow-sm shadow-rose-500/30' 
+                  : 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
+              }`}
+            >
+              Returns <span className="bg-white/20 px-1.5 py-0.5 rounded-md text-[10px]">{sale.returns.length}</span>
+            </button>
+          )}
         </div>
 
         {activeTab === 'overview' ? (
@@ -339,7 +355,10 @@ export default function InvoiceDetailsPage() {
                       return (
                         <div key={payment.id} className="flex justify-between items-center p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 transition-colors">
                           <div>
-                            <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{payment.payment_mode}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">{payment.payment_mode}</p>
+                              <p className="text-[10px] font-medium text-slate-500">{formatDate(payment.payment_date || payment.created_at)}</p>
+                            </div>
                             {displayNotes && <p className="text-[10px] font-bold text-slate-400 mt-0.5">{displayNotes}</p>}
                             {guarantor && (
                               <div className="mt-1 flex items-center gap-1">
@@ -403,7 +422,10 @@ export default function InvoiceDetailsPage() {
                         : '';
                       return (
                         <div key={payment.id} className="bg-white dark:bg-slate-900/50 px-3 py-2.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm">
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{payment.payment_mode}</p>
+                          <div className="flex justify-between items-start mb-0.5">
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{payment.payment_mode}</p>
+                            <p className="text-[9px] font-medium text-slate-400">{formatDate(payment.payment_date || payment.created_at)}</p>
+                          </div>
                           <p className="font-bold text-slate-900 dark:text-white text-sm">{formatCurrency(payment.amount)}</p>
                           {displayNotes && <p className="text-[10px] font-medium text-slate-500 mt-1">{displayNotes}</p>}
                           {guarantor && (
@@ -461,12 +483,8 @@ export default function InvoiceDetailsPage() {
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer Sign</span>
               </div>
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 sm:w-32 border-t border-slate-300 dark:border-slate-700 mb-2"></div>
+                <div className="w-32 sm:w-48 border-t border-slate-300 dark:border-slate-700 mb-2"></div>
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cashier Sign</span>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="w-24 sm:w-32 border-dashed border-t border-slate-300 dark:border-slate-700 mb-2"></div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Store Stamp</span>
               </div>
             </div>
 

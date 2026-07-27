@@ -43,6 +43,7 @@ Route::prefix('v1')->group(function () {
             Route::apiResource('brands', \App\Http\Controllers\Api\Business\BrandController::class);
             
             Route::get('inventory/export', [\App\Http\Controllers\Api\Business\InventoryController::class, 'export']);
+            Route::get('inventory/export-pdf', [\App\Http\Controllers\Api\Business\InventoryController::class, 'exportPdf']);
             Route::post('inventory/direct-inward', [\App\Http\Controllers\Api\Business\InventoryController::class, 'directInward']);
             Route::apiResource('inventory', \App\Http\Controllers\Api\Business\InventoryController::class);
             
@@ -67,6 +68,17 @@ Route::prefix('v1')->group(function () {
             // Sales Routes
             Route::get('sales/{sale}/invoice-pdf', [\App\Http\Controllers\Api\SaleController::class, 'generatePdf']);
             Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);
+
+            // Booking Routes
+            Route::post('bookings/{id}/cancel', [\App\Http\Controllers\Api\Business\BookingController::class, 'cancel']);
+            Route::get('bookings/{id}/pdf', [\App\Http\Controllers\Api\Business\BookingController::class, 'generatePdf']);
+            Route::get('bookings/{id}/conversion-data', [\App\Http\Controllers\Api\Business\BookingController::class, 'conversionData']);
+            Route::post('bookings/{id}/mark-converted', [\App\Http\Controllers\Api\Business\BookingController::class, 'markConverted']);
+            Route::apiResource('bookings', \App\Http\Controllers\Api\Business\BookingController::class)->only(['index', 'store', 'show']);
+
+            // Sale Return Routes
+            Route::get('sale-returns/returnable-items/{saleId}', [\App\Http\Controllers\Api\Business\SaleReturnController::class, 'returnableItems']);
+            Route::apiResource('sale-returns', \App\Http\Controllers\Api\Business\SaleReturnController::class)->only(['index', 'store', 'show']);
             
             // Expense Routes
             Route::get('expenses/analytics', [\App\Http\Controllers\Api\Business\ExpenseController::class, 'analytics']);

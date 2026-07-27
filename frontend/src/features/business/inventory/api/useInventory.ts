@@ -51,3 +51,12 @@ export const useDeleteProduct = () => {
     },
   });
 };
+
+
+export const downloadInventoryPdf = async (filters: any) => {
+  return api.get('/business/inventory/export-pdf', {
+    params: filters,
+    responseType: 'blob',
+  });
+};
+

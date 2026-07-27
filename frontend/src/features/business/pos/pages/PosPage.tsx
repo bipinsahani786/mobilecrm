@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useInventory } from '../../inventory/api/useInventory';
 import { useSale } from '../api/useSales';
 import { useQuotation } from '../../quotations/api/useQuotations';
+import { useBooking } from '../../bookings/api/useBookings';
 import { CheckoutPage } from '../components/checkout/CheckoutPage';
 import { ProductSearchPane } from '../components/ProductSearchPane';
 import { CartPane } from '../components/CartPane';
@@ -20,9 +21,13 @@ export default function PosPage() {
   
   const quotationIdParam = searchParams.get('quotation_id');
   const quotationId = quotationIdParam ? Number(quotationIdParam) : undefined;
+  
+  const bookingIdParam = searchParams.get('booking_id');
+  const bookingId = bookingIdParam ? Number(bookingIdParam) : undefined;
 
   const { data: draftSale, isLoading: isDraftLoading } = useSale(draftId || 0);
   const { data: quotation } = useQuotation(quotationId || 0);
+  const { data: booking } = useBooking(bookingId || 0);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -77,6 +82,25 @@ export default function PosPage() {
     }
   }, [quotation]);
 
+  // Load booking items into cart if converting
+  useEffect(() => {
+    if (booking) {
+      const mappedCart: CartItem[] = (booking.items || []).map((item: any) => ({
+        id: item.product_batch_id ? `${item.product_id}-${item.product_batch_id}` : `${item.product_id}`,
+        product_id: item.product_id,
+        batch_id: item.product_batch_id,
+        model_name: item.product?.model_name || 'Unknown Product',
+        batch_number: undefined,
+        unit_price: Number(item.unit_price),
+        quantity: item.quantity,
+        max_quantity: item.product?.quantity || 9999,
+        category_name: item.product?.category?.name || '',
+      }));
+      setCart(mappedCart);
+      setIsCheckoutActive(true); // auto open checkout for booking conversion
+    }
+  }, [booking]);
+
   const reconstructedDraftData = React.useMemo(() => {
     if (quotation) {
       return {
@@ -85,6 +109,16 @@ export default function PosPage() {
         discount: quotation.discount,
         round_off: quotation.round_off,
         notes: `Converted from Quotation: ${quotation.quotation_number}\n${quotation.notes || ''}`.trim(),
+        payment_mode: 'Cash',
+      };
+    }
+
+    if (booking) {
+      return {
+        customer_id: booking.customer_id,
+        customer: booking.customer,
+        advance_amount: booking.advance_amount || booking.advance_paid || 0,
+        notes: `Converted from Booking: ${booking.booking_number}\n${booking.notes || ''}`.trim(),
         payment_mode: 'Cash',
       };
     }
@@ -148,7 +182,7 @@ export default function PosPage() {
       draft.customer = draftSale.customer;
     }
     return draft;
-  }, [draftSale, quotation]);
+  }, [draftSale, quotation, booking]);
 
   const inventoryParams = debouncedSearch
     ? { search: debouncedSearch, per_page: 20 }
@@ -228,6 +262,7 @@ export default function PosPage() {
         cartTotal={cartTotal}
         draftId={draftId}
         quotationId={quotation ? quotation.id : undefined}
+        bookingId={booking ? booking.id : undefined}
         initialDraftData={reconstructedDraftData}
         onCancel={() => setIsCheckoutActive(false)}
         onSuccess={(saleId?: number, isDraft?: boolean) => {

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSupplier, useSupplierLedger } from '../api/useSuppliers';
 import { PageHeader } from '../../../../components/layout/PageHeader';
 import { Button } from '../../../../components/ui/button';
-import { Plus, Phone, MapPin, Package, Download, Edit2, IndianRupee, RotateCcw, BookOpen, Printer, FileDown } from 'lucide-react';
+import { Plus, Phone, MapPin, Package, Download, Edit2, IndianRupee, RotateCcw, BookOpen, Printer, FileDown, ArrowLeft } from 'lucide-react';
 import { formatCurrency } from '../../../../lib/formatters';
 import { AddPaymentModal } from '../components/AddPaymentModal';
 import { EditSupplierModal } from '../components/EditSupplierModal';
@@ -19,7 +19,6 @@ function SupplierDetailsSkeleton() {
         icon={Package}
         title="Loading Supplier..." 
         subtitle="Please wait"
-        breadcrumbs={[{ label: 'Suppliers', onClick: () => {} }, { label: 'Loading', active: true }]} 
       />
       <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 py-6 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -256,9 +255,9 @@ export default function SupplierDetailsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm">
           <div>
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-              <button onClick={() => navigate('/suppliers')} className="hover:text-primary-500 transition-colors">Suppliers</button>
-              <span>/</span>
-              <span className="text-primary-500">{supplier.name}</span>
+              <button onClick={() => navigate('/suppliers')} className="flex items-center gap-1.5 hover:text-primary-500 transition-colors">
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Suppliers
+              </button>
             </div>
             <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{supplier.name}</h1>
             <p className="text-xs font-semibold text-slate-500 mt-1">{supplier.custom_id || `ID: ${supplier.id}`}</p>
