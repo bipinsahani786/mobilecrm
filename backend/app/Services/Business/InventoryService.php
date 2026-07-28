@@ -23,6 +23,10 @@ class InventoryService
             $query->where('category_id', $filters['category_id']);
         }
 
+        if (!empty($filters['supplier_id'])) {
+            $query->where('supplier_id', $filters['supplier_id']);
+        }
+
         if (!empty($filters['brand_id'])) {
             $query->where('brand_id', $filters['brand_id']);
         }

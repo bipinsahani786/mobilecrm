@@ -266,14 +266,25 @@ class SupplierService
                 if ($product) {
                     $product->quantity = max(0, $product->quantity - $item['quantity']);
                     $product->save();
-                }
 
-                // Reduce batch stock if batch specified
-                if (!empty($item['product_batch_id'])) {
-                    $batch = ProductBatch::find($item['product_batch_id']);
-                    if ($batch) {
-                        $batch->remaining_quantity = max(0, $batch->remaining_quantity - $item['quantity']);
-                        $batch->save();
+                    // Reduce batch stock if batch specified, else auto-reduce
+                    if (!empty($item['product_batch_id'])) {
+                        $batch = ProductBatch::find($item['product_batch_id']);
+                        if ($batch) {
+                            $batch->remaining_quantity = max(0, $batch->remaining_quantity - $item['quantity']);
+                            $batch->save();
+                        }
+                    } else {
+                        // Auto-reduce from available batches (FIFO)
+                        $qtyToReduce = $item['quantity'];
+                        $batches = $product->batches()->where('remaining_quantity', '>', 0)->orderBy('id', 'asc')->get();
+                        foreach ($batches as $batch) {
+                            if ($qtyToReduce <= 0) break;
+                            $reduce = min($qtyToReduce, $batch->remaining_quantity);
+                            $batch->remaining_quantity -= $reduce;
+                            $batch->save();
+                            $qtyToReduce -= $reduce;
+                        }
                     }
                 }
 

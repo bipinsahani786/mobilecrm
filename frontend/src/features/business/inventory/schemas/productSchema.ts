@@ -42,6 +42,7 @@ export interface InventoryQueryFilters {
   low_stock_days?: number | string;
   start_date?: string;
   end_date?: string;
+  supplier_id?: number;
 }
 
 // --- Zod Schemas ---

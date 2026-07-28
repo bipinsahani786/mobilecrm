@@ -30,7 +30,7 @@ class InventoryController extends BaseController
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date', 'supplier_id']);
             $perPage = $request->input('per_page', 10);
             $paginator = $this->inventoryService->getInventory($filters, $perPage);
             
@@ -53,7 +53,7 @@ class InventoryController extends BaseController
     public function export(Request $request)
     {
         try {
-            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date', 'supplier_id']);
             $query = $this->inventoryService->getInventoryQuery($filters);
             $products = $query->get();
 
@@ -104,7 +104,7 @@ class InventoryController extends BaseController
     public function exportPdf(Request $request)
     {
         try {
-            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date']);
+            $filters = $request->only(['search', 'category_id', 'brand_id', 'low_stock_days', 'start_date', 'end_date', 'supplier_id']);
             $query = $this->inventoryService->getInventoryQuery($filters);
             $products = $query->get();
             $business = \App\Models\Business::find(app('current_business_id'));
