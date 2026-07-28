@@ -21,7 +21,7 @@ export default function PurchaseReturnPage() {
   const navigate = useNavigate();
   const { data: supplier } = useSupplier(supplierId);
 
-  const { data: inventoryResponse } = useInventory({ per_page: 1000 });
+  const { data: inventoryResponse } = useInventory({ per_page: 1000, supplier_id: Number(supplierId) });
   const products = inventoryResponse?.data || [];
 
   const createReturn = useCreatePurchaseReturn();

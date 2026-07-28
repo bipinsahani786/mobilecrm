@@ -117,8 +117,8 @@
                     <td class="text-right {{ $product->quantity <= 5 ? 'low-stock' : '' }}">
                         {{ $product->quantity }}
                     </td>
-                    <td class="text-right">₹{{ number_format($product->purchase_price, 2) }}</td>
-                    <td class="text-right">₹{{ number_format($product->mrp, 2) }}</td>
+                    <td class="text-right">Rs.{{ number_format($product->purchase_price, 2) }}</td>
+                    <td class="text-right">Rs.{{ number_format($product->mrp, 2) }}</td>
                 </tr>
             @empty
                 <tr>
