@@ -1,0 +1,1 @@
+import{r as e}from"./authStore-CkXtLiby.js";import{lt as t}from"./index-Cg4SYSGs.js";var n=()=>t({queryKey:[`partner`,`dashboard`],queryFn:async()=>{let{data:t}=await e.get(`/partner/dashboard`);return t.data}});export{n as t};
