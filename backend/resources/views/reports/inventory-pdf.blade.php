@@ -114,8 +114,8 @@
                     </td>
                     <td>{{ $product->brand ? $product->brand->name : '-' }}</td>
                     <td>{{ $product->category ? $product->category->name : '-' }}</td>
-                    <td class="text-right {{ $product->quantity <= 5 ? 'low-stock' : '' }}">
-                        {{ $product->quantity }}
+                    <td class="text-right {{ $product->total_stock <= 5 ? 'low-stock' : '' }}">
+                        {{ $product->total_stock }}
                     </td>
                     <td class="text-right">Rs.{{ number_format($product->purchase_price, 2) }}</td>
                     <td class="text-right">Rs.{{ number_format($product->mrp, 2) }}</td>

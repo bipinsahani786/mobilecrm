@@ -513,26 +513,26 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Mobile Floating Action Buttons ─── Only visible on small screens ── */}
+      {/* ── Mobile & Tablet Floating Action Buttons ─── Visible up to XL screens ── */}
       {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && typeof document !== 'undefined' && createPortal(
-        <div className="lg:hidden fixed bottom-6 left-0 right-0 z-[9999] flex justify-center gap-3 px-4 pointer-events-none">
+        <div className="xl:hidden fixed bottom-8 left-0 right-0 z-[9999] flex justify-center gap-4 px-4 sm:px-6 max-w-3xl mx-auto pointer-events-none">
           <button
             onClick={() => navigate('/pos')}
-            className="pointer-events-auto flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 border border-primary-400/30"
+            className="pointer-events-auto flex-1 sm:flex-none flex justify-center items-center gap-3 px-6 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all duration-200 border border-primary-400/30"
           >
-            <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
-              <Plus className="w-4 h-4" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Plus className="w-5 h-5" />
             </div>
-            New Invoice
+            <span>New Invoice</span>
           </button>
           <button
             onClick={() => navigate('/suppliers')}
-            className="pointer-events-auto flex items-center gap-2.5 px-6 py-3.5 bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-800 text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-900/30 hover:shadow-2xl hover:shadow-slate-900/40 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all duration-200 border border-slate-600/30"
+            className="pointer-events-auto flex-1 sm:flex-none flex justify-center items-center gap-3 px-6 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-slate-800 to-slate-900 dark:from-slate-700 dark:to-slate-800 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-slate-900/30 hover:shadow-2xl hover:shadow-slate-900/40 hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all duration-200 border border-slate-600/30"
           >
-            <div className="w-7 h-7 rounded-xl bg-white/20 flex items-center justify-center">
-              <Truck className="w-4 h-4" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <Truck className="w-5 h-5" />
             </div>
-            Suppliers
+            <span>Suppliers</span>
           </button>
         </div>,
         document.body

@@ -19,7 +19,7 @@ class Product extends Model
         'mrp', 'quantity', 'supplier_id', 'status'
     ];
 
-    protected $appends = ['inventory_value'];
+    protected $appends = ['inventory_value', 'total_stock'];
     protected $hidden = [];
 
     public function getInventoryValueAttribute()
@@ -40,6 +40,19 @@ class Product extends Model
         }
 
         return $batchValue;
+    }
+
+    public function getTotalStockAttribute()
+    {
+        if ($this->relationLoaded('batches') && $this->batches->isNotEmpty()) {
+            $activeBatches = $this->batches->filter(function($batch) {
+                return $batch->remaining_quantity > 0;
+            });
+            if ($activeBatches->count() > 0) {
+                return $activeBatches->sum('remaining_quantity');
+            }
+        }
+        return $this->quantity;
     }
 
     public function category()

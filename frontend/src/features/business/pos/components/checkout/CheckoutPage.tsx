@@ -1486,9 +1486,10 @@ export function CheckoutPage({ cartItems, cartTotal, draftId, quotationId, booki
           variant="outline"
           type="button"
           onClick={onCancel}
-          className="h-10 flex-1 lg:flex-none lg:px-8 text-xs font-black uppercase tracking-wider rounded-xl hover:bg-slate-100 cursor-pointer"
+          className="h-10 flex-1 lg:flex-none lg:px-6 text-[10px] sm:text-xs font-black uppercase tracking-wider rounded-xl border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 text-slate-700 dark:text-slate-300 transition-all duration-150"
         >
-          Cancel
+          <ArrowLeft className="w-3.5 h-3.5" />
+          <span>Edit Cart</span>
         </Button>
         <button
           type="submit"
