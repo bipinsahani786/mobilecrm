@@ -80,8 +80,10 @@ export default function StaffPerformancePage() {
     {
       header: 'Details',
       cell: (row: any) => (
-        <Button variant="ghost" size="sm" onClick={() => setSelectedStaff(row)}>
-          <Eye className="w-4 h-4 mr-2" /> View Products
+        <Button variant="ghost" size="sm" onClick={() => setSelectedStaff(row)} className="px-2 sm:px-3 hover:bg-primary-50 dark:hover:bg-primary-500/10">
+          <Eye className="w-4 h-4 sm:mr-2 text-primary-500 shrink-0" />
+          <span className="hidden sm:inline">View Products</span>
+          <span className="sm:hidden font-bold text-xs text-primary-500">Products</span>
         </Button>
       ),
     }
@@ -103,10 +105,10 @@ export default function StaffPerformancePage() {
           subtitle="Track sales, profit, and commissions for all your staff members"
         />
 
-        <div className="w-full max-w-[1600px] mx-auto px-4 sm:px-6 pt-2 pb-6 space-y-6">
+        <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 pt-2 pb-6 space-y-4 sm:space-y-6">
           
           {/* KPI Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <CustomKpiCard
               title="Sales Invoices"
               value={data?.reduce((acc: number, cur: any) => acc + cur.total_sales, 0) || 0}
@@ -138,13 +140,13 @@ export default function StaffPerformancePage() {
           </div>
 
           {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-4 shadow-sm relative z-30">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Filter Period</span>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 dark:bg-[#111118]/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-2xl p-3 sm:p-4 shadow-sm relative z-30">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 shrink-0">Filter Period</span>
               <CustomSelect
                 value={dateRange}
                 onChange={(value) => setDateRange(value)}
-                className="w-44"
+                className="w-full sm:w-44"
                 options={[
                   { value: 'this_week', label: 'This Week' },
                   { value: 'this_month', label: 'This Month' },
@@ -172,30 +174,57 @@ export default function StaffPerformancePage() {
         maxWidth="lg"
       >
         {selectedStaff && (
-          <div className="p-5">
+          <div className="p-3 sm:p-5">
              {selectedStaff.products_sold?.length > 0 ? (
-                <div className="border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-sm">
-                    <table className="w-full text-left text-sm border-collapse">
-                        <thead className="bg-slate-50 dark:bg-zinc-900/50 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-white/10">
-                            <tr>
-                                <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Product Name</th>
-                                <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Qty Sold</th>
-                                <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Total Sale</th>
-                                <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Total Profit</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-150 dark:divide-white/5 bg-white dark:bg-transparent text-slate-700 dark:text-slate-300">
-                            {selectedStaff.products_sold.map((product: any, idx: number) => (
-                                <tr key={idx} className="hover:bg-slate-50/55 dark:hover:bg-white/[0.02] transition-colors duration-150">
-                                    <td className="px-5 py-3.5 font-medium">{product.name}</td>
-                                    <td className="px-5 py-3.5 font-bold">{product.quantity}</td>
-                                    <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white">₹{product.total_sale.toLocaleString('en-IN')}</td>
-                                    <td className="px-5 py-3.5 font-semibold text-emerald-600 dark:text-emerald-400">₹{product.total_profit.toLocaleString('en-IN')}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <>
+                  {/* Mobile Card View (Phone Screen) */}
+                  <div className="block sm:hidden space-y-2.5">
+                    {selectedStaff.products_sold.map((product: any, idx: number) => (
+                      <div key={idx} className="p-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 rounded-xl space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-bold text-xs text-slate-900 dark:text-white leading-tight">{product.name}</span>
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-primary-50 dark:bg-primary-500/10 text-primary-600 dark:text-primary-400 shrink-0">
+                            Qty: {product.quantity}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs pt-1.5 border-t border-slate-200/60 dark:border-white/5">
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Sale</span>
+                            <span className="font-bold text-slate-800 dark:text-slate-200">₹{product.total_sale.toLocaleString('en-IN')}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Total Profit</span>
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">₹{product.total_profit.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Desktop Table View */}
+                  <div className="hidden sm:block overflow-x-auto custom-scrollbar border border-slate-200 dark:border-white/10 rounded-xl shadow-sm">
+                      <table className="w-full text-left text-sm border-collapse">
+                          <thead className="bg-slate-50 dark:bg-zinc-900/50 text-slate-500 dark:text-zinc-400 border-b border-slate-200 dark:border-white/10">
+                              <tr>
+                                  <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Product Name</th>
+                                  <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Qty Sold</th>
+                                  <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Total Sale</th>
+                                  <th className="px-5 py-3 font-semibold uppercase text-xs tracking-wider">Total Profit</th>
+                              </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-150 dark:divide-white/5 bg-white dark:bg-transparent text-slate-700 dark:text-slate-300">
+                              {selectedStaff.products_sold.map((product: any, idx: number) => (
+                                  <tr key={idx} className="hover:bg-slate-50/55 dark:hover:bg-white/[0.02] transition-colors duration-150">
+                                      <td className="px-5 py-3.5 font-medium">{product.name}</td>
+                                      <td className="px-5 py-3.5 font-bold">{product.quantity}</td>
+                                      <td className="px-5 py-3.5 font-semibold text-slate-900 dark:text-white">₹{product.total_sale.toLocaleString('en-IN')}</td>
+                                      <td className="px-5 py-3.5 font-semibold text-emerald-600 dark:text-emerald-400">₹{product.total_profit.toLocaleString('en-IN')}</td>
+                                  </tr>
+                              ))}
+                          </tbody>
+                      </table>
+                  </div>
+                </>
              ) : (
                 <div className="text-center py-10 text-slate-500 font-medium">
                     No products sold by this staff member in the selected period.

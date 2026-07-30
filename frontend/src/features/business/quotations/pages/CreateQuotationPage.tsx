@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Search, ShoppingBag, ArrowLeft, Save, User, Calendar, FileText, UserPlus, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { DatePicker } from '@/components/ui/DatePicker';
 import { AddCustomerModal } from '../../customers/components/AddCustomerModal';
 
 export default function CreateQuotationPage() {
@@ -219,8 +220,12 @@ export default function CreateQuotationPage() {
               <div className="space-y-4">
                 <div>
                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-1">Valid Until</label>
-                  <input type="date" value={validUntil} onChange={(e) => setValidUntil(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500 transition-colors" />
+                  <DatePicker 
+                    value={validUntil} 
+                    onChange={setValidUntil} 
+                    placeholder="Select Validity Date" 
+                    controlSize="sm" 
+                  />
                 </div>
                 <div>
                   <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-1">Notes / Terms</label>

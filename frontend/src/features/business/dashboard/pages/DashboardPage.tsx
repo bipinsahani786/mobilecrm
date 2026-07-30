@@ -513,9 +513,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Mobile & Tablet Floating Action Buttons ─── Visible up to XL screens ── */}
+      {/* ── Floating Action Buttons ─── Hidden on PC / Desktop ── */}
       {(!user?.roles || isBusinessManager || hasPermission('manage_sales')) && typeof document !== 'undefined' && createPortal(
-        <div className="xl:hidden fixed bottom-8 left-0 right-0 z-[9999] flex justify-center gap-4 px-4 sm:px-6 max-w-3xl mx-auto pointer-events-none">
+        <div className="pc-hidden fixed bottom-8 left-0 right-0 z-[9999] flex justify-center gap-4 px-4 sm:px-6 max-w-3xl mx-auto pointer-events-none">
           <button
             onClick={() => navigate('/pos')}
             className="pointer-events-auto flex-1 sm:flex-none flex justify-center items-center gap-3 px-6 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-primary-500 to-primary-600 text-white font-black text-sm uppercase tracking-widest rounded-2xl shadow-xl shadow-primary-500/30 hover:shadow-2xl hover:shadow-primary-500/40 hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all duration-200 border border-primary-400/30"
