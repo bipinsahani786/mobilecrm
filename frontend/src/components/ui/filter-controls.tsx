@@ -224,14 +224,14 @@ export function FilterDate({
   return (
     <div
       className={cn(
-        "relative flex items-center bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 rounded-xl h-9 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50 w-full sm:w-auto shrink-0 z-20",
+        "relative flex items-center bg-white dark:bg-zinc-900/50 border border-slate-200/80 dark:border-white/10 rounded-xl h-9 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50 w-full sm:w-[155px] shrink-0 z-20",
         wrapperClassName
       )}
     >
-      <span className="h-full px-2.5 flex items-center bg-slate-50/50 dark:bg-white/5 border-r border-slate-100 dark:border-white/5 text-[10px] sm:text-xs font-bold tracking-widest text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400 whitespace-nowrap rounded-l-xl">
+      <span className="h-full px-2 flex items-center bg-slate-50/70 dark:bg-white/5 border-r border-slate-100 dark:border-white/5 text-[10px] font-extrabold tracking-wider text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400 whitespace-nowrap rounded-l-xl shrink-0">
         {label}
       </span>
-      <div className="flex-1 min-w-[130px]">
+      <div className="flex-1 min-w-0">
         <DatePicker
           value={value}
           onChange={onChange}

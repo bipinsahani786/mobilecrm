@@ -1,0 +1,1 @@
+import{r as e}from"./authStore-CkXtLiby.js";import{lt as t}from"./index-Dff0hQuU.js";var n=(n,r)=>t({queryKey:[`staff-performance`,n],queryFn:async()=>{let{data:t}=await e.get(`/business/staff/performance`,{params:n});return t.data},enabled:r?.enabled});export{n as t};

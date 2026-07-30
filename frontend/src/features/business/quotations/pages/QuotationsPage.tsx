@@ -247,9 +247,9 @@ export default function QuotationsPage() {
               options={statusOptions}
               wrapperClassName="w-full sm:w-40 shrink-0"
             />
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-3.5">
               <FilterDate label="From" value={startDate} onChange={setStartDate} placeholder="Start Date" />
-              <span className="text-slate-400 text-xs font-bold text-center hidden sm:inline">to</span>
+              <span className="text-slate-400 text-xs font-bold text-center hidden sm:inline px-0.5">to</span>
               <FilterDate label="To" value={endDate} onChange={setEndDate} placeholder="End Date" />
             </div>
           </div>
