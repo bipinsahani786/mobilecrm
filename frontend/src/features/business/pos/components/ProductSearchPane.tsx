@@ -1,6 +1,7 @@
-import React from 'react';
-import { Search, Package, Plus, Layers, Tag } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Package, Plus, Layers, Tag, X, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
+import { BatchSelectionModal } from './BatchSelectionModal';
 
 interface ProductSearchPaneProps {
   searchQuery: string;
@@ -12,6 +13,19 @@ interface ProductSearchPaneProps {
 }
 
 export function ProductSearchPane({ className, searchQuery, setSearchQuery, searchResults, isLoading, addToCart }: ProductSearchPaneProps) {
+  const [selectedProductForBatch, setSelectedProductForBatch] = useState<any>(null);
+
+  const handleProductClick = (product: any) => {
+    const activeBatches = product.batches?.filter((b: any) => b.remaining_quantity > 0) || [];
+    if (activeBatches.length > 1) {
+      setSelectedProductForBatch(product);
+    } else if (activeBatches.length === 1) {
+      addToCart(product, activeBatches[0]);
+    } else {
+      addToCart(product);
+    }
+  };
+
   return (
     <div className={`w-full lg:w-2/3 flex flex-col border-r border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#0a0a0f] ${className || ''}`}>
 
@@ -82,59 +96,28 @@ export function ProductSearchPane({ className, searchQuery, setSearchQuery, sear
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {searchResults.map(product => {
               const activeBatches = product.batches?.filter((b: any) => b.remaining_quantity > 0) || [];
-
-              if (activeBatches.length > 0) {
-                return activeBatches.map((batch: any) => (
-                  <button
-                    key={`${product.id}-${batch.id}`}
-                    onClick={() => addToCart(product, batch)}
-                    className="group relative text-left bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/[0.06] rounded-xl p-3 cursor-pointer hover:border-primary-400 dark:hover:border-primary-500/60 hover:shadow-md hover:shadow-primary-500/10 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
-                  >
-                    {/* Hover accent */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
-
-                    {/* Add badge */}
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-primary-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm">
-                      <Plus className="w-3.5 h-3.5 text-white" />
-                    </div>
-
-                    <div className="flex items-start gap-2 mb-2">
-                      <div className="w-7 h-7 rounded-lg bg-primary-50 dark:bg-primary-500/10 flex items-center justify-center shrink-0">
-                        <Layers className="w-3.5 h-3.5 text-primary-500" />
-                      </div>
-                      <h4 className="font-semibold text-xs text-slate-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate leading-tight pt-0.5">
-                        {product.model_name}
-                      </h4>
-                    </div>
-
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md truncate max-w-[120px]" title={batch.batch_number || 'N/A'}>
-                        #{batch.batch_number || 'N/A'}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                        Qty: <span className="text-slate-700 dark:text-slate-200">{batch.remaining_quantity}</span>
-                      </span>
-                    </div>
-
-                    <p className="text-sm font-black text-primary-600 dark:text-primary-400 font-display">
-                      {formatCurrency(batch.mrp || product.mrp)}
-                    </p>
-                  </button>
-                ));
-              }
+              const totalStock = activeBatches.length > 0 
+                ? activeBatches.reduce((sum: number, b: any) => sum + b.remaining_quantity, 0)
+                : product.quantity;
+                
+              const hasMultipleBatches = activeBatches.length > 1;
 
               return (
                 <button
                   key={product.id}
-                  onClick={() => addToCart(product)}
-                  disabled={product.quantity <= 0}
+                  onClick={() => handleProductClick(product)}
+                  disabled={totalStock <= 0}
                   className={`group relative text-left bg-white dark:bg-[#111118] border border-slate-200/80 dark:border-white/[0.06] rounded-xl p-3 cursor-pointer hover:border-primary-400 dark:hover:border-primary-500/60 hover:shadow-md hover:shadow-primary-500/10 hover:-translate-y-0.5 transition-all duration-200 overflow-hidden disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none disabled:hover:border-slate-200`}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
 
-                  {product.quantity > 0 && (
+                  {totalStock > 0 && (
                     <div className="absolute top-2 right-2 w-6 h-6 bg-primary-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-sm">
-                      <Plus className="w-3.5 h-3.5 text-white" />
+                      {hasMultipleBatches ? (
+                         <Layers className="w-3.5 h-3.5 text-white" />
+                      ) : (
+                         <Plus className="w-3.5 h-3.5 text-white" />
+                      )}
                     </div>
                   )}
 
@@ -148,11 +131,17 @@ export function ProductSearchPane({ className, searchQuery, setSearchQuery, sear
                   </div>
 
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md">
-                      Direct
-                    </span>
+                    {hasMultipleBatches ? (
+                      <span className="text-[10px] font-bold bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 px-1.5 py-0.5 rounded-md">
+                        {activeBatches.length} Batches
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-1.5 py-0.5 rounded-md">
+                        Direct
+                      </span>
+                    )}
                     <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                      Qty: <span className="text-slate-700 dark:text-slate-200">{product.quantity}</span>
+                      Qty: <span className="text-slate-700 dark:text-slate-200">{totalStock}</span>
                     </span>
                   </div>
 
@@ -179,6 +168,13 @@ export function ProductSearchPane({ className, searchQuery, setSearchQuery, sear
           </div>
         )}
       </div>
+
+      <BatchSelectionModal
+        product={selectedProductForBatch}
+        isOpen={!!selectedProductForBatch}
+        onClose={() => setSelectedProductForBatch(null)}
+        onSelectBatch={(product, batch) => addToCart(product, batch)}
+      />
     </div>
   );
 }

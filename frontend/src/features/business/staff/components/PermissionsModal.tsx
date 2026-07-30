@@ -14,6 +14,9 @@ interface PermissionsModalProps {
 const AVAILABLE_PERMISSIONS = [
   { id: 'view_dashboard', label: 'View Dashboard', description: 'Can see overview and statistics' },
   { id: 'manage_sales', label: 'Manage Sales', description: 'Can create and edit invoices' },
+  { id: 'manage_quotations', label: 'Manage Quotations', description: 'Can generate and view quotations' },
+  { id: 'manage_bookings', label: 'Manage Bookings', description: 'Can create and manage bookings' },
+  { id: 'manage_returns', label: 'Manage Returns', description: 'Can process sale returns' },
   { id: 'manage_inventory', label: 'Manage Inventory', description: 'Can add products and update stock' },
   { id: 'manage_customers', label: 'Manage Customers', description: 'Can add and edit customer details' },
   { id: 'manage_suppliers', label: 'Manage Suppliers', description: 'Can add and edit supplier details' },
@@ -21,6 +24,8 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'manage_staff', label: 'Manage Staff', description: 'Can add staff and manage roles' },
   { id: 'manage_payroll', label: 'Manage Payroll', description: 'Can generate and confirm salary slips' },
   { id: 'view_attendance', label: 'View Attendance', description: 'Can see attendance records of all staff' },
+  { id: 'view_reports', label: 'View Reports', description: 'Can view staff performance and system logs' },
+  { id: 'manage_settings', label: 'Manage Settings', description: 'Can access and update business settings' },
 ];
 
 export function PermissionsModal({ isOpen, onClose, staff }: PermissionsModalProps) {

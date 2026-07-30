@@ -1,11 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useSales } from '../api/useSales';
+import { useSales, useCancelSale } from '../api/useSales';
 import { Button } from '@/components/ui/button';
 import { FileText, Plus, TrendingUp, DollarSign, ArrowRight, Search, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from '@/components/ui/data-table';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TableSkeleton } from '@/components/ui/skeleton-loaders';
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
 import { getInvoiceColumns } from '../constants/invoiceColumns';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
 import { formatCurrency } from '@/lib/formatters';
@@ -23,6 +24,9 @@ export default function InvoicesPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [hasUdhar, setHasUdhar] = useState('');
+
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [saleToCancel, setSaleToCancel] = useState<number | null>(null);
 
   // Debounced search to prevent duplicate network calls
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -48,6 +52,7 @@ export default function InvoicesPage() {
   }), [debouncedSearch, paymentMode, startDate, endDate, hasUdhar]);
 
   const { data: response, isLoading } = useSales(page, 15, filters);
+  const cancelSaleMutation = useCancelSale();
   const navigate = useNavigate();
 
   const sales = response?.data || [];
@@ -108,13 +113,32 @@ export default function InvoicesPage() {
     }
   };
 
+  const handleCancelInvoice = (saleId: number) => {
+    setSaleToCancel(saleId);
+    setCancelModalOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!saleToCancel) return;
+    try {
+      await cancelSaleMutation.mutateAsync(saleToCancel);
+      toast.success("Invoice cancelled and inventory restored!");
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Failed to cancel invoice");
+    } finally {
+      setCancelModalOpen(false);
+      setSaleToCancel(null);
+    }
+  };
+
   const columns = useMemo(() => getInvoiceColumns({
     onView: (sale) => navigate(`/invoices/${sale.id}`),
     onCustomerView: (customerId) => navigate(`/customers/${customerId}`),
     onResumeDraft: (saleId) => navigate(`/pos?draft_id=${saleId}`),
     onDownloadPdf: handleDownloadPdf,
-    onWhatsAppShare: handleWhatsAppShare
-  }), [navigate]);
+    onWhatsAppShare: handleWhatsAppShare,
+    onCancel: handleCancelInvoice
+  }), [navigate, handleCancelInvoice]);
 
   const handleClearFilters = () => {
     setSearch('');
@@ -302,6 +326,19 @@ export default function InvoicesPage() {
           )}
         </div>
       </div>
+
+      <DeleteConfirmModal
+        isOpen={cancelModalOpen}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setSaleToCancel(null);
+        }}
+        onConfirm={confirmCancel}
+        title="Cancel Invoice"
+        description="Are you sure you want to cancel this invoice? This will return the stock to your inventory. This action cannot be undone."
+        confirmText="CANCEL"
+        isLoading={cancelSaleMutation.isPending}
+      />
     </div>
   );
 }

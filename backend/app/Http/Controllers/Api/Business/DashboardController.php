@@ -19,11 +19,13 @@ class DashboardController extends Controller
         // 1. Today's Sales
         $todaySales = Sale::whereDate('date', $today)
             ->where('invoice_number', 'not like', 'UDH-%')
+            ->whereNotIn('status', ['Draft', 'Cancelled'])
             ->sum('final_amount');
 
         // 2. This Month's Revenue
         $monthlyRevenue = Sale::where('date', '>=', $thisMonth)
             ->where('invoice_number', 'not like', 'UDH-%')
+            ->whereNotIn('status', ['Draft', 'Cancelled'])
             ->sum('final_amount');
 
         // 3. Pending Payments (Expected)
@@ -58,6 +60,7 @@ class DashboardController extends Controller
         // 7. Total Invoices This Month
         $totalInvoices = Sale::where('date', '>=', $thisMonth)
             ->where('invoice_number', 'not like', 'UDH-%')
+            ->whereNotIn('status', ['Draft', 'Cancelled'])
             ->count();
 
         // Profit Stats
