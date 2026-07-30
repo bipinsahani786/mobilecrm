@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { format, isValid } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,9 @@ export function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Parse state date using parseYMD
   const parsedDate = parseYMD(value);
@@ -57,16 +61,61 @@ export function DatePicker({
     }
   }, [value]);
 
+  const updateCoords = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const popoverWidth = 288; // 18rem (w-72)
+    const popoverHeight = 320;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let left = align === 'right' ? rect.right - popoverWidth : rect.left;
+
+    // Viewport collision protection (Right edge)
+    if (left + popoverWidth > viewportWidth - 12) {
+      left = viewportWidth - popoverWidth - 12;
+    }
+    // Viewport collision protection (Left edge)
+    if (left < 12) {
+      left = 12;
+    }
+
+    // Vertical placement (Open above if space below is tight)
+    let top = rect.bottom + 6;
+    if (top + popoverHeight > viewportHeight - 12 && rect.top > popoverHeight + 12) {
+      top = rect.top - popoverHeight - 6;
+    }
+
+    setCoords({ top, left });
+  }, [align]);
+
+  useEffect(() => {
+    if (isOpen) {
+      updateCoords();
+      window.addEventListener('resize', updateCoords);
+      window.addEventListener('scroll', updateCoords, true);
+      return () => {
+        window.removeEventListener('resize', updateCoords);
+        window.removeEventListener('scroll', updateCoords, true);
+      };
+    }
+  }, [isOpen, updateCoords]);
+
   // Click outside listener
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current && !containerRef.current.contains(event.target as Node) &&
+        popoverRef.current && !popoverRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isOpen]);
 
   const handlePrevMonth = () => {
     setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
@@ -85,11 +134,9 @@ export function DatePicker({
 
   // Generate days grid
   const days: (Date | null)[] = [];
-  // Empty slots for previous month padding
   for (let i = 0; i < firstDayOfMonth; i++) {
     days.push(null);
   }
-  // Days of current month
   for (let i = 1; i <= daysInMonth; i++) {
     days.push(new Date(year, month, i));
   }
@@ -143,8 +190,9 @@ export function DatePicker({
   const displayValue = value && isValid(parsedDate) ? format(parsedDate, 'dd/MM/yyyy') : '';
 
   return (
-    <div className={cn("relative inline-block w-full", isOpen ? "z-40" : "z-10", className)} ref={containerRef}>
+    <div className={cn("relative inline-block w-full", className)} ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setIsOpen(p => !isOpen)}
         className={cn(
@@ -189,11 +237,12 @@ export function DatePicker({
         </div>
       </button>
 
-      {isOpen && (
-        <div className={cn(
-          "absolute top-full z-[9999] mt-1.5 w-72 p-3 bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl shadow-slate-300/50 dark:shadow-black/80 animate-in fade-in slide-in-from-top-2 duration-150",
-          align === 'right' ? 'right-0' : 'left-0'
-        )}>
+      {isOpen && typeof document !== 'undefined' && createPortal(
+        <div 
+          ref={popoverRef}
+          style={{ top: coords.top, left: coords.left }}
+          className="fixed z-[99999] w-72 p-3 bg-white dark:bg-[#111118] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl shadow-slate-400/30 dark:shadow-black/90 animate-in fade-in slide-in-from-top-2 duration-150"
+        >
           {/* Header */}
           <div className="flex items-center justify-between mb-3">
             <button
@@ -273,7 +322,8 @@ export function DatePicker({
               </button>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
