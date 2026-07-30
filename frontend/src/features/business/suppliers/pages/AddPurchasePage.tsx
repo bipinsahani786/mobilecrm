@@ -153,82 +153,93 @@ export default function AddPurchasePage() {
                 </Button>
               </div>
 
-              <div className="space-y-3">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex gap-3 items-start">
-                    <div className="flex-1 space-y-1">
-                      <label className="block text-xs font-medium text-slate-500 whitespace-nowrap">Product *</label>
-                      <Controller
-                        control={control}
-                        name={`items.${index}.product_id`}
-                        render={({ field }) => (
-                          <SearchableSelect
-                            options={products.map(p => ({ value: p.id.toString(), label: p.model_name }))}
-                            value={field.value}
-                            onChange={field.onChange}
-                            placeholder="Select Product..."
-                          />
-                        )}
-                      />
-                      {errors.items?.[index]?.product_id && <span className="text-red-500 text-xs">{errors.items[index].product_id.message}</span>}
-                    </div>
-                    
-                    <div className="w-32 space-y-1">
-                      <label className="block text-xs font-medium text-slate-500 whitespace-nowrap">Batch No</label>
-                      <Input 
-                        type="text" 
-                        {...register(`items.${index}.batch_number`)}
-                        placeholder="Optional"
-                      />
-                    </div>
-                    
-                    <div className="w-24 space-y-1">
-                      <label className="block text-xs font-medium text-slate-500 whitespace-nowrap">Qty *</label>
-                      <Input 
-                        type="number" 
-                        {...register(`items.${index}.quantity`)}
-                        min="1"
-                      />
-                      {errors.items?.[index]?.quantity && <span className="text-red-500 text-xs">{errors.items[index].quantity.message}</span>}
-                    </div>
-                    
-                    <div className="w-36 space-y-1">
-                      <label className="block text-xs font-medium text-slate-500 whitespace-nowrap">Price/Unit *</label>
-                      <Input 
-                        type="number" 
-                        {...register(`items.${index}.purchase_price`)}
-                        min="0"
-                      />
-                      {errors.items?.[index]?.purchase_price && <span className="text-red-500 text-xs">{errors.items[index].purchase_price.message}</span>}
-                    </div>
-
-                    <div className="w-24 space-y-1">
-                      <label className="block text-xs font-medium text-slate-500 whitespace-nowrap">MRP</label>
-                      <Input 
-                        type="number" 
-                        {...register(`items.${index}.mrp`)}
-                        min="0"
-                        placeholder="Auto"
-                      />
-                      {errors.items?.[index]?.mrp && <span className="text-red-500 text-xs">{errors.items[index].mrp?.message}</span>}
-                    </div>
-
-                    <div className="pt-5">
-                      <PortalTooltip text="Remove Item" visible={true}>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-rose-500 hover:text-rose-600 hover:bg-rose-50" 
-                          type="button"
-                          onClick={() => remove(index)}
-                          disabled={fields.length === 1}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </PortalTooltip>
-                    </div>
+              <div className="w-full overflow-x-auto">
+                <div className="min-w-[700px] space-y-3">
+                  {/* Table Column Headers for desktop & mobile scroll */}
+                  <div className="flex gap-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-white/5 pb-2">
+                    <div className="flex-1">Product *</div>
+                    <div className="w-32">Batch No</div>
+                    <div className="w-24">Qty *</div>
+                    <div className="w-36">Price/Unit *</div>
+                    <div className="w-24">MRP</div>
+                    <div className="w-10 text-center">Action</div>
                   </div>
-                ))}
+
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="flex gap-3 items-center bg-slate-50/50 dark:bg-white/[0.01] p-2 rounded-xl border border-slate-100 dark:border-white/5">
+                      <div className="flex-1">
+                        <Controller
+                          control={control}
+                          name={`items.${index}.product_id`}
+                          render={({ field }) => (
+                            <SearchableSelect
+                              options={products.map(p => ({ value: p.id.toString(), label: p.model_name }))}
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="Select Product..."
+                            />
+                          )}
+                        />
+                        {errors.items?.[index]?.product_id && <span className="text-red-500 text-xs">{errors.items[index].product_id.message}</span>}
+                      </div>
+                      
+                      <div className="w-32">
+                        <Input 
+                          type="text" 
+                          {...register(`items.${index}.batch_number`)}
+                          placeholder="Optional"
+                          className="h-10 text-xs"
+                        />
+                      </div>
+                      
+                      <div className="w-24">
+                        <Input 
+                          type="number" 
+                          {...register(`items.${index}.quantity`)}
+                          min="1"
+                          className="h-10 text-xs"
+                        />
+                        {errors.items?.[index]?.quantity && <span className="text-red-500 text-xs">{errors.items[index].quantity.message}</span>}
+                      </div>
+                      
+                      <div className="w-36">
+                        <Input 
+                          type="number" 
+                          {...register(`items.${index}.purchase_price`)}
+                          min="0"
+                          className="h-10 text-xs"
+                        />
+                        {errors.items?.[index]?.purchase_price && <span className="text-red-500 text-xs">{errors.items[index].purchase_price.message}</span>}
+                      </div>
+
+                      <div className="w-24">
+                        <Input 
+                          type="number" 
+                          {...register(`items.${index}.mrp`)}
+                          min="0"
+                          placeholder="Auto"
+                          className="h-10 text-xs"
+                        />
+                        {errors.items?.[index]?.mrp && <span className="text-red-500 text-xs">{errors.items[index].mrp?.message}</span>}
+                      </div>
+
+                      <div className="w-10 flex justify-center">
+                        <PortalTooltip text="Remove Item" visible={true}>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 h-9 w-9 rounded-xl cursor-pointer" 
+                            type="button"
+                            onClick={() => remove(index)}
+                            disabled={fields.length === 1}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </PortalTooltip>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 

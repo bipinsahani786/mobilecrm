@@ -235,16 +235,16 @@ export function DataTable<T>({
         </div>
       )}
 
-      {/* Table */}
-      <div className="overflow-x-auto w-full rounded-t-lg">
-        <table className="w-full text-left border-collapse min-w-max">
+      {/* Table Container with Horizontal Scroll */}
+      <div className="w-full overflow-x-auto rounded-t-lg relative">
+        <table className="w-full text-left border-collapse min-w-[650px] sm:min-w-full">
           <thead>
-            <tr className="bg-slate-50/50 dark:bg-white/[0.02] border-b border-slate-200/60 dark:border-white/10">
+            <tr className="bg-slate-50/80 dark:bg-white/[0.03] border-b border-slate-200/80 dark:border-white/10">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   className={cn(
-                    "px-4 py-3 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest select-none transition-colors align-middle group",
+                    "px-3 sm:px-4 py-3 text-[10px] sm:text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider sm:tracking-widest select-none transition-colors align-middle group whitespace-nowrap",
                     col.sortable && "cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white",
                     col.className
                   )}
@@ -269,15 +269,15 @@ export function DataTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
             {isLoading ? (
               loadingSkeleton ? (
                 loadingSkeleton
               ) : (
                 Array.from({ length: 5 }).map((_, rowIndex) => (
-                  <tr key={rowIndex} className="border-b border-slate-100/80 dark:border-white/5 animate-pulse">
+                  <tr key={rowIndex} className="animate-pulse">
                     {columns.map((col, colIndex) => (
-                      <td key={colIndex} className="px-4 py-3.5 align-middle">
+                      <td key={colIndex} className="px-3 sm:px-4 py-3.5 align-middle">
                         <div className={cn(
                           "h-3.5 bg-slate-200 dark:bg-white/5 rounded-md w-5/6",
                           col.className?.includes('text-right') ? 'ml-auto' : ''
@@ -318,10 +318,10 @@ export function DataTable<T>({
                   <React.Fragment key={rowIdx}>
                     <tr
                       onClick={handleRowClick}
-                      className={`border-b border-slate-100/80 dark:border-white/5 hover:bg-primary-50/50 dark:hover:bg-primary-500/5 transition-colors duration-200 group ${(onRowClick || renderSubComponent) ? 'cursor-pointer' : ''}`}
+                      className={`hover:bg-primary-50/40 dark:hover:bg-primary-500/5 transition-colors duration-200 group ${(onRowClick || renderSubComponent) ? 'cursor-pointer' : ''}`}
                     >
                       {columns.map((col, colIdx) => (
-                        <td key={colIdx} className={`px-4 py-2 align-middle text-xs font-bold text-slate-900 dark:text-slate-100 ${col.className || ''}`}>
+                        <td key={colIdx} className={`px-3 sm:px-4 py-2.5 sm:py-3 align-middle text-xs font-semibold text-slate-800 dark:text-slate-100 ${col.className || ''}`}>
                           {col.cell ? col.cell(item) : (col.accessorKey ? String(item[col.accessorKey] || '') : '')}
                         </td>
                       ))}
@@ -345,8 +345,8 @@ export function DataTable<T>({
 
       {/* Pagination Footer */}
       {!isLoading && (serverSide ? totalItems : data.length) > 0 && (
-        <div className="px-4 py-2.5 border-t border-slate-200/60 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50 dark:bg-white/[0.02] rounded-b-xl">
-          <div className="flex flex-wrap items-center gap-4">
+        <div className="px-3 sm:px-4 py-3 border-t border-slate-200/60 dark:border-white/10 flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-white/[0.02] rounded-b-xl">
+          <div className="flex flex-col sm:flex-row items-center justify-between w-full md:w-auto gap-3">
             <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
               <span>Show</span>
               <CustomSelect
@@ -365,36 +365,36 @@ export function DataTable<T>({
               />
               <span>entries</span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
               Showing <span className="font-semibold text-slate-700 dark:text-slate-300">{serverSide ? (totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1) : (sortedData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1)}</span> to <span className="font-semibold text-slate-700 dark:text-slate-300">{serverSide ? Math.min(currentPage * pageSize, totalItems) : Math.min(currentPage * pageSize, sortedData.length)}</span> of <span className="font-semibold text-slate-700 dark:text-slate-300">{serverSide ? totalItems : sortedData.length}</span> results
             </p>
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center justify-center gap-1 w-full md:w-auto shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/50 dark:border-white/5">
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-2"
+                className="h-8 px-2 cursor-pointer"
                 onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
 
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 overflow-x-auto max-w-[200px] sm:max-w-none py-1 scrollbar-none">
                 {getPageNumbers().map((pageNum, idx) => {
                   if (typeof pageNum === 'string') {
                     return (
-                      <span key={idx} className="px-2 text-slate-400 text-xs select-none">...</span>
+                      <span key={idx} className="px-1 text-slate-400 text-xs select-none">...</span>
                     );
                   }
                   return (
                     <button
                       key={idx}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`h-8 w-8 text-xs font-semibold rounded-md transition-colors ${currentPage === pageNum
-                          ? 'bg-primary-500 text-white'
+                      className={`h-8 w-8 text-xs font-semibold rounded-md transition-colors shrink-0 cursor-pointer ${currentPage === pageNum
+                          ? 'bg-primary-500 text-white font-bold'
                           : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                         }`}
                     >
@@ -407,7 +407,7 @@ export function DataTable<T>({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-8 px-2"
+                className="h-8 px-2 cursor-pointer"
                 onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
               >

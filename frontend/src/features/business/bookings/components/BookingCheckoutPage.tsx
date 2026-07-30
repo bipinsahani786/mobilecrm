@@ -27,7 +27,7 @@ export function BookingCheckoutPage({ cart, cartTotal, onCancel, onSuccess, isSu
   const [paymentType, setPaymentType] = useState('cash');
   const [splitPayments, setSplitPayments] = useState<any[]>([{ mode: 'Cash', amount: '' }, { mode: 'UPI', amount: '' }]);
 
-  const { register, handleSubmit, watch } = useForm({
+  const { register, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       advance_amount: 0,
       booking_date: new Date().toISOString().split('T')[0],
@@ -35,6 +35,9 @@ export function BookingCheckoutPage({ cart, cartTotal, onCancel, onSuccess, isSu
       notes: ''
     }
   });
+
+  const bookingDate = watch('booking_date');
+  const expectedDeliveryDate = watch('expected_delivery_date');
 
   const formAdvance = watch('advance_amount') || 0;
   const splitTotal = splitPayments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
@@ -170,14 +173,14 @@ export function BookingCheckoutPage({ cart, cartTotal, onCancel, onSuccess, isSu
             
             <div className="space-y-4 border border-slate-100 dark:border-white/5 rounded-xl p-4 bg-slate-50/50 dark:bg-white/[0.01]">
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Booking Date</label>
-                  <Input type="date" {...register('booking_date')} className="bg-white dark:bg-white/5 border-slate-200 dark:border-white/10" />
+                  <DatePicker value={bookingDate} onChange={(val) => setValue('booking_date', val)} placeholder="Booking Date" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Expected Delivery</label>
-                  <Input type="date" {...register('expected_delivery_date')} className="bg-white dark:bg-white/5 border-slate-200 dark:border-white/10" />
+                  <DatePicker value={expectedDeliveryDate} onChange={(val) => setValue('expected_delivery_date', val)} placeholder="Expected Delivery Date" />
                 </div>
               </div>
 
