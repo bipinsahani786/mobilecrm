@@ -4,7 +4,7 @@ import { FileText, Plus, TrendingUp, Download, Search, ArrowRight, Trash2 } from
 import { formatCurrency } from '@/lib/formatters';
 import { useQuotations, useDeleteQuotation, useConvertToBill } from '../api/useQuotations';
 import { CustomKpiCard } from '@/components/ui/CustomKpiCard';
-import { FilterContainer, FilterSearch, FilterSelect, FilterReset } from '@/components/ui/filter-controls';
+import { FilterContainer, FilterSearch, FilterSelect, FilterReset, FilterDate } from '@/components/ui/filter-controls';
 import { DataTable, type ColumnDef } from '@/components/ui/data-table';
 import { TableSkeleton } from '@/components/ui/skeleton-loaders';
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal';
@@ -247,12 +247,10 @@ export default function QuotationsPage() {
               options={statusOptions}
               wrapperClassName="w-full sm:w-40 shrink-0"
             />
-            <div className="flex items-center gap-2">
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                className="h-10 px-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500 w-full sm:w-auto" />
-              <span className="text-slate-400 text-xs font-bold">to</span>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
-                className="h-10 px-3 bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:border-primary-500 w-full sm:w-auto" />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <FilterDate label="From" value={startDate} onChange={setStartDate} placeholder="Start Date" />
+              <span className="text-slate-400 text-xs font-bold text-center hidden sm:inline">to</span>
+              <FilterDate label="To" value={endDate} onChange={setEndDate} placeholder="End Date" />
             </div>
           </div>
 

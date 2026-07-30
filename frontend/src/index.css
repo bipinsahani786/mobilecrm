@@ -143,6 +143,13 @@
   box-shadow: inset 4px 4px 8px rgba(165, 180, 200, 0.55), inset -4px -4px 8px rgba(255, 255, 255, 0.95);
 }
 
+/* Hide ONLY on PC/Desktop (mouse/trackpad), visible on all phones & tablets in portrait & landscape */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .pc-hidden {
+    display: none !important;
+  }
+}
+
 /* Page Transitions */
 .page-enter {
   animation: pageFadeIn 0.5s ease-out forwards;

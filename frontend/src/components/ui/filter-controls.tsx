@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Search, RotateCcw, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
+import { DatePicker } from './DatePicker';
 
 export interface FilterContainerProps extends React.HTMLAttributes<HTMLDivElement> { }
 
@@ -205,10 +206,11 @@ export function FilterSelect({
   );
 }
 
-export interface FilterDateProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange'> {
+export interface FilterDateProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
   wrapperClassName?: string;
 }
 
@@ -216,30 +218,29 @@ export function FilterDate({
   label,
   value,
   onChange,
-  className,
+  placeholder = "Select Date",
   wrapperClassName,
-  ...props
 }: FilterDateProps) {
   return (
     <div
       className={cn(
-        "flex items-center bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 rounded-xl overflow-hidden h-9 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50",
+        "relative flex items-center bg-white dark:bg-zinc-900/50 border border-slate-200 dark:border-white/10 rounded-xl h-9 shadow-sm focus-within:ring-2 focus-within:ring-primary-500/20 focus-within:border-primary-500 transition-all group hover:border-primary-500/50 w-full sm:w-auto shrink-0 z-20",
         wrapperClassName
       )}
     >
-      <span className="h-full px-3 flex items-center bg-slate-50/50 dark:bg-white/5 border-r border-slate-100 dark:border-white/5 text-[10px] sm:text-xs font-bold tracking-widest text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400">
+      <span className="h-full px-2.5 flex items-center bg-slate-50/50 dark:bg-white/5 border-r border-slate-100 dark:border-white/5 text-[10px] sm:text-xs font-bold tracking-widest text-slate-500 dark:text-zinc-400 uppercase select-none transition-colors group-focus-within:text-primary-500 dark:group-focus-within:text-primary-400 whitespace-nowrap rounded-l-xl">
         {label}
       </span>
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn(
-          "flex-1 bg-transparent border-0 pl-2.5 pr-1 py-1 focus:outline-none focus:ring-0 text-xs text-slate-700 dark:text-slate-200 uppercase",
-          className
-        )}
-        {...props}
-      />
+      <div className="flex-1 min-w-[130px]">
+        <DatePicker
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          controlSize="sm"
+          variant="borderless"
+          allowClear={true}
+        />
+      </div>
     </div>
   );
 }
