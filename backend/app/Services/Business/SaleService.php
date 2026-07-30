@@ -50,7 +50,9 @@ class SaleService
 
         $aggregatesQuery = clone $query;
         
-        $totalRevenue = (clone $aggregatesQuery)->sum('final_amount');
+        $totalRevenue = (clone $aggregatesQuery)
+            ->whereNotIn('status', ['Draft', 'Cancelled'])
+            ->sum('final_amount');
         
         // Sum of all Udhar payments for these sales
         $totalUdhar = \App\Models\SalePayment::whereIn('sale_id', (clone $aggregatesQuery)->select('id'))
@@ -694,6 +696,49 @@ class SaleService
             }
 
             return $sale->load(['customer', 'items.product', 'payments', 'emiDetail']);
+        });
+    }
+
+    public function cancelSale($id)
+    {
+        return DB::transaction(function () use ($id) {
+            $sale = Sale::with('items.product')->findOrFail($id);
+            
+            if (in_array($sale->status, ['Cancelled', 'Draft'])) {
+                throw new \Exception("Cannot cancel an invoice with status: " . $sale->status);
+            }
+            
+            $sale->status = 'Cancelled';
+            $sale->save();
+            
+            // Restore inventory
+            foreach ($sale->items as $item) {
+                if ($item->quantity > 0) {
+                    if (!empty($item->product_batch_id)) {
+                        $batch = ProductBatch::find($item->product_batch_id);
+                        if ($batch) {
+                            $batch->increment('remaining_quantity', $item->quantity);
+                        }
+                    }
+                    
+                    if ($item->product_id) {
+                        $product = \App\Models\Product::find($item->product_id);
+                        if ($product) {
+                            $product->increment('quantity', $item->quantity);
+                            
+                            InventoryMovement::create([
+                                'product_id' => $product->id,
+                                'type' => 'in',
+                                'quantity' => $item->quantity,
+                                'reference_type' => 'sale_cancellation',
+                                'reference_id' => $sale->id,
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            return $sale;
         });
     }
 }

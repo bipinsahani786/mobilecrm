@@ -313,4 +313,27 @@ class SaleController extends BaseController
 
         return $pdf->download("invoice-{$sale->invoice_number}.pdf");
     }
+
+    #[OA\Post(
+        path: '/business/sales/{id}/cancel',
+        summary: 'Cancel Sale',
+        description: 'Cancel an invoice and return stock to inventory.',
+        tags: ['Business - Sales'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, description: 'Sale ID')
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Sale cancelled successfully')
+        ]
+    )]
+    public function cancel($id)
+    {
+        try {
+            $sale = clone $this->saleService->cancelSale($id);
+            return $this->success($sale, 'Sale cancelled and inventory restored successfully.');
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage(), 400);
+        }
+    }
 }

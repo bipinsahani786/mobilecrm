@@ -67,6 +67,7 @@ Route::prefix('v1')->group(function () {
 
             // Sales Routes
             Route::get('sales/{sale}/invoice-pdf', [\App\Http\Controllers\Api\SaleController::class, 'generatePdf']);
+            Route::post('sales/{id}/cancel', [\App\Http\Controllers\Api\SaleController::class, 'cancel']);
             Route::apiResource('sales', \App\Http\Controllers\Api\SaleController::class);
 
             // Booking Routes

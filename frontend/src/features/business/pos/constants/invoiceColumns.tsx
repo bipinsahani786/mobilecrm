@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@/components/ui/data-table';
 import type { Sale } from '../schemas/saleSchema';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, MessageCircle, FileDown, Printer } from 'lucide-react';
+import { ChevronRight, MessageCircle, FileDown, Printer, XCircle, Pencil } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatters';
 
 interface InvoiceColumnsProps {
@@ -11,9 +11,10 @@ interface InvoiceColumnsProps {
   onDownloadPdf?: (sale: Sale, withLetterhead: boolean) => void;
   onWhatsAppShare?: (sale: Sale) => void;
   onThermalPrint?: (sale: Sale) => void;
+  onCancel?: (saleId: number) => void;
 }
 
-export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDownloadPdf, onWhatsAppShare, onThermalPrint }: InvoiceColumnsProps): ColumnDef<Sale>[] => [
+export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDownloadPdf, onWhatsAppShare, onThermalPrint, onCancel }: InvoiceColumnsProps): ColumnDef<Sale>[] => [
   {
     header: 'Invoice',
     cell: (sale) => {
@@ -163,22 +164,28 @@ export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDow
     header: 'Status',
     cell: (sale) => {
       const isDraft = sale.status === 'Draft';
+      const isCancelled = sale.status === 'Cancelled';
+      let badgeClass = 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300';
+      if (isDraft) badgeClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      else if (isCancelled) badgeClass = 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 line-through decoration-rose-500/50';
+
       return (
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${isDraft ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>
+          <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${badgeClass}`}>
             {sale.status || 'completed'}
           </span>
           {isDraft && onResumeDraft && (
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
+              title="Resume Draft"
               onClick={(e) => {
                 e.stopPropagation();
                 onResumeDraft(sale.id);
               }}
-              className="h-6 px-2 text-[9px] font-bold text-amber-600 border-amber-200 hover:bg-amber-50 transition-opacity"
+              className="h-6 w-6 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-opacity"
             >
-              Resume
+              <Pencil className="w-3.5 h-3.5" />
             </Button>
           )}
         </div>
@@ -188,7 +195,11 @@ export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDow
   {
     header: '',
     className: 'text-right',
-    cell: (sale) => (
+    cell: (sale) => {
+      const isDraft = sale.status === 'Draft';
+      const isCancelled = sale.status === 'Cancelled';
+      
+      return (
       <div className="flex items-center justify-end gap-1.5 transition-opacity">
         {onWhatsAppShare && (
           <Button 
@@ -209,32 +220,44 @@ export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDow
         {onDownloadPdf && (
           <>
             <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-7 px-2 text-[9px] font-bold text-slate-500 border-slate-200 hover:text-primary-600 hover:bg-slate-50 gap-1 uppercase tracking-wider"
-              title="Print on your pre-printed blank letterhead"
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-slate-500 hover:text-primary-600 hover:bg-primary-50"
+              title="Download Blank PDF"
               onClick={(e) => {
                 e.stopPropagation();
                 onDownloadPdf(sale, false);
               }}
             >
-              <FileDown className="w-3 h-3" />
-              Blank PDF
+              <FileDown className="w-4 h-4" />
             </Button>
             <Button 
-              variant="outline" 
-              size="sm" 
-              className="h-7 px-2 text-[9px] font-bold text-primary-500 border-primary-200 hover:text-primary-600 hover:bg-primary-50 gap-1 uppercase tracking-wider"
-              title="Print with digital letterhead"
+              variant="ghost" 
+              size="icon" 
+              className="h-7 w-7 text-primary-500 hover:text-primary-600 hover:bg-primary-50"
+              title="Download Letterhead PDF"
               onClick={(e) => {
                 e.stopPropagation();
                 onDownloadPdf(sale, true);
               }}
             >
-              <Printer className="w-3 h-3" />
-              Letterhead
+              <Printer className="w-4 h-4" />
             </Button>
           </>
+        )}
+        {!isDraft && !isCancelled && onCancel && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-7 w-7 text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+            title="Cancel Invoice"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCancel(sale.id);
+            }}
+          >
+            <XCircle className="w-4 h-4" />
+          </Button>
         )}
         <Button 
           variant="ghost" 
@@ -248,6 +271,7 @@ export const getInvoiceColumns = ({ onView, onCustomerView, onResumeDraft, onDow
           <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
-    )
+    );
   }
+}
 ];

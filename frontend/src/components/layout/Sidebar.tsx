@@ -230,14 +230,20 @@ export function Sidebar({ className }: { className?: string }) {
     });
   }
 
-  if (hasPermission('manage_sales') || hasPermission('manage_inventory') || hasPermission('manage_expenses')) {
+  if (hasPermission('manage_sales') || hasPermission('manage_inventory') || hasPermission('manage_expenses') || hasPermission('manage_bookings') || hasPermission('manage_returns') || hasPermission('manage_quotations')) {
     const operationsItems = [];
     if (hasPermission('manage_sales')) {
       operationsItems.push({ name: "POS & BILLING", href: "/pos", icon: Calculator });
       operationsItems.push({ name: "INVOICES", href: "/invoices", icon: FileText });
-      if (hasFeature('has_quotations')) {
-        operationsItems.push({ name: "QUOTATIONS", href: "/quotations", icon: FileText });
-      }
+    }
+    if (hasPermission('manage_bookings')) {
+      operationsItems.push({ name: "BOOKINGS", href: "/bookings", icon: Calendar });
+    }
+    if (hasPermission('manage_returns')) {
+      operationsItems.push({ name: "SALE RETURNS", href: "/sale-returns", icon: Receipt });
+    }
+    if (hasPermission('manage_quotations') && hasFeature('has_quotations')) {
+      operationsItems.push({ name: "QUOTATIONS", href: "/quotations", icon: FileText });
     }
     if (hasPermission('manage_inventory')) {
       operationsItems.push({ name: "ITEMS", href: "/items", icon: Package });
@@ -289,6 +295,27 @@ export function Sidebar({ className }: { className?: string }) {
         items: hrItems
       });
     }
+  }
+
+  if (hasPermission('view_reports')) {
+    const reportItems = [];
+    reportItems.push({ name: "STAFF PERFORMANCE", href: "/reports/staff-performance", icon: Activity });
+    if (hasFeature('has_activity_logs')) {
+      reportItems.push({ name: "SYSTEM LOGS", href: "/reports/audit-logs", icon: Database });
+    }
+    filteredStaffGroups.push({
+      title: "REPORTS & AUDIT",
+      items: reportItems
+    });
+  }
+
+  if (hasPermission('manage_settings')) {
+    filteredStaffGroups.push({
+      title: "ADMINISTRATION",
+      items: [
+        { name: "SETTINGS", href: "/setup/settings", icon: Settings },
+      ]
+    });
   }
 
   filteredStaffGroups.push({
